@@ -2,10 +2,21 @@ import SwiftUI
 
 struct HistoryView: View {
     @StateObject private var store = BrushingStore.shared
+    @StateObject private var gamification = GamificationStore.shared
     @State private var contentAppeared = false
 
     var body: some View {
         List {
+            Section {
+                levelCard
+                    .opacity(contentAppeared ? 1 : 0)
+                    .offset(y: contentAppeared ? 0 : 12)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            .listSectionSeparator(.hidden)
+
             Section {
                 streakCard
                     .opacity(contentAppeared ? 1 : 0)
@@ -18,6 +29,16 @@ struct HistoryView: View {
 
             Section {
                 statsRow
+                    .opacity(contentAppeared ? 1 : 0)
+                    .offset(y: contentAppeared ? 0 : 12)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            .listSectionSeparator(.hidden)
+
+            Section(header: achievementsHeader) {
+                achievementsRow
                     .opacity(contentAppeared ? 1 : 0)
                     .offset(y: contentAppeared ? 0 : 12)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
@@ -58,6 +79,68 @@ struct HistoryView: View {
             }
         }
         .animation(.easeOut(duration: 0.3), value: store.records.count)
+        .onAppear {
+            gamification.checkAndUnlock(records: store.records)
+        }
+    }
+
+    private var levelCard: some View {
+        HStack(spacing: 12) {
+            Text(gamification.levelEmoji)
+                .font(.system(size: 36))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("LEVEL \(gamification.level)")
+                    .font(.system(size: 11, weight: .heavy))
+                    .tracking(1)
+                    .foregroundColor(Theme.textMuted)
+                Text(gamification.levelTitle)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.textPrimary)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .background(Theme.surfaceFrost)
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.surfaceFrostBorder, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var achievementsHeader: some View {
+        Text("ACHIEVEMENTS")
+            .font(.system(size: 12, weight: .heavy))
+            .tracking(1.5)
+            .foregroundColor(Theme.textMuted)
+    }
+
+    private var achievementsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(GamificationStore.allAchievements) { achievement in
+                    let unlocked = gamification.unlockedAchievementIds.contains(achievement.id)
+                    VStack(spacing: 6) {
+                        Text(achievement.emoji)
+                            .font(.system(size: 28))
+                            .opacity(unlocked ? 1 : 0.3)
+                            .grayscale(unlocked ? 0 : 1)
+                        Text(achievement.title)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(unlocked ? Theme.textPrimary : Theme.textMuted)
+                            .lineLimit(1)
+                    }
+                    .frame(width: 72)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Theme.surfaceFrost)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(unlocked ? Theme.accentBlue.opacity(0.4) : Theme.surfaceFrostBorder, lineWidth: 1)
+                            )
+                    )
+                }
+            }
+            .padding(.horizontal, 2)
+        }
     }
 
     private var recentSessionsHeader: some View {
@@ -74,7 +157,7 @@ struct HistoryView: View {
                 .foregroundStyle(Theme.textMuted)
             Text("No Records Yet")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Theme.textPrimary)
             Text("Start brushing from the Brush tab to see your history here.")
                 .font(.subheadline)
                 .foregroundColor(Theme.textMuted)
@@ -126,7 +209,7 @@ struct HistoryView: View {
                 .font(.system(size: 22))
             Text(value)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(Theme.textPrimary)
             Text(label)
                 .font(.system(size: 11, weight: .bold))
                 .foregroundColor(Theme.textMuted)
@@ -154,7 +237,7 @@ struct HistoryView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(record.startDate, style: .time)
                         .font(.system(size: 15, weight: .heavy))
-                        .foregroundColor(.white)
+                        .foregroundColor(Theme.textPrimary)
                     Text(relativeDate(record.startDate))
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textMuted)

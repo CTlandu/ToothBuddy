@@ -25,9 +25,13 @@ struct ContentView: View {
                     }
             }
             tabContent
-            customTabBar
+            if !store.isBrushing {
+                customTabBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.lastDeletedRecord != nil)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: store.isBrushing)
         .background(Theme.appBackground.ignoresSafeArea())
         .ignoresSafeArea(edges: .bottom)
     }
@@ -36,7 +40,7 @@ struct ContentView: View {
         HStack(spacing: 12) {
             Text("Record deleted.")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Theme.textPrimary)
             Button("Undo") {
                 store.restoreLastDeleted()
             }
@@ -47,11 +51,11 @@ struct ContentView: View {
                 store.clearLastDeleted()
             }
             .font(.system(size: 13, weight: .medium))
-            .foregroundColor(.white.opacity(0.7))
+            .foregroundColor(Theme.textMuted)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Theme.backgroundMid)
+        .background(Theme.surfaceFrost)
         .overlay(
             Rectangle()
                 .fill(Theme.accentBlue.opacity(0.4))
@@ -66,8 +70,8 @@ struct ContentView: View {
         Text("🦷 ToothBuddy")
             .font(.system(size: 30, weight: .bold, design: .rounded))
             .tracking(1)
-            .foregroundColor(.white)
-            .shadow(color: Theme.accentBlue.opacity(0.6), radius: 8, x: 0, y: 2)
+            .foregroundColor(Theme.textPrimary)
+            .shadow(color: Theme.accentBlue.opacity(0.35), radius: 6, x: 0, y: 2)
             .padding(.vertical, 12)
     }
 
@@ -120,7 +124,7 @@ struct ContentView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 12)
         .padding(.bottom, 24)
-        .background(Color.white.opacity(0.05))
+        .background(Color.white.opacity(0.7))
         .overlay(
             Rectangle()
                 .fill(Theme.borderLight)

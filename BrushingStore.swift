@@ -10,6 +10,9 @@ final class BrushingStore: ObservableObject {
     /// When non-nil, show "Record deleted. Undo" so the user can restore.
     @Published var lastDeletedRecord: BrushingRecord?
 
+    /// True while a brushing session is active; used by ContentView to hide the tab bar.
+    @Published var isBrushing = false
+
     private let fileName = "brushing_records.json"
     private var fileURL: URL? {
         guard let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
@@ -68,6 +71,9 @@ final class BrushingStore: ObservableObject {
     func add(_ record: BrushingRecord) {
         records.insert(record, at: 0)
         save()
+        Task { @MainActor in
+            GamificationStore.shared.checkAndUnlock(records: records)
+        }
     }
 
     /// Removes the record by id, stores it in lastDeletedRecord for undo. Call restoreLastDeleted() to undo.

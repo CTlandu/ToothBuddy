@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// Design tokens matching the ToothBuddy JSX UI (dark blue gradient, sky blue accent).
+/// Cream gradient theme, evoking teeth/oral care.
 enum Theme {
-    // Background gradients (hex -> 0–1)
-    static let backgroundStart = Color(red: 15/255, green: 23/255, blue: 42/255)
-    static let backgroundMid = Color(red: 30/255, green: 58/255, blue: 95/255)
-    static let backgroundEnd = Color(red: 14/255, green: 165/255, blue: 233/255)
+    // Background gradient: ivory -> cream -> warm cream
+    static let backgroundStart = Color(red: 255/255, green: 251/255, blue: 245/255)  // #FFFBF5
+    static let backgroundMid = Color(red: 248/255, green: 243/255, blue: 236/255)   // #F8F3EC
+    static let backgroundEnd = Color(red: 240/255, green: 232/255, blue: 224/255)    // #F0E8E0
 
     static var appBackground: LinearGradient {
         LinearGradient(
@@ -15,12 +15,12 @@ enum Theme {
         )
     }
 
-    // Camera area: idle (darker) vs brushing (lighter)
-    static let cameraIdleStart = Color(red: 30/255, green: 58/255, blue: 95/255)
-    static let cameraIdleEnd = Color(red: 14/255, green: 165/255, blue: 233/255)
-    static let cameraBrushingStart = Color(red: 14/255, green: 165/255, blue: 233/255)
-    static let cameraBrushingMid = Color(red: 56/255, green: 189/255, blue: 248/255)
-    static let cameraBrushingEnd = Color(red: 125/255, green: 211/255, blue: 252/255)
+    // Camera area: idle (cream) vs brushing (soft lip tint)
+    static let cameraIdleStart = Color(red: 245/255, green: 238/255, blue: 228/255)
+    static let cameraIdleEnd = Color(red: 235/255, green: 225/255, blue: 212/255)
+    static let cameraBrushingStart = Color(red: 250/255, green: 232/255, blue: 232/255)  // soft rose
+    static let cameraBrushingMid = Color(red: 245/255, green: 218/255, blue: 218/255)
+    static let cameraBrushingEnd = Color(red: 238/255, green: 205/255, blue: 205/255)
 
     static func cameraGradient(brushing: Bool) -> LinearGradient {
         if brushing {
@@ -30,18 +30,17 @@ enum Theme {
                 endPoint: .bottomTrailing
             )
         } else {
-            // Start with backgroundStart to blend seamlessly with the header area
             return LinearGradient(
-                colors: [backgroundStart, cameraIdleStart, Color(red: 3/255, green: 105/255, blue: 161/255), cameraIdleEnd],
+                colors: [backgroundStart, cameraIdleStart, cameraIdleEnd],
                 startPoint: .top,
                 endPoint: .bottom
             )
         }
     }
 
-    // Buttons
-    static let startButtonStart = Color(red: 14/255, green: 165/255, blue: 233/255)
-    static let startButtonEnd = Color(red: 99/255, green: 102/255, blue: 241/255)
+    // Buttons: child lip color (soft coral / rose pink)
+    static let startButtonStart = Color(red: 244/255, green: 166/255, blue: 166/255)   // #F4A6A6 soft coral
+    static let startButtonEnd = Color(red: 232/255, green: 152/255, blue: 152/255)     // #E89898 deeper coral
     static let stopButtonStart = Color(red: 244/255, green: 63/255, blue: 94/255)
     static let stopButtonEnd = Color(red: 251/255, green: 146/255, blue: 60/255)
 
@@ -53,9 +52,9 @@ enum Theme {
         LinearGradient(colors: [stopButtonStart, stopButtonEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    // Cards
-    static let cardBlueStart = Color(red: 29/255, green: 78/255, blue: 216/255)
-    static let cardBlueEnd = Color(red: 14/255, green: 165/255, blue: 233/255)
+    // Cards: same color family as buttons
+    static let cardBlueStart = Color(red: 244/255, green: 166/255, blue: 166/255)
+    static let cardBlueEnd = Color(red: 232/255, green: 152/255, blue: 152/255)
     static var doneCardGradient: LinearGradient {
         LinearGradient(colors: [cardBlueStart, cardBlueEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
@@ -66,13 +65,16 @@ enum Theme {
         LinearGradient(colors: [streakOrangeStart, streakOrangeEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    static let accentBlue = Color(red: 56/255, green: 189/255, blue: 248/255)
-    static let textMuted = Color.white.opacity(0.5)
-    static let textMutedStrong = Color.white.opacity(0.75)
-    static let borderLight = Color.white.opacity(0.08)
-    static let borderAccent = Color.white.opacity(0.3)
-    static let surfaceFrost = Color.white.opacity(0.07)
-    static let surfaceFrostBorder = Color.white.opacity(0.1)
+    // Accent: child lip color (soft coral pink)
+    static let accentBlue = Color(red: 232/255, green: 180/255, blue: 184/255)  // #E8B4B8 dusty rose
+    // Text on light background
+    static let textPrimary = Color(red: 45/255, green: 45/255, blue: 45/255)
+    static let textMuted = Color(red: 107/255, green: 107/255, blue: 107/255)
+    static let textMutedStrong = Color(red: 80/255, green: 80/255, blue: 80/255)
+    static let borderLight = Color.black.opacity(0.06)
+    static let borderAccent = Color.black.opacity(0.15)
+    static let surfaceFrost = Color.white.opacity(0.85)
+    static let surfaceFrostBorder = Color.black.opacity(0.08)
 }
 
 /// Button style: scale down on press with a spring bounce back.

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - 刷牙小贴士数据模型
+// MARK: - Brushing tip data model
 struct BrushingTip: Identifiable {
     let id: String
     let emoji: String
@@ -9,7 +9,7 @@ struct BrushingTip: Identifiable {
     let content: String
 }
 
-// MARK: - 儿科牙医视角的趣味科普内容
+// MARK: - Fun educational content from a pediatric dentist perspective
 private let brushingTips: [BrushingTip] = [
     BrushingTip(
         id: "why-2-min",
@@ -130,24 +130,33 @@ private let brushingTips: [BrushingTip] = [
     )
 ]
 
-// MARK: - Tips 主界面
+// MARK: - Tips main view
 struct TipsView: View {
     @State private var selectedTip: BrushingTip?
     @State private var contentAppeared = false
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 14) {
-                ForEach(Array(brushingTips.enumerated()), id: \.element.id) { index, tip in
-                    tipCard(tip, delay: Double(index) * 0.05)
-                        .onTapGesture {
-                            selectedTip = tip
-                        }
+            VStack(alignment: .leading, spacing: 0) {
+                Text("BRUSHING TIPS")
+                    .font(.system(size: 12, weight: .heavy))
+                    .tracking(1.5)
+                    .foregroundColor(Theme.textMuted)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 12)
+
+                LazyVStack(spacing: 12) {
+                    ForEach(Array(brushingTips.enumerated()), id: \.element.id) { index, tip in
+                        tipCard(tip, delay: Double(index) * 0.05)
+                            .onTapGesture {
+                                selectedTip = tip
+                            }
+                    }
                 }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 18)
-            .padding(.bottom, 24)
+            .padding(.top, 18)
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.4)) {
@@ -160,19 +169,25 @@ struct TipsView: View {
     }
 
     private func tipCard(_ tip: BrushingTip, delay: Double) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             Text(tip.emoji)
-                .font(.system(size: 36))
-                .frame(width: 52, height: 52)
-                .background(Color.white.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .font(.system(size: 40))
+                .frame(width: 56, height: 56)
+                .background(
+                    LinearGradient(
+                        colors: [Theme.cardBlueStart.opacity(0.25), Theme.cardBlueEnd.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(tip.title)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.textPrimary)
                 Text(tip.summary)
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .foregroundColor(Theme.textMutedStrong)
                     .lineLimit(2)
             }
@@ -180,16 +195,17 @@ struct TipsView: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Theme.textMuted)
+                .foregroundColor(Theme.accentBlue)
         }
-        .padding(16)
+        .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 22)
                 .fill(Theme.surfaceFrost)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 22)
                         .stroke(Theme.surfaceFrostBorder, lineWidth: 1)
                 )
+                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 2)
         )
         .opacity(contentAppeared ? 1 : 0)
         .offset(y: contentAppeared ? 0 : 12)
@@ -197,7 +213,7 @@ struct TipsView: View {
     }
 }
 
-// MARK: - Tip 详情弹窗
+// MARK: - Tip detail sheet
 struct TipDetailView: View {
     let tip: BrushingTip
     @Environment(\.dismiss) private var dismiss
@@ -205,31 +221,31 @@ struct TipDetailView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 24) {
+                    HStack(spacing: 18) {
                         Text(tip.emoji)
-                            .font(.system(size: 48))
-                            .frame(width: 72, height: 72)
+                            .font(.system(size: 52))
+                            .frame(width: 80, height: 80)
                             .background(
                                 LinearGradient(
-                                    colors: [Theme.cardBlueStart.opacity(0.6), Theme.cardBlueEnd.opacity(0.6)],
+                                    colors: [Theme.cardBlueStart.opacity(0.35), Theme.cardBlueEnd.opacity(0.3)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(tip.title)
-                                .font(.system(size: 24, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                                .font(.system(size: 26, weight: .bold, design: .rounded))
+                                .foregroundColor(Theme.textPrimary)
                             Text(tip.summary)
-                                .font(.system(size: 15))
+                                .font(.system(size: 16))
                                 .foregroundColor(Theme.textMutedStrong)
                         }
                         Spacer()
                     }
-                    .padding(20)
+                    .padding(24)
                     .background(
                         RoundedRectangle(cornerRadius: 24)
                             .fill(Theme.surfaceFrost)
@@ -239,19 +255,22 @@ struct TipDetailView: View {
                             )
                     )
 
-                    Group {
-                        if let attributed = try? AttributedString(markdown: tip.content) {
-                            Text(attributed)
-                        } else {
-                            Text(tip.content)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Group {
+                            if let attributed = try? AttributedString(markdown: tip.content) {
+                                Text(attributed)
+                            } else {
+                                Text(tip.content)
+                            }
                         }
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(Theme.textPrimary)
+                        .lineSpacing(10)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white.opacity(0.95))
-                    .lineSpacing(6)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
                 }
-                .padding(20)
+                .padding(24)
             }
             .background(Theme.appBackground.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
