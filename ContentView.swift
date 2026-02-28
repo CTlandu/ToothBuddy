@@ -67,12 +67,15 @@ struct ContentView: View {
     }
 
     private var appHeader: some View {
-        Text("🦷 ToothBuddy")
-            .font(.system(size: 30, weight: .bold, design: .rounded))
-            .tracking(1)
-            .foregroundColor(Theme.textPrimary)
-            .shadow(color: Theme.accentBlue.opacity(0.35), radius: 6, x: 0, y: 2)
-            .padding(.vertical, 12)
+        HStack(spacing: 7) {
+            ToothImageView(size: 26)
+            Text("ToothBuddy")
+                .font(.system(size: 30, weight: .bold, design: .rounded))
+                .tracking(1)
+                .foregroundColor(Theme.textPrimary)
+        }
+        .shadow(color: Theme.accentBlue.opacity(0.3), radius: 6, x: 0, y: 2)
+        .padding(.vertical, 12)
     }
 
     private var tabOrderIndex: Int { Self.tabOrder.firstIndex(of: selectedTab) ?? 0 }
@@ -140,44 +143,54 @@ struct ContentView: View {
             previousTab = selectedTab
             selectedTab = tab
         } label: {
-            VStack(spacing: 3) {
-                Text(tabIcon(tab))
-                    .font(.system(size: 22))
+            VStack(spacing: 4) {
+                Group {
+                    if tab == .brush {
+                        ToothImageView(size: 24)
+                            .opacity(isSelected ? 1.0 : 0.38)
+                    } else {
+                        Image(systemName: tab.symbolName)
+                            .font(.system(size: 22, weight: isSelected ? .bold : .regular))
+                            .foregroundColor(isSelected ? Theme.startButtonEnd : Theme.textMuted)
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
+                .scaleEffect(isSelected ? 1.08 : 1)
+                .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isSelected)
                 Text(tab.label)
                     .font(.system(size: 11, weight: .heavy))
                     .tracking(0.5)
-                    .foregroundColor(isSelected ? Theme.accentBlue : Theme.textMuted)
+                    .foregroundColor(isSelected ? Theme.startButtonEnd : Theme.textMuted)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .padding(.horizontal, 20)
-            .background(isSelected ? Theme.accentBlue.opacity(0.2) : Color.clear)
+            .background(isSelected ? Theme.startButtonEnd.opacity(0.12) : Color.clear)
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
-                    .stroke(isSelected ? Theme.accentBlue.opacity(0.3) : Color.clear, lineWidth: 1)
+                    .stroke(isSelected ? Theme.startButtonEnd.opacity(0.25) : Color.clear, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 18))
-            .scaleEffect(isSelected ? 1.02 : 1)
             .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(BounceButtonStyle())
-    }
-
-    private func tabIcon(_ tab: AppTab) -> String {
-        switch tab {
-        case .brush: return "🪥"
-        case .history: return "📋"
-        case .tips: return "💡"
-        }
     }
 }
 
 extension AppTab {
     var label: String {
         switch self {
-        case .brush: return "Brush"
+        case .brush:   return "Brush"
         case .history: return "History"
-        case .tips: return "Tips"
+        case .tips:    return "Tips"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .brush:   return "mouth.fill"
+        case .history: return "chart.bar.fill"
+        case .tips:    return "lightbulb.fill"
         }
     }
 }

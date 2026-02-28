@@ -3,7 +3,7 @@ import Foundation
 /// Achievement badge for gamification.
 struct Achievement: Identifiable, Equatable {
     let id: String
-    let emoji: String
+    let systemImage: String
     let title: String
     let description: String
 }
@@ -43,26 +43,27 @@ final class GamificationStore: ObservableObject {
         }
     }
 
-    var levelEmoji: String {
+    /// Returns the SF Symbol name for the current level icon.
+    var levelSystemImage: String {
         switch level {
-        case 5: return "👑"
-        case 4: return "🌟"
-        case 3: return "⭐"
-        case 2: return "✨"
-        case 1: return "🦷"
-        default: return "🌱"
+        case 5: return "crown.fill"
+        case 4: return "star.circle.fill"
+        case 3: return "star.fill"
+        case 2: return "sparkles"
+        case 1: return "mouth.fill"
+        default: return "leaf.fill"
         }
     }
 
     static let allAchievements: [Achievement] = [
-        Achievement(id: "first-brush", emoji: "🪥", title: "First Brush", description: "Complete your first brushing session"),
-        Achievement(id: "five-sessions", emoji: "5️⃣", title: "Getting Started", description: "Complete 5 brushing sessions"),
-        Achievement(id: "ten-sessions", emoji: "🔟", title: "On a Roll", description: "Complete 10 brushing sessions"),
-        Achievement(id: "streak-3", emoji: "🔥", title: "3-Day Streak", description: "Brush 3 days in a row"),
-        Achievement(id: "streak-7", emoji: "🏆", title: "Week Warrior", description: "Brush 7 days in a row"),
-        Achievement(id: "two-min", emoji: "⏱️", title: "2-Minute Master", description: "Brush for 2 minutes in one session"),
-        Achievement(id: "five-perfect", emoji: "⭐", title: "Perfect Five", description: "Get 3 stars in 5 sessions"),
-        Achievement(id: "early-bird", emoji: "🌅", title: "Early Bird", description: "Brush before 8 AM"),
+        Achievement(id: "first-brush",    systemImage: "drop.fill",      title: "First Brush",     description: "Complete your first brushing session"),
+        Achievement(id: "five-sessions",  systemImage: "5.circle.fill",  title: "Getting Started", description: "Complete 5 brushing sessions"),
+        Achievement(id: "ten-sessions",   systemImage: "10.circle.fill", title: "On a Roll",       description: "Complete 10 brushing sessions"),
+        Achievement(id: "streak-3",       systemImage: "flame.fill",     title: "3-Day Streak",    description: "Brush 3 days in a row"),
+        Achievement(id: "streak-7",       systemImage: "trophy.fill",    title: "Week Warrior",    description: "Brush 7 days in a row"),
+        Achievement(id: "two-min",        systemImage: "timer",          title: "2-Minute Master", description: "Brush for 2 minutes in one session"),
+        Achievement(id: "five-perfect",   systemImage: "star.fill",      title: "Perfect Five",    description: "Get 3 stars in 5 sessions"),
+        Achievement(id: "early-bird",     systemImage: "sunrise.fill",   title: "Early Bird",      description: "Brush before 8 AM"),
     ]
 
     var unlockedAchievements: [Achievement] {

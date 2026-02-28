@@ -27,7 +27,7 @@ enum TipCategory: String {
 
 struct BrushingTip: Identifiable {
     let id: String
-    let emoji: String
+    let systemImage: String
     let title: String
     let summary: String
     /// Markdown content. Paragraphs separated by blank lines.
@@ -43,7 +43,7 @@ struct BrushingTip: Identifiable {
 private let brushingTips: [BrushingTip] = [
     BrushingTip(
         id: "why-2-min",
-        emoji: "⏱️",
+        systemImage: "timer",
         title: "Why 2 Minutes?",
         summary: "The science behind the magic number.",
         content: """
@@ -58,7 +58,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "circle-vs-zigzag",
-        emoji: "🔄",
+        systemImage: "arrow.2.circlepath",
         title: "Circle vs Zigzag",
         summary: "Gentle brushing techniques for little teeth.",
         content: """
@@ -73,7 +73,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "morning-night",
-        emoji: "🌙",
+        systemImage: "moon.fill",
         title: "Morning vs Night",
         summary: "Why both brushing times matter.",
         content: """
@@ -90,7 +90,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "floss-fun",
-        emoji: "🧵",
+        systemImage: "link.circle.fill",
         title: "Fun with Floss",
         summary: "Making flossing fun for children.",
         content: """
@@ -109,7 +109,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "tongue-time",
-        emoji: "👅",
+        systemImage: "mouth.fill",
         title: "Tongue Time!",
         summary: "Why we brush our tongue too.",
         content: """
@@ -124,7 +124,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "sugar-monster",
-        emoji: "🍬",
+        systemImage: "xmark.circle.fill",
         title: "The Sugar Monster",
         summary: "How sugar affects teeth — kid-friendly!",
         content: """
@@ -142,7 +142,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "baby-teeth",
-        emoji: "🦷",
+        systemImage: "_tooth",
         title: "Tooth Fairy's Secret",
         summary: "Why baby teeth matter more than you think.",
         content: """
@@ -157,7 +157,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "superhero-brushing",
-        emoji: "🦸",
+        systemImage: "bolt.circle.fill",
         title: "Superhero Brushing",
         summary: "Gamifying the brushing routine.",
         content: """
@@ -175,6 +175,21 @@ private let brushingTips: [BrushingTip] = [
         readTime: 1
     ),
 ]
+
+// MARK: - Shared icon view helper
+
+/// Renders a tip icon: tooth PNG for "_tooth", SF Symbol otherwise.
+@ViewBuilder
+private func tipEmojiView(_ systemImage: String, size: CGFloat, accent: Color = Theme.startButtonEnd) -> some View {
+    if systemImage == "_tooth" {
+        ToothImageView(size: size)
+    } else {
+        Image(systemName: systemImage)
+            .font(.system(size: size, weight: .semibold))
+            .foregroundColor(accent)
+            .symbolRenderingMode(.hierarchical)
+    }
+}
 
 // MARK: - Tips main view
 
@@ -235,8 +250,7 @@ struct TipsView: View {
                         .foregroundColor(tip.category.accentColor)
                 }
 
-                Text(tip.emoji)
-                    .font(.system(size: 72))
+                tipEmojiView(tip.systemImage, size: 72, accent: tip.category.accentColor)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 14)
 
@@ -281,8 +295,7 @@ struct TipsView: View {
     private func tipCard(_ tip: BrushingTip) -> some View {
         Button { selectedTip = tip } label: {
             HStack(spacing: 14) {
-                Text(tip.emoji)
-                    .font(.system(size: 30))
+                tipEmojiView(tip.systemImage, size: 30, accent: tip.category.accentColor)
                     .frame(width: 52, height: 52)
                     .background(tip.category.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -351,8 +364,7 @@ struct TipDetailView: View {
                     // Hero header
                     VStack(alignment: .leading, spacing: 14) {
                         HStack(alignment: .top, spacing: 16) {
-                            Text(tip.emoji)
-                                .font(.system(size: 52))
+                            tipEmojiView(tip.systemImage, size: 52, accent: tip.category.accentColor)
                                 .frame(width: 78, height: 78)
                                 .background(tip.category.cardBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: 20))

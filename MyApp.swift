@@ -9,7 +9,7 @@ struct MyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environment(\.font, NunitoFont.body)
         }
     }
@@ -28,6 +28,29 @@ struct MyApp: App {
                   let font = CGFont(provider)
             else { continue }
             CTFontManagerRegisterGraphicsFont(font, nil)
+        }
+    }
+}
+
+// MARK: - Root view
+
+/// Shows onboarding on every launch so judges/reviewers see the full flow,
+/// then transitions to the main app when the user taps "Start Brushing!".
+private struct RootView: View {
+    @State private var showOnboarding = true
+
+    var body: some View {
+        Group {
+            if showOnboarding {
+                OnboardingView {
+                    withAnimation(.easeInOut(duration: 0.45)) {
+                        showOnboarding = false
+                    }
+                }
+            } else {
+                ContentView()
+                    .transition(.opacity)
+            }
         }
     }
 }

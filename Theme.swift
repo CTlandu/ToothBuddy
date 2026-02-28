@@ -88,12 +88,46 @@ enum Theme {
     static let surfaceFrostBorder = Color.black.opacity(0.08)
 }
 
+/// Maps an SF Symbol name to a thematic accent color for icon display.
+/// Used for achievement badges, level icons, and tip icons.
+func symbolColor(for systemImage: String) -> Color {
+    switch systemImage {
+    case "flame.fill", "sunrise.fill":
+        return Color(red: 249/255, green: 115/255, blue: 22/255)   // orange
+    case "trophy.fill", "crown.fill":
+        return Color(red: 251/255, green: 191/255, blue: 36/255)   // gold
+    case "star.fill", "star.circle.fill":
+        return Color(red: 251/255, green: 191/255, blue: 36/255)   // gold
+    case "leaf.fill":
+        return Color(red: 34/255, green: 197/255, blue: 94/255)    // green
+    case "sparkles", "mouth.fill", "drop.fill":
+        return Theme.startButtonEnd                                  // coral
+    case "5.circle.fill", "10.circle.fill":
+        return Color(red: 59/255, green: 130/255, blue: 246/255)   // blue
+    default:
+        return Theme.startButtonEnd
+    }
+}
+
 /// Button style: scale down on press with a spring bounce back.
 struct BounceButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.65), value: configuration.isPressed)
+    }
+}
+
+/// Renders the custom tooth PNG asset at the given size.
+/// Use this everywhere 🦷 would have been shown as a standalone icon.
+struct ToothImageView: View {
+    var size: CGFloat
+
+    var body: some View {
+        Image("tooth")
+            .resizable()
+            .scaledToFit()
+            .frame(width: size, height: size)
     }
 }
 
@@ -106,10 +140,11 @@ struct StarRatingView: View {
     var body: some View {
         HStack(spacing: 3) {
             ForEach(0..<maxCount, id: \.self) { i in
-                Text("⭐")
-                    .font(.system(size: size))
-                    .grayscale(i < count ? 0 : 1)
-                    .opacity(i < count ? 1 : 0.3)
+                Image(systemName: i < count ? "star.fill" : "star")
+                    .font(.system(size: size, weight: .semibold))
+                    .foregroundColor(i < count
+                                     ? Color(red: 251/255, green: 191/255, blue: 36/255)
+                                     : Color.gray.opacity(0.3))
             }
         }
     }

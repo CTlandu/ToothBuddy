@@ -84,10 +84,12 @@ struct HistoryView: View {
             gamification.checkAndUnlock(records: store.records)
         }
         .sheet(item: $selectedAchievement) { achievement in
+            let unlocked = gamification.unlockedAchievementIds.contains(achievement.id)
             AchievementDetailSheet(
                 achievement: achievement,
-                unlocked: gamification.unlockedAchievementIds.contains(achievement.id),
-                progress: gamification.progressDescription(for: achievement, records: store.records)
+                unlocked: unlocked,
+                progress: gamification.progressDescription(for: achievement, records: store.records),
+                iconColor: unlocked ? symbolColor(for: achievement.systemImage) : .gray.opacity(0.3)
             )
             .presentationDetents([.height(340)])
             .presentationDragIndicator(.visible)
@@ -96,8 +98,10 @@ struct HistoryView: View {
 
     private var levelCard: some View {
         HStack(spacing: 12) {
-            Text(gamification.levelEmoji)
-                .font(.system(size: 36))
+            Image(systemName: gamification.levelSystemImage)
+                .font(.system(size: 34, weight: .bold))
+                .foregroundColor(symbolColor(for: gamification.levelSystemImage))
+                .symbolRenderingMode(.hierarchical)
             VStack(alignment: .leading, spacing: 2) {
                 Text("LEVEL \(gamification.level)")
                     .font(.system(size: 11, weight: .heavy))
@@ -137,10 +141,12 @@ struct HistoryView: View {
                                           ? Theme.startButtonStart.opacity(0.25)
                                           : Color.black.opacity(0.05))
                                     .frame(width: 54, height: 54)
-                                Text(achievement.emoji)
-                                    .font(.system(size: 26))
-                                    .opacity(unlocked ? 1 : 0.3)
-                                    .grayscale(unlocked ? 0 : 1)
+                                Image(systemName: achievement.systemImage)
+                                    .font(.system(size: 24, weight: .semibold))
+                                    .foregroundColor(unlocked
+                                                     ? symbolColor(for: achievement.systemImage)
+                                                     : .gray.opacity(0.3))
+                                    .symbolRenderingMode(.hierarchical)
                                 if unlocked {
                                     Image(systemName: "checkmark.circle.fill")
                                         .font(.system(size: 14, weight: .bold))
@@ -211,18 +217,25 @@ struct HistoryView: View {
         let streak = store.consecutiveDaysCount
         return HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("CURRENT STREAK 🔥")
-                    .font(.system(size: 12, weight: .heavy))
-                    .tracking(1)
-                    .foregroundColor(Theme.textMutedStrong)
+                HStack(spacing: 5) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 12, weight: .heavy))
+                        .foregroundColor(.orange)
+                    Text("CURRENT STREAK")
+                        .font(.system(size: 12, weight: .heavy))
+                        .tracking(1)
+                        .foregroundColor(Theme.textMutedStrong)
+                }
                 Text("\(streak) Day\(streak == 1 ? "" : "s")")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
             Spacer()
             VStack(spacing: 4) {
-                Text("🏆")
-                    .font(.system(size: 42))
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundColor(Color(red: 251/255, green: 191/255, blue: 36/255))
+                    .symbolRenderingMode(.hierarchical)
                 Text("Keep it up!")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundColor(Theme.textMutedStrong)
@@ -237,15 +250,17 @@ struct HistoryView: View {
         let avgSeconds = store.averageDurationSeconds
         let avgFormatted = formattedDuration(avgSeconds)
         return HStack(spacing: 10) {
-            statCard(icon: "⏱️", value: avgFormatted, label: "Avg Duration")
-            statCard(icon: "🦷", value: "\(store.records.count)", label: "Total Sessions")
+            statCard(systemImage: "timer", value: avgFormatted, label: "Avg Duration")
+            statCard(systemImage: "mouth.fill", value: "\(store.records.count)", label: "Total Sessions")
         }
     }
 
-    private func statCard(icon: String, value: String, label: String) -> some View {
+    private func statCard(systemImage: String, value: String, label: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(icon)
-                .font(.system(size: 22))
+            Image(systemName: systemImage)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundColor(Theme.startButtonEnd)
+                .symbolRenderingMode(.hierarchical)
             Text(value)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundColor(Theme.textPrimary)
@@ -272,7 +287,11 @@ struct HistoryView: View {
                         )
                     )
                     .frame(width: 44, height: 44)
-                    .overlay(Text("🦷").font(.system(size: 20)))
+                    .overlay(
+                        Image(systemName: "mouth.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                    )
                 VStack(alignment: .leading, spacing: 2) {
                     Text(record.startDate, style: .time)
                         .font(.system(size: 15, weight: .heavy))
@@ -318,10 +337,11 @@ private struct AchievementDetailSheet: View {
     let achievement: Achievement
     let unlocked: Bool
     let progress: String
+    let iconColor: Color
 
     var body: some View {
         VStack(spacing: 0) {
-            // Emoji hero
+            // SF Symbol hero
             ZStack {
                 Circle()
                     .fill(unlocked
@@ -332,10 +352,10 @@ private struct AchievementDetailSheet: View {
                                                     Color.black.opacity(0.04)],
                                            startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 88, height: 88)
-                Text(achievement.emoji)
-                    .font(.system(size: 44))
-                    .opacity(unlocked ? 1 : 0.3)
-                    .grayscale(unlocked ? 0 : 1)
+                Image(systemName: achievement.systemImage)
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundColor(iconColor)
+                    .symbolRenderingMode(.hierarchical)
             }
             .padding(.top, 28)
             .padding(.bottom, 16)

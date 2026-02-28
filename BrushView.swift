@@ -38,7 +38,14 @@ struct BrushView: View {
             tipRotationTimer?.invalidate()
             tipRotationTimer = Timer.scheduledTimer(withTimeInterval: Self.tipDuration, repeats: true) { _ in
                 Task { @MainActor in
-                    currentTipIndex = Int.random(in: 0..<Self.brushTips.count)
+                    // Advance through the shuffled queue; reshuffle when exhausted.
+                    let next = queuePosition + 1
+                    if next >= shuffledQueue.count {
+                        shuffledQueue = Array(0..<Self.brushTips.count).shuffled()
+                        queuePosition = 0
+                    } else {
+                        queuePosition = next
+                    }
                     tipStartDate = Date()
                 }
             }
@@ -73,26 +80,120 @@ struct BrushView: View {
         }
     }
 
-    // MARK: - Rotating tips (encouragement, fun facts, reminders) for kids
+    // MARK: - 100 fun facts, each ≤ 47 characters so they fit in 2 lines at large font
     private static let brushTips: [String] = [
-        "You're doing great! Keep it up! 🌟",
-        "Super star brusher! ⭐",
-        "Nice and gentle circles! 🫧",
-        "Don't forget the back teeth!",
-        "Brush the top teeth too!",
-        "Get those hard-to-reach spots in the back!",
-        "Did you know? Kids have 20 baby teeth.",
-        "Fun fact: Tooth enamel is the hardest part of your body!",
-        "Did you know? Elephants have 4 molars at a time.",
-        "Fun fact: You'll have 32 teeth as an adult!",
-        "Almost there—keep brushing! 💪",
-        "Smile! You're taking care of your teeth! 😁",
-        "Don't rush—2 minutes is perfect! ⏱️",
-        "Remember to brush your tongue too!",
-        "You're making your teeth happy! 🦷",
+        // Teeth (20)
+        "Enamel is the hardest substance you make! 🦷",
+        "Your teeth are as unique as fingerprints!",
+        "Sharks grow up to 50,000 teeth per life!",
+        "Enamel can't heal — so protect it daily!",
+        "Egyptians brushed with crushed rock salt! 😬",
+        "The first bristle toothbrush was made 1498!",
+        "Elephants grow 6 full sets of teeth! 🐘",
+        "A snail's tongue has 25,000 tiny teeth! 🐌",
+        "Plover birds clean crocodile teeth for free!",
+        "Replace your toothbrush every 3 months!",
+        "Plaque hardens into tartar in 24 hours!",
+        "Mouth bacteria double every 20 minutes!",
+        "Sugar feeds bacteria that erode enamel!",
+        "Water is the best drink for teeth! 💧",
+        "Teeth can reveal your age within 3 years!",
+        "'Dentist' comes from the Latin word 'dens'.",
+        "Toothpaste once came in jars, not tubes!",
+        "Tooth decay is the world's most common disease!",
+        "Cows have no upper front teeth — just gum!",
+        "You'll spend ~38 days brushing in your life!",
+        // Body (25)
+        "Stomach acid can slowly dissolve metal! ⚗️",
+        "Babies have ~270 bones; adults have 206!",
+        "Your heart beats 100,000 times a day! 💓",
+        "Your small intestine is 6 metres long!",
+        "You produce 1–2 litres of saliva a day!",
+        "Saliva neutralises acid to protect teeth!",
+        "Fingernails grow 4× faster than toenails!",
+        "Humans can detect over a trillion scents! 👃",
+        "Eyes can spot 10 million different colours!",
+        "Humans are the only animals with a chin!",
+        "Yawning is contagious — did you just yawn? 🥱",
+        "Humans glow very faintly in the dark!",
+        "Your brain keeps developing until age 25!",
+        "Short-term memory holds ~7 items at once!",
+        "Your heart is about the size of your fist!",
+        "Your lungs have the area of a tennis court!",
+        "Babies are born without kneecaps!",
+        "Taste buds live only about 10 days!",
+        "You share 60% of your DNA with a banana! 🍌",
+        "Every atom in your body was once in a star! ✨",
+        "Human bones beat concrete in strength!",
+        "Ice cream headaches hit the roof of your mouth!",
+        "You make 100,000 antibodies every second!",
+        "Your brain uses 20% of your body's energy!",
+        "Your DNA uncoiled would stretch 2 metres!",
+        // Nature & Animals (25)
+        "3,000-year-old tomb honey was still edible!",
+        "A flamingo group is a 'flamboyance'! 🦩",
+        "Octopuses have 3 hearts and blue blood! 🐙",
+        "Sea otters hold hands while sleeping! 🦦",
+        "Butterflies taste with their feet! 🦋",
+        "Trees share nutrients via underground fungi!",
+        "Cats lack the gene for tasting sweetness! 🐱",
+        "Wombat poop is cube-shaped to avoid rolling!",
+        "Giraffes sleep just 30 minutes a day!",
+        "The platypus lays eggs and uses venom! 🦆",
+        "Dolphins use unique whistles as their names! 🐬",
+        "Elephants are known to mourn their dead!",
+        "Plants warn each other with airborne signals!",
+        "A chameleon's tongue strikes in 0.07 seconds!",
+        "Crows remember specific human faces!",
+        "Mantis shrimps punch with bullet speed! 🦐",
+        "Sea cucumbers breathe through their posteriors!",
+        "Pigeons can recognise themselves in mirrors!",
+        "Sponges are animals with no brain or heart!",
+        "A blue whale's tongue weighs one elephant! 🐋",
+        "One clam was found to be 507 years old!",
+        "A group of owls is called a parliament! 🦉",
+        "Polar bear fur is colorless, not white!",
+        "Hippos sweat a natural sunscreen! 🦛",
+        "Blue whales have no teeth — they filter krill!",
+        // Science & Space (15)
+        "Lightning is 5x hotter than the Sun's surface! ⚡",
+        "1.3 million Earths fit inside the Sun! ☀️",
+        "Sunlight takes 8 minutes to reach Earth!",
+        "On HD 189733b, it rains sideways glass!",
+        "Neutron stars can spin 700 times per second!",
+        "Near a black hole, time itself slows down!",
+        "Water can boil and freeze at the same time!",
+        "Sound travels 4x faster in water than air!",
+        "A Mars day is only 40 minutes longer than ours!",
+        "Cleopatra is closer to now than to pyramids!",
+        "T. Rex lived closer to now than to Stegosaurus!",
+        "50% of Earth's oxygen comes from plankton!",
+        "Stars outnumber all grains of sand on Earth!",
+        "The Great Wall used rice paste as mortar!",
+        "The smell of rain has a name: petrichor! 🌧",
+        // Medicine & Health (15)
+        "Penicillin was discovered by accident from mold!",
+        "Fluoride in toothpaste strengthens enamel!",
+        "Lack of vitamin C loosens teeth — it's scurvy!",
+        "The first X-ray taken was of a human hand!",
+        "Aspirin comes from willow tree bark! 🌿",
+        "The first vaccine targeted smallpox in 1796!",
+        "LASIK uses a laser thinner than a human hair!",
+        "Your gut bacteria outnumber Milky Way stars!",
+        "Your appendix may protect good gut bacteria!",
+        "Most body cells are replaced every 7–10 years!",
+        "2 min of brushing removes 39,000 bacteria!",
+        "Sugarless gum after meals neutralises acid!",
+        "Bees visit 2 million flowers per lb of honey! 🐝",
+        "Your body makes new red blood cells each second!",
+        "Your enamel is as thin as an eggshell!",
     ]
 
-    @State private var currentTipIndex = 0
+    // Shuffled queue ensures no repeat until all 100 facts have been shown once.
+    @State private var shuffledQueue: [Int] = Array(0..<brushTips.count).shuffled()
+    @State private var queuePosition: Int = 0
+
+    private var currentTipIndex: Int { shuffledQueue[queuePosition] }
     @State private var tipRotationTimer: Timer?
     /// When the current tip started, used for the countdown ring.
     @State private var tipStartDate = Date()
@@ -112,7 +213,7 @@ struct BrushView: View {
                     insertion: .move(edge: .bottom).combined(with: .opacity),
                     removal: .opacity
                 ))
-                .animation(.easeInOut(duration: 0.35), value: currentTipIndex)
+                .animation(.easeInOut(duration: 0.35), value: queuePosition)
                 .frame(maxWidth: .infinity,
                        minHeight: isBrushing ? 62 : 42,
                        maxHeight: isBrushing ? 62 : 42,
@@ -138,7 +239,7 @@ struct BrushView: View {
         .padding(.vertical, isBrushing ? 14 : 8)
         .scaleEffect(isBrushing ? 1 : 0.92)
         .animation(.spring(response: 0.45, dampingFraction: 0.75), value: isBrushing)
-        .animation(.easeInOut(duration: 0.35), value: currentTipIndex)
+        .animation(.easeInOut(duration: 0.35), value: queuePosition)
     }
 
     private var cameraSection: some View {
@@ -193,11 +294,16 @@ struct BrushView: View {
                 .frame(maxHeight: .infinity, alignment: .top)
             } else {
                 // Placeholder when not brushing
-                Text("📷 Camera Preview")
-                    .font(.system(size: 12, weight: .bold))
-                    .tracking(2)
-                    .foregroundColor(Theme.textMuted)
-                    .textCase(.uppercase)
+                HStack(spacing: 6) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Theme.textMuted)
+                    Text("Camera Preview")
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(2)
+                        .foregroundColor(Theme.textMuted)
+                        .textCase(.uppercase)
+                }
                     .frame(maxWidth: .infinity)
                     .padding(.top, 16)
                     .frame(maxHeight: .infinity, alignment: .top)
@@ -271,9 +377,15 @@ struct BrushView: View {
                     .foregroundColor(Theme.textMuted)
                 Spacer()
                 HStack(spacing: 8) {
-                    Text("\(gamification.levelEmoji) Lv.\(gamification.level)")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(Theme.accentBlue)
+                    HStack(spacing: 3) {
+                        Image(systemName: gamification.levelSystemImage)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(symbolColor(for: gamification.levelSystemImage))
+                            .symbolRenderingMode(.hierarchical)
+                        Text("Lv.\(gamification.level)")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(Theme.accentBlue)
+                    }
                     Text("\(min(sessionsToday, goal))/\(goal) sessions")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(Theme.textMuted)
