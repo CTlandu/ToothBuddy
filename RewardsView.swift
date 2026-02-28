@@ -43,6 +43,5 @@ struct RewardsView: View {
             }
             .padding(.bottom, 24)
         }
-        .background(Theme.appBackground)
     }
 }

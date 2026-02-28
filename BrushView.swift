@@ -7,8 +7,8 @@ struct BrushView: View {
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
     @State private var timer: Timer?
-    /// Shown after stopping: duration and star count for the "Great job!" card.
-    @State private var lastDone: (duration: Int, stars: Int)?
+    @State private var showDoneSheet = false
+    @State private var doneSheetRecord: BrushingRecord?
     /// True once camera permission is granted so the preview view gets a valid session.
     @State private var cameraAuthorized = false
 
@@ -16,11 +16,9 @@ struct BrushView: View {
         ScrollView {
             VStack(spacing: 0) {
                 cameraSection
-                if let done = lastDone {
-                    doneCard(duration: done.duration, stars: done.stars)
-                }
                 if !isBrushing {
                     goalBar
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 buttonSection
                 rotatingTipSection
@@ -28,7 +26,23 @@ struct BrushView: View {
             .padding(.horizontal, 18)
             .padding(.bottom, 24)
         }
-        .background(Theme.appBackground)
+        .animation(.easeOut(duration: 0.35), value: isBrushing)
+        .sheet(isPresented: $showDoneSheet) {
+            if let record = doneSheetRecord {
+                ZStack {
+                    Theme.appBackground
+                        .opacity(0.95)
+                        .ignoresSafeArea()
+                    DoneResultSheet(record: record, onDismiss: { showDoneSheet = false }, onDelete: {
+                        store.deleteRecord(id: record.id)
+                        showDoneSheet = false
+                    })
+                    .padding(.top, 8)
+                }
+                .presentationDetents([.height(380)])
+                .presentationDragIndicator(.visible)
+            }
+        }
     }
 
     // MARK: - Rotating tips (encouragement, fun facts, reminders) for kids
@@ -52,26 +66,59 @@ struct BrushView: View {
 
     @State private var currentTipIndex = 0
     @State private var tipRotationTimer: Timer?
+    /// When the current tip started, used for the countdown ring.
+    @State private var tipStartDate = Date()
+    private static let tipDuration: Double = 6
 
     private var rotatingTipSection: some View {
-        Text(Self.brushTips[currentTipIndex])
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(Theme.textMuted)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .onAppear {
-                tipRotationTimer = Timer.scheduledTimer(withTimeInterval: 6, repeats: true) { _ in
-                    Task { @MainActor in
-                        currentTipIndex = Int.random(in: 0..<Self.brushTips.count)
-                    }
+        HStack(alignment: .center, spacing: isBrushing ? 14 : 10) {
+            Text(Self.brushTips[currentTipIndex])
+                .id(currentTipIndex)
+                .font(.system(size: isBrushing ? 22 : 15, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+                .multilineTextAlignment(isBrushing ? .center : .leading)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
+                .animation(.easeInOut(duration: 0.35), value: currentTipIndex)
+                .frame(maxWidth: .infinity, alignment: isBrushing ? .center : .leading)
+
+            // Circular countdown ring
+            TimelineView(.animation(minimumInterval: 0.05)) { context in
+                let elapsed = context.date.timeIntervalSince(tipStartDate)
+                let progress = max(0, min(1, elapsed / Self.tipDuration))
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.2), lineWidth: isBrushing ? 3 : 2.5)
+                    Circle()
+                        .trim(from: 0, to: 1 - progress)
+                        .stroke(Theme.accentBlue, style: StrokeStyle(lineWidth: isBrushing ? 3 : 2.5, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
                 }
-                RunLoop.main.add(tipRotationTimer!, forMode: .common)
+                .frame(width: isBrushing ? 28 : 22, height: isBrushing ? 28 : 22)
+                .animation(.linear(duration: 0.05), value: progress)
             }
-            .onDisappear {
-                tipRotationTimer?.invalidate()
-                tipRotationTimer = nil
+        }
+        .frame(maxWidth: .infinity, minHeight: isBrushing ? 100 : 0)
+        .padding(.horizontal, 14)
+        .padding(.vertical, isBrushing ? 20 : 10)
+        .padding(.top, 6)
+        .animation(.easeInOut(duration: 0.35), value: isBrushing)
+        .onAppear {
+            tipStartDate = Date()
+            tipRotationTimer = Timer.scheduledTimer(withTimeInterval: Self.tipDuration, repeats: true) { _ in
+                Task { @MainActor in
+                    currentTipIndex = Int.random(in: 0..<Self.brushTips.count)
+                    tipStartDate = Date()
+                }
             }
+            RunLoop.main.add(tipRotationTimer!, forMode: .common)
+        }
+        .onDisappear {
+            tipRotationTimer?.invalidate()
+            tipRotationTimer = nil
+        }
     }
 
     private var cameraSection: some View {
@@ -99,19 +146,24 @@ struct BrushView: View {
             }
 
             if isBrushing {
-                // LIVE pill
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color(red: 248/255, green: 113/255, blue: 113/255))
-                        .frame(width: 8, height: 8)
-                    Text("LIVE")
-                        .font(.system(size: 12, weight: .heavy))
-                        .foregroundColor(.white)
+                // LIVE pill + disclaimer (preview not saved)
+                VStack(spacing: 6) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(Color(red: 248/255, green: 113/255, blue: 113/255))
+                            .frame(width: 8, height: 8)
+                        Text("LIVE")
+                            .font(.system(size: 12, weight: .heavy))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 5)
+                    .background(Color.white.opacity(0.18))
+                    .clipShape(Capsule())
+                    Text("Preview only — not saved to cloud or device.")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.white.opacity(0.6))
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 5)
-                .background(Color.white.opacity(0.18))
-                .clipShape(Capsule())
                 .frame(maxWidth: .infinity)
                 .padding(.top, 14)
                 .frame(maxHeight: .infinity, alignment: .top)
@@ -138,8 +190,8 @@ struct BrushView: View {
                         .padding(.vertical, 4)
                         .background(Color.white.opacity(0.15))
                         .clipShape(Capsule())
-                } else if lastDone == nil {
-                    Text("Ready to brush? 🪥")
+                } else {
+                    Text("Ready to brush?")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(Theme.textMutedStrong)
                 }
@@ -148,6 +200,7 @@ struct BrushView: View {
         }
         .frame(height: 400)
         .padding(.bottom, 20)
+        .animation(.easeInOut(duration: 0.4), value: isBrushing)
         .onAppear { requestCameraIfNeeded() }
     }
 
@@ -162,34 +215,6 @@ struct BrushView: View {
         default:
             break
         }
-    }
-
-    private func doneCard(duration: Int, stars: Int) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("GREAT JOB! 🎉")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Theme.textMutedStrong)
-                Text(formattedTime(duration))
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                Text(doneMessage(duration))
-                    .font(.system(size: 12))
-                    .foregroundColor(Theme.textMutedStrong)
-            }
-            Spacer()
-            StarRatingView(count: stars, size: 24)
-        }
-        .padding(18)
-        .background(Theme.doneCardGradient)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .padding(.bottom, 16)
-    }
-
-    private func doneMessage(_ duration: Int) -> String {
-        if duration >= 120 { return "Perfect brushing time! 🏆" }
-        if duration >= 60 { return "Good job! Keep going! 💪" }
-        return "Try for 2 minutes! ⏱️"
     }
 
     private var goalBar: some View {
@@ -227,6 +252,7 @@ struct BrushView: View {
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.surfaceFrostBorder, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .padding(.bottom, 18)
+        .animation(.easeOut(duration: 0.5), value: store.recordsTodayCount)
     }
 
     private var buttonSection: some View {
@@ -234,11 +260,10 @@ struct BrushView: View {
             if isBrushing {
                 stopBrushing()
             } else {
-                lastDone = nil
                 startBrushing()
             }
         } label: {
-            Text(isBrushing ? "✅ Done Brushing!" : "🪥 Start Brushing!")
+            Text(isBrushing ? "Done Brushing!" : "Start Brushing!")
                 .font(.system(size: 24, weight: .bold, design: .rounded))
                 .tracking(1)
                 .foregroundColor(.white)
@@ -252,7 +277,7 @@ struct BrushView: View {
                     y: 6
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(BounceButtonStyle())
     }
 
     private func formattedTime(_ totalSeconds: Int) -> String {
@@ -265,7 +290,6 @@ struct BrushView: View {
         startDate = Date()
         isBrushing = true
         elapsedSeconds = 0
-        lastDone = nil
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
                 guard let start = startDate else { return }
@@ -281,9 +305,121 @@ struct BrushView: View {
         guard let start = startDate else { return }
         let record = BrushingRecord(startDate: start, endDate: Date())
         store.add(record)
-        lastDone = (record.durationSeconds, record.starCount)
+        doneSheetRecord = record
+        showDoneSheet = true
         startDate = nil
         isBrushing = false
         elapsedSeconds = 0
+    }
+}
+
+// MARK: - Done result popup: compact card, star-based feedback, delete option
+private struct DoneResultSheet: View {
+    let record: BrushingRecord
+    let onDismiss: () -> Void
+    let onDelete: () -> Void
+    @State private var cardAppeared = false
+
+    private var stars: Int { record.starCount }
+    private var duration: Int { record.durationSeconds }
+
+    private var title: String {
+        switch stars {
+        case 3: return "Perfect!"
+        case 2: return "Good job!"
+        default: return "Every brush counts!"
+        }
+    }
+
+    private var titleColor: Color {
+        switch stars {
+        case 3: return Color(red: 0.4, green: 0.85, blue: 0.5)
+        case 2: return Theme.accentBlue
+        default: return Color(red: 1, green: 0.75, blue: 0.4)
+        }
+    }
+
+    private var message: String {
+        switch stars {
+        case 3: return "You brushed for 2 minutes. That's the recommended time."
+        case 2: return "You're building a great habit. Keep it up!"
+        default: return "Try for 2 minutes next time. You've got this!"
+        }
+    }
+
+    private var funFact: String {
+        switch stars {
+        case 3: return "Did you know? Tooth enamel is the hardest part of your body."
+        case 2: return "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth."
+        default: return "Tip: Brushing twice a day helps keep cavities away."
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text(title)
+                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .foregroundColor(titleColor)
+
+            Text(formattedTime)
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+
+            StarRatingView(count: stars, size: 24)
+
+            VStack(spacing: 6) {
+                Text(message)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                Text(funFact)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.65))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 8)
+
+            Button("Done", action: onDismiss)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Theme.accentBlue)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            Button("Delete this record", action: onDelete)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(
+                    LinearGradient(
+                        colors: [Theme.backgroundMid, Theme.backgroundEnd.opacity(0.9)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Theme.accentBlue.opacity(0.35), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 20)
+        .scaleEffect(cardAppeared ? 1 : 0.9)
+        .opacity(cardAppeared ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                cardAppeared = true
+            }
+        }
+    }
+
+    private var formattedTime: String {
+        let m = duration / 60
+        let s = duration % 60
+        return String(format: "%02d:%02d", m, s)
     }
 }

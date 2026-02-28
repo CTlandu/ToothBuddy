@@ -2,18 +2,87 @@ import SwiftUI
 
 struct HistoryView: View {
     @StateObject private var store = BrushingStore.shared
+    @State private var contentAppeared = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+        List {
+            Section {
                 streakCard
-                statsRow
-                recentSection
+                    .opacity(contentAppeared ? 1 : 0)
+                    .offset(y: contentAppeared ? 0 : 12)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 24)
+            .listSectionSeparator(.hidden)
+
+            Section {
+                statsRow
+                    .opacity(contentAppeared ? 1 : 0)
+                    .offset(y: contentAppeared ? 0 : 12)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            .listSectionSeparator(.hidden)
+
+            Section(header: recentSessionsHeader) {
+                if store.records.isEmpty {
+                    emptyRecordsPlaceholder
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else {
+                    ForEach(store.records) { record in
+                        recordRow(record)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    store.deleteRecord(id: record.id)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                    }
+                }
+            }
+            .listSectionSeparator(.hidden)
         }
-        .background(Theme.appBackground)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .padding(.horizontal, 18)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.45)) {
+                contentAppeared = true
+            }
+        }
+        .animation(.easeOut(duration: 0.3), value: store.records.count)
+    }
+
+    private var recentSessionsHeader: some View {
+        Text("RECENT SESSIONS")
+            .font(.system(size: 12, weight: .heavy))
+            .tracking(1.5)
+            .foregroundColor(Theme.textMuted)
+    }
+
+    private var emptyRecordsPlaceholder: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "clock.badge.questionmark")
+                .font(.system(size: 48))
+                .foregroundStyle(Theme.textMuted)
+            Text("No Records Yet")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+            Text("Start brushing from the Brush tab to see your history here.")
+                .font(.subheadline)
+                .foregroundColor(Theme.textMuted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
     }
 
     private var streakCard: some View {
@@ -67,37 +136,6 @@ struct HistoryView: View {
         .background(Theme.surfaceFrost)
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.surfaceFrostBorder, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("RECENT SESSIONS")
-                .font(.system(size: 12, weight: .heavy))
-                .tracking(1.5)
-                .foregroundColor(Theme.textMuted)
-
-            if store.records.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "clock.badge.questionmark")
-                        .font(.system(size: 48))
-                        .foregroundStyle(Theme.textMuted)
-                    Text("No Records Yet")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                    Text("Start brushing from the Brush tab to see your history here.")
-                        .font(.subheadline)
-                        .foregroundColor(Theme.textMuted)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-            } else {
-                ForEach(store.records) { record in
-                    recordRow(record)
-                }
-            }
-        }
     }
 
     private func recordRow(_ record: BrushingRecord) -> some View {

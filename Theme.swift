@@ -30,10 +30,11 @@ enum Theme {
                 endPoint: .bottomTrailing
             )
         } else {
+            // Start with backgroundStart to blend seamlessly with the header area
             return LinearGradient(
-                colors: [cameraIdleStart, Color(red: 3/255, green: 105/255, blue: 161/255), cameraIdleEnd],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [backgroundStart, cameraIdleStart, Color(red: 3/255, green: 105/255, blue: 161/255), cameraIdleEnd],
+                startPoint: .top,
+                endPoint: .bottom
             )
         }
     }
@@ -72,6 +73,15 @@ enum Theme {
     static let borderAccent = Color.white.opacity(0.3)
     static let surfaceFrost = Color.white.opacity(0.07)
     static let surfaceFrostBorder = Color.white.opacity(0.1)
+}
+
+/// Button style: scale down on press with a spring bounce back.
+struct BounceButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.65), value: configuration.isPressed)
+    }
 }
 
 /// Star rating 1–3, matching JSX StarRow (filled vs grayscale).

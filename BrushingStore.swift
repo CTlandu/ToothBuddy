@@ -7,6 +7,9 @@ final class BrushingStore: ObservableObject {
 
     @Published private(set) var records: [BrushingRecord] = []
 
+    /// When non-nil, show "Record deleted. Undo" so the user can restore.
+    @Published var lastDeletedRecord: BrushingRecord?
+
     private let fileName = "brushing_records.json"
     private var fileURL: URL? {
         guard let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
@@ -65,6 +68,26 @@ final class BrushingStore: ObservableObject {
     func add(_ record: BrushingRecord) {
         records.insert(record, at: 0)
         save()
+    }
+
+    /// Removes the record by id, stores it in lastDeletedRecord for undo. Call restoreLastDeleted() to undo.
+    func deleteRecord(id: UUID) {
+        guard let index = records.firstIndex(where: { $0.id == id }) else { return }
+        lastDeletedRecord = records.remove(at: index)
+        save()
+    }
+
+    /// Restores the last deleted record and clears lastDeletedRecord.
+    func restoreLastDeleted() {
+        guard let record = lastDeletedRecord else { return }
+        records.insert(record, at: 0)
+        lastDeletedRecord = nil
+        save()
+    }
+
+    /// Clears the last-deleted reference without restoring (e.g. user dismissed the undo banner).
+    func clearLastDeleted() {
+        lastDeletedRecord = nil
     }
 
     private func save() {
