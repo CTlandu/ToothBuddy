@@ -3,7 +3,7 @@ import SwiftUI
 enum AppTab: String, CaseIterable {
     case brush
     case history
-    case rewards
+    case tips
 }
 
 struct ContentView: View {
@@ -94,9 +94,9 @@ struct ContentView: View {
                                       removal: .move(edge: .leading).combined(with: .opacity))
                         : .asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
                                       removal: .move(edge: .trailing).combined(with: .opacity)))
-            case .rewards:
-                RewardsView()
-                    .id("rewards")
+            case .tips:
+                TipsView()
+                    .id("tips")
                     .transition(tabOrderIndex >= previousTabOrderIndex
                         ? .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
                                       removal: .move(edge: .leading).combined(with: .opacity))
@@ -108,8 +108,8 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.28), value: selectedTab)
     }
 
-    /// Tab order: History (left), Brush (center), Rewards (right).
-    private static let tabOrder: [AppTab] = [.history, .brush, .rewards]
+    /// Tab order: History (left), Brush (center), Tips (right).
+    private static let tabOrder: [AppTab] = [.history, .brush, .tips]
 
     private var customTabBar: some View {
         HStack(spacing: 0) {
@@ -162,7 +162,7 @@ struct ContentView: View {
         switch tab {
         case .brush: return "🪥"
         case .history: return "📋"
-        case .rewards: return "🏆"
+        case .tips: return "💡"
         }
     }
 }
@@ -172,7 +172,7 @@ extension AppTab {
         switch self {
         case .brush: return "Brush"
         case .history: return "History"
-        case .rewards: return "Rewards"
+        case .tips: return "Tips"
         }
     }
 }
