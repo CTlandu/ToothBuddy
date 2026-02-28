@@ -15,11 +15,11 @@ struct BrushView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                cameraSection
                 if !isBrushing {
                     goalBar
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
+                cameraSection
                 buttonSection
                 rotatingTipSection
             }

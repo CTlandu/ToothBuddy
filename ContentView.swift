@@ -17,6 +17,12 @@ struct ContentView: View {
             if store.lastDeletedRecord != nil {
                 deletedRecordBanner
                     .transition(.move(edge: .top).combined(with: .opacity))
+                    .task(id: store.lastDeletedRecord?.id) {
+                        guard store.lastDeletedRecord != nil else { return }
+                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        guard !Task.isCancelled else { return }
+                        store.clearLastDeleted()
+                    }
             }
             tabContent
             customTabBar
