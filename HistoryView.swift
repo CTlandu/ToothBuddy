@@ -4,6 +4,7 @@ struct HistoryView: View {
     @StateObject private var store = BrushingStore.shared
     @StateObject private var gamification = GamificationStore.shared
     @State private var contentAppeared = false
+    @State private var selectedAchievement: Achievement?
 
     var body: some View {
         List {
@@ -82,6 +83,15 @@ struct HistoryView: View {
         .onAppear {
             gamification.checkAndUnlock(records: store.records)
         }
+        .sheet(item: $selectedAchievement) { achievement in
+            AchievementDetailSheet(
+                achievement: achievement,
+                unlocked: gamification.unlockedAchievementIds.contains(achievement.id),
+                progress: gamification.progressDescription(for: achievement, records: store.records)
+            )
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.visible)
+        }
     }
 
     private var levelCard: some View {
@@ -117,29 +127,58 @@ struct HistoryView: View {
             HStack(spacing: 12) {
                 ForEach(GamificationStore.allAchievements) { achievement in
                     let unlocked = gamification.unlockedAchievementIds.contains(achievement.id)
-                    VStack(spacing: 6) {
-                        Text(achievement.emoji)
-                            .font(.system(size: 28))
-                            .opacity(unlocked ? 1 : 0.3)
-                            .grayscale(unlocked ? 0 : 1)
-                        Text(achievement.title)
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(unlocked ? Theme.textPrimary : Theme.textMuted)
-                            .lineLimit(1)
+                    Button {
+                        selectedAchievement = achievement
+                    } label: {
+                        VStack(spacing: 8) {
+                            ZStack {
+                                Circle()
+                                    .fill(unlocked
+                                          ? Theme.startButtonStart.opacity(0.25)
+                                          : Color.black.opacity(0.05))
+                                    .frame(width: 54, height: 54)
+                                Text(achievement.emoji)
+                                    .font(.system(size: 26))
+                                    .opacity(unlocked ? 1 : 0.3)
+                                    .grayscale(unlocked ? 0 : 1)
+                                if unlocked {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(Theme.startButtonEnd)
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                                        .padding(2)
+                                }
+                            }
+                            .frame(width: 54, height: 54)
+
+                            Text(achievement.title)
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(unlocked ? Theme.textPrimary : Theme.textMuted)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .frame(height: 30, alignment: .top)
+                        }
+                        .frame(width: 84)
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Theme.surfaceFrost)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(
+                                            unlocked ? Theme.startButtonEnd.opacity(0.35) : Theme.surfaceFrostBorder,
+                                            lineWidth: unlocked ? 1.5 : 1
+                                        )
+                                )
+                        )
+                        .shadow(color: unlocked ? Theme.startButtonEnd.opacity(0.12) : .clear, radius: 6, y: 3)
                     }
-                    .frame(width: 72)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Theme.surfaceFrost)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(unlocked ? Theme.accentBlue.opacity(0.4) : Theme.surfaceFrostBorder, lineWidth: 1)
-                            )
-                    )
+                    .buttonStyle(BounceButtonStyle())
                 }
             }
             .padding(.horizontal, 2)
+            .padding(.vertical, 4)
         }
     }
 
@@ -270,5 +309,114 @@ struct HistoryView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE, MMM d"
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Achievement detail modal
+
+private struct AchievementDetailSheet: View {
+    let achievement: Achievement
+    let unlocked: Bool
+    let progress: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Emoji hero
+            ZStack {
+                Circle()
+                    .fill(unlocked
+                          ? LinearGradient(colors: [Theme.startButtonStart.opacity(0.35),
+                                                    Theme.startButtonEnd.opacity(0.2)],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing)
+                          : LinearGradient(colors: [Color.black.opacity(0.06),
+                                                    Color.black.opacity(0.04)],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 88, height: 88)
+                Text(achievement.emoji)
+                    .font(.system(size: 44))
+                    .opacity(unlocked ? 1 : 0.3)
+                    .grayscale(unlocked ? 0 : 1)
+            }
+            .padding(.top, 28)
+            .padding(.bottom, 16)
+
+            // Status badge
+            HStack(spacing: 5) {
+                Image(systemName: unlocked ? "checkmark.seal.fill" : "lock.fill")
+                    .font(.system(size: 11, weight: .bold))
+                Text(unlocked ? "Unlocked!" : "Locked")
+                    .font(.system(size: 12, weight: .heavy))
+                    .tracking(0.5)
+            }
+            .foregroundColor(unlocked ? Theme.startButtonEnd : Theme.textMuted)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(unlocked
+                          ? Theme.startButtonStart.opacity(0.2)
+                          : Color.black.opacity(0.06))
+            )
+            .padding(.bottom, 14)
+
+            // Title
+            Text(achievement.title)
+                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                .foregroundColor(Theme.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            // Description
+            Text(achievement.description)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Theme.textMuted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+                .padding(.top, 6)
+
+            // Progress bar
+            VStack(spacing: 6) {
+                HStack {
+                    Text("PROGRESS")
+                        .font(.system(size: 10, weight: .heavy))
+                        .tracking(1)
+                        .foregroundColor(Theme.textMuted)
+                    Spacer()
+                    Text(progress)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(unlocked ? Theme.startButtonEnd : Theme.textMuted)
+                }
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.black.opacity(0.07))
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(unlocked
+                                  ? LinearGradient(colors: [Theme.startButtonStart, Theme.startButtonEnd],
+                                                   startPoint: .leading, endPoint: .trailing)
+                                  : LinearGradient(colors: [Theme.textMuted.opacity(0.4),
+                                                            Theme.textMuted.opacity(0.25)],
+                                                   startPoint: .leading, endPoint: .trailing))
+                            .frame(width: geo.size.width * progressFraction)
+                    }
+                }
+                .frame(height: 8)
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, 18)
+
+            Spacer()
+        }
+    }
+
+    /// Parses "X / Y" progress string into a 0…1 fraction for the progress bar.
+    private var progressFraction: CGFloat {
+        let parts = progress.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count >= 2,
+              let numerator = Double(parts[0].split(separator: " ").first ?? ""),
+              let denominator = Double(parts[1].split(separator: " ").first ?? ""),
+              denominator > 0
+        else { return unlocked ? 1 : 0 }
+        return CGFloat(min(numerator / denominator, 1.0))
     }
 }

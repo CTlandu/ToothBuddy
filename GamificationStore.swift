@@ -69,6 +69,36 @@ final class GamificationStore: ObservableObject {
         Self.allAchievements.filter { unlockedAchievementIds.contains($0.id) }
     }
 
+    /// Returns a human-readable progress string for the given achievement,
+    /// e.g. "7 / 10 sessions" for a partially completed count-based achievement.
+    func progressDescription(for achievement: Achievement, records: [BrushingRecord]) -> String {
+        let streak = store.consecutiveDaysCount
+        switch achievement.id {
+        case "first-brush":
+            return "\(min(records.count, 1)) / 1 session"
+        case "five-sessions":
+            return "\(min(records.count, 5)) / 5 sessions"
+        case "ten-sessions":
+            return "\(min(records.count, 10)) / 10 sessions"
+        case "streak-3":
+            return "\(min(streak, 3)) / 3 days in a row"
+        case "streak-7":
+            return "\(min(streak, 7)) / 7 days in a row"
+        case "two-min":
+            let done = records.contains { $0.durationSeconds >= 120 }
+            return done ? "1 / 1 session" : "0 / 1 session"
+        case "five-perfect":
+            let count = records.filter { $0.starCount >= 3 }.count
+            return "\(min(count, 5)) / 5 perfect sessions"
+        case "early-bird":
+            let cal = Calendar.current
+            let done = records.contains { cal.component(.hour, from: $0.startDate) < 8 }
+            return done ? "1 / 1 morning brush" : "0 / 1 morning brush"
+        default:
+            return ""
+        }
+    }
+
     func checkAndUnlock(records: [BrushingRecord]) {
         var newlyUnlocked: [String] = []
 

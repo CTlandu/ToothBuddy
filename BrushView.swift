@@ -31,6 +31,7 @@ struct BrushView: View {
                 .padding(.bottom, 12)
             Spacer()
         }
+        .padding(.top, 8)
         .padding(.horizontal, 18)
         .onAppear {
             tipStartDate = Date()
