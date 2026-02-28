@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct BrushView: View {
     @StateObject private var store = BrushingStore.shared
@@ -8,6 +9,8 @@ struct BrushView: View {
     @State private var timer: Timer?
     /// Shown after stopping: duration and star count for the "Great job!" card.
     @State private var lastDone: (duration: Int, stars: Int)?
+    /// True once camera permission is granted so the preview view gets a valid session.
+    @State private var cameraAuthorized = false
 
     var body: some View {
         ScrollView {
@@ -20,11 +23,55 @@ struct BrushView: View {
                     goalBar
                 }
                 buttonSection
+                rotatingTipSection
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 24)
         }
         .background(Theme.appBackground)
+    }
+
+    // MARK: - Rotating tips (encouragement, fun facts, reminders) for kids
+    private static let brushTips: [String] = [
+        "You're doing great! Keep it up! 🌟",
+        "Super star brusher! ⭐",
+        "Nice and gentle circles! 🫧",
+        "Don't forget the back teeth!",
+        "Brush the top teeth too!",
+        "Get those hard-to-reach spots in the back!",
+        "Did you know? Kids have 20 baby teeth.",
+        "Fun fact: Tooth enamel is the hardest part of your body!",
+        "Did you know? Elephants have 4 molars at a time.",
+        "Fun fact: You'll have 32 teeth as an adult!",
+        "Almost there—keep brushing! 💪",
+        "Smile! You're taking care of your teeth! 😁",
+        "Don't rush—2 minutes is perfect! ⏱️",
+        "Remember to brush your tongue too!",
+        "You're making your teeth happy! 🦷",
+    ]
+
+    @State private var currentTipIndex = 0
+    @State private var tipRotationTimer: Timer?
+
+    private var rotatingTipSection: some View {
+        Text(Self.brushTips[currentTipIndex])
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(Theme.textMuted)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .onAppear {
+                tipRotationTimer = Timer.scheduledTimer(withTimeInterval: 6, repeats: true) { _ in
+                    Task { @MainActor in
+                        currentTipIndex = Int.random(in: 0..<Self.brushTips.count)
+                    }
+                }
+                RunLoop.main.add(tipRotationTimer!, forMode: .common)
+            }
+            .onDisappear {
+                tipRotationTimer?.invalidate()
+                tipRotationTimer = nil
+            }
     }
 
     private var cameraSection: some View {
@@ -39,10 +86,17 @@ struct BrushView: View {
                 .shadow(color: isBrushing ? Theme.accentBlue.opacity(0.5) : .black.opacity(0.4),
                         radius: isBrushing ? 20 : 16, y: isBrushing ? 6 : 8)
 
-            // Live camera preview (clipped to same shape)
-            CameraPreviewView()
-                .clipShape(RoundedRectangle(cornerRadius: 32))
-                .allowsHitTesting(false)
+            // Live camera preview only when authorized; fill space so the host view gets real bounds
+            if cameraAuthorized {
+                CameraPreviewView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 32))
+                    .allowsHitTesting(false)
+                // Small tooth bubbles floating near the edges (like bubbles by the face)
+                FloatingToothBubblesView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 32))
+            }
 
             if isBrushing {
                 // LIVE pill
@@ -73,9 +127,8 @@ struct BrushView: View {
                     .frame(maxHeight: .infinity, alignment: .top)
             }
 
-            // Bottom: tooth character + timer or "Ready to brush?"
+            // Bottom: timer or "Ready to brush?"
             VStack(spacing: 6) {
-                toothCharacter
                 if isBrushing {
                     Text(formattedTime(elapsedSeconds))
                         .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -93,18 +146,22 @@ struct BrushView: View {
             }
             .padding(.bottom, 28)
         }
-        .frame(height: 310)
+        .frame(height: 400)
         .padding(.bottom, 20)
+        .onAppear { requestCameraIfNeeded() }
     }
 
-    private var toothCharacter: some View {
-        Text("🦷")
-            .font(.system(size: 60))
-            .rotationEffect(.degrees(isBrushing ? 4 : 0))
-            .animation(
-                isBrushing ? .easeInOut(duration: 0.2).repeatForever(autoreverses: true) : .default,
-                value: isBrushing
-            )
+    private func requestCameraIfNeeded() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            cameraAuthorized = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async { cameraAuthorized = granted }
+            }
+        default:
+            break
+        }
     }
 
     private func doneCard(duration: Int, stars: Int) -> some View {

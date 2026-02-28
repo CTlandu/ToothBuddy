@@ -15,7 +15,7 @@ struct ContentView: View {
             tabContent
             customTabBar
         }
-        .background(Theme.appBackground)
+        .background(Theme.appBackground.ignoresSafeArea())
         .ignoresSafeArea(edges: .bottom)
     }
 
@@ -30,20 +30,25 @@ struct ContentView: View {
 
     @ViewBuilder
     private var tabContent: some View {
-        switch selectedTab {
-        case .brush:
-            BrushView()
-        case .history:
-            HistoryView()
-        case .rewards:
-            RewardsView()
+        Group {
+            switch selectedTab {
+            case .brush:
+                BrushView()
+            case .history:
+                HistoryView()
+            case .rewards:
+                RewardsView()
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Tab order: History (left), Brush (center), Rewards (right).
+    private static let tabOrder: [AppTab] = [.history, .brush, .rewards]
+
     private var customTabBar: some View {
         HStack(spacing: 0) {
-            ForEach(AppTab.allCases, id: \.self) { tab in
+            ForEach(Self.tabOrder, id: \.self) { tab in
                 tabButton(tab)
             }
         }
