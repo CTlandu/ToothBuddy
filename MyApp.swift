@@ -1,22 +1,33 @@
 import SwiftUI
+import CoreText
 
 @main
 struct MyApp: App {
+    init() {
+        registerNunito()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modifier(RoundedFontModifier())
+                .environment(\.font, NunitoFont.body)
         }
     }
-}
 
-/// Applies SF Pro Rounded globally on iOS 16.1+; no-op on iOS 16.0.
-private struct RoundedFontModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 16.1, *) {
-            content.fontDesign(.rounded)
-        } else {
-            content
+    /// Registers all bundled Nunito font files so Font.custom() can find them.
+    private func registerNunito() {
+        let files = [
+            "Nunito-Regular",
+            "Nunito-SemiBold",
+            "Nunito-Bold",
+            "Nunito-ExtraBold",
+        ]
+        for name in files {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf"),
+                  let provider = CGDataProvider(url: url as CFURL),
+                  let font = CGFont(provider)
+            else { continue }
+            CTFontManagerRegisterGraphicsFont(font, nil)
         }
     }
 }

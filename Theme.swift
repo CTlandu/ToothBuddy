@@ -1,5 +1,16 @@
 import SwiftUI
 
+/// Nunito font helpers — use these instead of .system() for consistent branding.
+enum NunitoFont {
+    static func regular(_ size: CGFloat) -> Font { .custom("Nunito-Regular",    size: size) }
+    static func semiBold(_ size: CGFloat) -> Font { .custom("Nunito-SemiBold",  size: size) }
+    static func bold(_ size: CGFloat) -> Font     { .custom("Nunito-Bold",      size: size) }
+    static func extraBold(_ size: CGFloat) -> Font { .custom("Nunito-ExtraBold", size: size) }
+
+    /// Default body font injected via .environment(\.font, NunitoFont.body)
+    static let body: Font = .custom("Nunito-Regular", size: 16)
+}
+
 /// Cream gradient theme, evoking teeth/oral care.
 enum Theme {
     // Background gradient: ivory -> cream -> warm cream

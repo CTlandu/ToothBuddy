@@ -136,6 +136,7 @@ struct ContentView: View {
     private func tabButton(_ tab: AppTab) -> some View {
         let isSelected = selectedTab == tab
         return Button {
+            SoundManager.tabTapped()
             previousTab = selectedTab
             selectedTab = tab
         } label: {

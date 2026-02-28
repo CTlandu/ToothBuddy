@@ -50,6 +50,7 @@ struct BrushView: View {
         .animation(.easeOut(duration: 0.35), value: isBrushing)
         .onChange(of: zoneMonitor.currentZone) { newZone in
             if let zone = newZone {
+                SoundManager.zoneChanged()
                 voiceCoach.speak(zone.announcement)
             }
         }
@@ -375,6 +376,7 @@ struct BrushView: View {
     }
 
     private func startBrushing() {
+        SoundManager.startBrushing()
         startDate = Date()
         isBrushing = true
         store.isBrushing = true
@@ -397,6 +399,7 @@ struct BrushView: View {
     }
 
     private func stopBrushing() {
+        SoundManager.doneBrushing()
         timer?.invalidate()
         timer = nil
         voiceCoach.stop()
@@ -479,7 +482,7 @@ private struct DoneResultSheet: View {
             }
             .padding(.horizontal, 8)
 
-            Button(action: onDismiss) {
+            Button(action: { SoundManager.sheetDismissed(); onDismiss() }) {
                 Text("Done")
                     .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
