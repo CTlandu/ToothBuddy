@@ -522,6 +522,9 @@ struct BrushView: View {
         guard let start = startDate else { return }
         let record = BrushingRecord(startDate: start, endDate: Date())
         store.add(record)
+        // Contextual permission (after first completed session) + refresh reminders. Spec 01 §4.7.
+        NotificationScheduler.shared.requestAuthorizationIfNeeded()
+        NotificationScheduler.shared.reschedule(records: store.records, streak: store.streak)
         doneSheetRecord = record
         showDoneSheet = true
         startDate = nil

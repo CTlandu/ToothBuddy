@@ -54,6 +54,7 @@ let package = Package(
                 "PLAN.md",
                 "specs",
                 "README.md",
+                "CHANGELOG.md",
                 "onboarding_preview.jsx",
                 "ToothBuddy_preview.jsx",
                 "toothbuddy-web.html"

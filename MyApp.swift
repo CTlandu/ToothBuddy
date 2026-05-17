@@ -34,22 +34,31 @@ struct MyApp: App {
 
 // MARK: - Root view
 
-/// Shows onboarding on every launch so judges/reviewers see the full flow,
-/// then transitions to the main app when the user taps "Start Brushing!".
+/// Shows onboarding only until it has been completed once (Spec 01 §4.8).
+/// Returning users go straight to the main app. Reschedules reminders whenever
+/// the app becomes active.
 private struct RootView: View {
-    @State private var showOnboarding = true
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
-            if showOnboarding {
-                OnboardingView {
-                    withAnimation(.easeInOut(duration: 0.45)) {
-                        showOnboarding = false
-                    }
-                }
-            } else {
+            if hasCompletedOnboarding {
                 ContentView()
                     .transition(.opacity)
+            } else {
+                OnboardingView {
+                    withAnimation(.easeInOut(duration: 0.45)) {
+                        hasCompletedOnboarding = true
+                    }
+                }
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                NotificationScheduler.shared.reschedule(
+                    records: BrushingStore.shared.records,
+                    streak: BrushingStore.shared.streak)
             }
         }
     }

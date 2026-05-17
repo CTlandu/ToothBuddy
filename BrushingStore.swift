@@ -8,6 +8,9 @@ final class BrushingStore: ObservableObject {
 
     @Published private(set) var records: [BrushingRecord] = []
 
+    /// Forgiving streak (Spec 01). Recomputed from `records` on every change.
+    @Published private(set) var streak: StreakResult = .empty
+
     /// When non-nil, show "Record deleted. Undo" so the user can restore.
     @Published var lastDeletedRecord: BrushingRecord?
 
@@ -29,6 +32,7 @@ final class BrushingStore: ObservableObject {
     }
 
     func load() {
+        defer { recomputeStreak() }
         guard let url = fileURL, FileManager.default.fileExists(atPath: url.path) else {
             records = []
             return
@@ -42,6 +46,14 @@ final class BrushingStore: ObservableObject {
         }
     }
 
+    /// Single source of truth for the streak. Pure math lives in ToothBuddyCore.
+    private func recomputeStreak() {
+        streak = StreakEngine.evaluate(records: records,
+                                       now: Date(),
+                                       config: .default,
+                                       calendar: .current)
+    }
+
     /// Number of sessions that started today (for "Today's goal").
     var recordsTodayCount: Int {
         let calendar = Calendar.current
@@ -49,18 +61,11 @@ final class BrushingStore: ObservableObject {
         return records.filter { calendar.startOfDay(for: $0.startDate) == today }.count
     }
 
-    /// Consecutive days with at least one session (today = day 1 if there is a session).
-    var consecutiveDaysCount: Int {
-        let calendar = Calendar.current
-        let daysWithSessions = Set(records.map { calendar.startOfDay(for: $0.startDate) })
-        var day = calendar.startOfDay(for: Date())
-        var streak = 0
-        while daysWithSessions.contains(day) {
-            streak += 1
-            day = calendar.date(byAdding: .day, value: -1, to: day) ?? day
-        }
-        return streak
-    }
+    /// Current forgiving streak. Backed by `streak` (Spec 01); kept for existing call sites.
+    var consecutiveDaysCount: Int { streak.currentStreak }
+
+    /// Longest streak ever achieved (never decreases).
+    var longestStreak: Int { streak.longestStreak }
 
     /// Average session duration in seconds (0 if no records).
     var averageDurationSeconds: Int {
@@ -98,6 +103,7 @@ final class BrushingStore: ObservableObject {
     }
 
     private func save() {
+        recomputeStreak()   // every mutation path (add/delete/restore) calls save()
         guard let url = fileURL else { return }
         do {
             let data = try JSONEncoder().encode(records)

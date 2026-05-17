@@ -19,9 +19,11 @@ An iOS app that helps children and adults build better brushing habits through g
 - **Guided brushing:** On-screen guidance with a timer and brushing-zone monitoring for pacing and coverage.
 - **Voice coaching, sound, and haptics:** Audible and tactile cues during a session.
 - **Brushing history:** Streaks, average duration, total sessions, and per-session star ratings, persisted locally.
+- **Forgiving streak:** A rolling-grace streak that survives the occasional missed day (≈1 forgiven day per 7-day run), plus longest-streak tracking — so one slip doesn't erase weeks of progress.
+- **Smart reminders:** Local morning/evening reminders that adapt to your typical brushing times, plus a gentle evening "streak at risk" nudge. No account, no network.
 - **Gamification:** Achievements and rewards to encourage consistency.
 - **Tips:** Short educational cards on better brushing.
-- **Onboarding:** First-run introduction to the core experience.
+- **Onboarding:** Shown once on first run; returning users go straight to the app.
 
 ---
 

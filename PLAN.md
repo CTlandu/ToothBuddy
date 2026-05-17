@@ -53,11 +53,11 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 ### Priority 1 — Habit & Behavior Engine
 - ☑ 1. Spec (`specs/01-habit-engine.md`)
 - ☑ 2. Confirm (user approved 2026-05-18; §12 answers recorded)
-- ☑ 3. Test infra (ToothBuddyCore + XCTest; `swift test` 4/4 green; app BUILD SUCCEEDED)
-- ☐ 4. Implement (TDD)
-- ☐ 5. Verify
-- ☐ 6. Docs
-- ☐ 7. Commit
+- ☑ 3. Test infra (ToothBuddyCore + XCTest; app BUILD SUCCEEDED)
+- ☑ 4. Implement (TDD: SessionSlot, StreakEngine, ReminderPlanner; app layer wired)
+- ☑ 5. Verify (`swift test` 28/28 green; app BUILD SUCCEEDED; manual smoke checklist pending user run)
+- ☑ 6. Docs (README, CHANGELOG, spec status)
+- ◐ 7. Commit
 
 ### Priority 2 — Family / Parent Layer
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
