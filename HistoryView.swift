@@ -1,4 +1,5 @@
 import SwiftUI
+import ToothBuddyCore
 
 struct HistoryView: View {
     @StateObject private var store = BrushingStore.shared

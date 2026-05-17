@@ -1,4 +1,5 @@
 import Foundation
+import ToothBuddyCore
 
 /// Persists brushing records to a JSON file in Application Support for easy export and extension.
 @MainActor

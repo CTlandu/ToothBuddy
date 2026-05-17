@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import ToothBuddyCore
 
 struct BrushView: View {
     @StateObject private var store = BrushingStore.shared

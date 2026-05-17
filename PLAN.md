@@ -26,7 +26,7 @@ Per explicit user direction: for every requirement and key point, confirm with t
 
 ## Testing Strategy (decided)
 
-`.swiftpm` app projects have no native test target and cannot be tested with `swift test` directly (the product is an iOS app). Decision: **extract platform-agnostic pure logic into a local Swift package library target** (working name `ToothBuddyCore`) that the app depends on. Unit tests (XCTest) target that library and run via `swift test` on macOS/CI. The app stays runnable in Swift Playgrounds. UI/integration is covered by per-spec manual smoke checklists. This restructure happens once, as part of Priority 1.
+`.swiftpm` app projects have no native test target and cannot be tested with `swift test` directly: the root `Package.swift` does `import AppleProductTypes`, which does not exist in the macOS CLI toolchain, so the manifest itself won't evaluate under plain SwiftPM. Decision: **extract platform-agnostic pure logic into a separate nested Swift package** (`ToothBuddyCore/`, its own `Package.swift`, no `AppleProductTypes`) that the app depends on via a local path. Unit tests (XCTest) target that library and run via `cd ToothBuddyCore && swift test` on macOS/CI. The app builds and runs via **Xcode 26**; iPad/Mac Swift Playgrounds.app is no longer supported. UI/integration is covered by per-spec manual smoke checklists. This restructure happens once, as part of Priority 1.
 
 ## Spec Template (every `specs/NN-feature.md`)
 
@@ -48,12 +48,12 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 
 ### Scaffolding
 - ☑ ROADMAP.md
-- ◐ PLAN.md + ROADMAP Process section + commit
+- ☑ PLAN.md + ROADMAP Process section + commit
 
 ### Priority 1 — Habit & Behavior Engine
-- ☐ 1. Spec (`specs/01-habit-engine.md`)
-- ⛔ 2. Confirm (awaiting user)
-- ☐ 3. Test infra (ToothBuddyCore + XCTest)
+- ☑ 1. Spec (`specs/01-habit-engine.md`)
+- ☑ 2. Confirm (user approved 2026-05-18; §12 answers recorded)
+- ☑ 3. Test infra (ToothBuddyCore + XCTest; `swift test` 4/4 green; app BUILD SUCCEEDED)
 - ☐ 4. Implement (TDD)
 - ☐ 5. Verify
 - ☐ 6. Docs
@@ -80,3 +80,4 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 | 2026-05-18 | Testing via extracted `ToothBuddyCore` package + XCTest. |
 | 2026-05-18 | Iterative per-feature cadence (spec → confirm → implement). |
 | 2026-05-18 | Progress tracked dual-track: this file + session task list. |
+| 2026-05-18 | Project is Xcode 26 / CLI-driven. iPad/Mac Swift Playgrounds.app support dropped (required to get `swift test`). Root `Package.swift` is now hand-maintained (the "auto-generated" warning no longer applies). |

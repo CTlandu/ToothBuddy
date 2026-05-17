@@ -20,7 +20,7 @@ Execution process, phase tracking, and the spec template live in [`PLAN.md`](PLA
 
 - Features are built one at a time in the priority order below, each through: **Spec → Confirm (user gate) → Implement (TDD) → Verify → Docs → Commit**.
 - No feature code is written until the user confirms that feature's spec.
-- **Testing:** `.swiftpm` has no native test target, so platform-agnostic pure logic is extracted into a local Swift package (`ToothBuddyCore`) covered by XCTest via `swift test`; UI is covered by per-spec manual smoke checklists. The app stays runnable in Swift Playgrounds.
+- **Testing:** `.swiftpm` has no native test target, so platform-agnostic pure logic is extracted into a local Swift package (`ToothBuddyCore`) covered by XCTest via `swift test`; UI is covered by per-spec manual smoke checklists. The app builds and runs via **Xcode 26** (iPad/Mac Swift Playgrounds.app is no longer supported — required to enable automated tests).
 
 ---
 

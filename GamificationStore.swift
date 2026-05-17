@@ -1,4 +1,5 @@
 import Foundation
+import ToothBuddyCore
 
 /// Achievement badge for gamification.
 struct Achievement: Identifiable, Equatable {
