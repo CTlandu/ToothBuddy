@@ -1,49 +1,51 @@
 # ToothBuddy
 
-A Swift Playgrounds app that helps children and adults build better brushing habits through guided feedback and timing—submitted for the **Swift Student Challenge**.
+An iOS app that helps children and adults build better brushing habits through guided feedback, timing, and gamification.
 
 ---
 
 ## Overview
 
-**ToothBuddy** is a demo app that makes brushing more effective and engaging. It uses the device camera and on-device guidance to give real-time feedback on brushing (e.g., pressure and angle), provides short video tips to correct habits, and tracks brushing time. The demo is designed to showcase core features within about **3 minutes**, so judges can quickly experience the value without sign-up or long onboarding.
+**ToothBuddy** makes brushing more effective and engaging. It uses the device camera and on-device guidance to give real-time feedback on brushing (e.g., zone coverage and timing), provides short tips to correct habits, tracks brushing history, and rewards consistency through achievements and streaks.
 
-- **Target users:** Kids and adults who want to improve their brushing routine.
-- **Platform:** iOS (iPhone & iPad), built as a `.swiftpm` (Swift Playgrounds App) for the Swift Student Challenge.
-
----
-
-## Swift Student Challenge
-
-This project follows SSC requirements:
-
-- **Format:** `.swiftpm` (Swift Playgrounds App Project).
-- **Size:** Uncompressed project contents stay under **25 MB** (code, assets, and resources).
-- **Experience:** Core experience is **offline**; no network required for the demo.
-- **Language:** All in-app text, voiceover, and submission materials are in **English**.
-- **Runtime:** Runs on the latest Xcode or Swift Playgrounds (latest iOS/iPadOS or macOS recommended).
+- **Target users:** Kids and adults who want to improve their daily brushing routine.
+- **Platform:** iOS (iPhone & iPad), built with SwiftUI.
+- **Status:** Active, long-term project under ongoing development.
 
 ---
 
-## Demo Scope (3-Minute Experience)
+## Features
 
-The demo focuses on what judges can try in a short session:
+- **Guided brushing:** On-screen guidance with a timer and brushing-zone monitoring for pacing and coverage.
+- **Voice coaching, sound, and haptics:** Audible and tactile cues during a session.
+- **Brushing history:** Streaks, average duration, total sessions, and per-session star ratings, persisted locally.
+- **Gamification:** Achievements and rewards to encourage consistency.
+- **Tips:** Short educational cards on better brushing.
+- **Onboarding:** First-run introduction to the core experience.
 
-- **Guided brushing:** Simple visual/on-screen guidance (e.g., timer, zones or prompts).
-- **Brushing timer:** Track how long you brush.
-- **Lightweight feedback:** Conceptual or UI-based feedback on brushing (e.g., “good angle,” “slow down”) without requiring full ML/camera in the first version if needed to stay within 25 MB and 3 minutes.
+---
 
-Future directions (not required for the demo) may include: camera + AI feedback, mini puzzles while brushing, and cloud/parent/dentist dashboards. The current submission is a **focused, runnable demo** of the core idea.
+## Roadmap
+
+Planned and exploratory directions for the long-term project:
+
+- Camera + on-device ML feedback (pressure, angle, missed areas).
+- Richer gamification (challenges, goals, customization).
+- Cloud sync and multi-device support.
+- Parent/dentist dashboards and shared progress.
+- Localization beyond English.
 
 ---
 
 ## Tech Stack & Requirements
 
-- **UI:** SwiftUI  
-- **Minimum:** iOS 16.0  
-- **Devices:** iPhone and iPad  
-- **Category:** Medical  
+- **UI:** SwiftUI
+- **Minimum:** iOS 16.0
+- **Devices:** iPhone and iPad
+- **Category:** Health / Medical
 - **Built with:** Xcode or Swift Playgrounds (Mac / iPad)
+
+The core experience runs **offline**; no network is required.
 
 ---
 
@@ -53,34 +55,30 @@ Future directions (not required for the demo) may include: camera + AI feedback,
 2. Open the **ToothBuddy.swiftpm** package (File → Open, then select the `.swiftpm` folder/file).
 3. Select a simulator or device and run (▶️).
 
-No extra setup or network is required for the core demo. On first run, the app will ask for camera permission so you can see yourself while brushing. If the prompt does not appear, add `NSCameraUsageDescription` to your app target’s Info in Xcode.
+On first run, the app asks for camera permission so you can see yourself while brushing. If the prompt does not appear, add `NSCameraUsageDescription` to your app target's Info in Xcode.
 
 ---
 
 ## Project Structure
 
-- `Package.swift` — Swift package and app configuration (auto-generated).
+- `Package.swift` — Swift package and app configuration.
 - `MyApp.swift` — App entry point.
-- `ContentView.swift` — Tab container (Brush | History).
-- `BrushView.swift` — Main brushing screen: camera preview, timer, Start/Done, goal bar, “Great job!” card.
+- `ContentView.swift` — Main tab container.
+- `OnboardingView.swift` — First-run onboarding flow.
+- `BrushView.swift` — Main brushing screen: camera preview, timer, goal, zone feedback.
+- `BrushingZoneMonitor.swift` — Tracks brushing zones/coverage during a session.
 - `CameraPreviewView.swift` — Front-camera preview (AVFoundation) for SwiftUI.
-- `HistoryView.swift` — Streak card, stats (avg duration, total sessions), recent sessions with star rating.
-- `RewardsView.swift` — Placeholder for the Rewards tab (gems + “Coming soon”).
-- `Theme.swift` — Colors and gradients matching the design; `StarRatingView` for 1–3 stars.
-- `BrushingRecord.swift` — Model for one brushing session (start/end, duration, star count).
+- `HistoryView.swift` — Streak card, stats, and recent sessions with star rating.
+- `TipsView.swift` — Educational brushing tip cards.
+- `GamificationStore.swift` — Achievements and rewards logic.
+- `VoiceCoach.swift` — Spoken brushing guidance.
+- `SoundManager.swift` — Sound effects and haptic feedback.
+- `Theme.swift` — Colors, gradients, and shared UI components (e.g., `StarRatingView`).
+- `BrushingRecord.swift` — Model for one brushing session.
 - `BrushingStore.swift` — Persists records to a JSON file; provides today count, streak, average duration.
-- `Info.plist` — Camera usage description for the brushing preview.
-
----
-
-## Notes for Submission
-
-- Keep total uncompressed size **under 25 MB** when adding images, audio, or 3D assets.
-- All user-facing strings and any voiceover must be in **English**.
-- Test on a recent iOS/iPadOS (and Swift Playgrounds if applicable) before submitting.
 
 ---
 
 ## License & Third-Party Code
 
-All code in this repository is original for the Swift Student Challenge. Any use of open-source or third-party code will be declared in the official SSC submission form.
+All code in this repository is original. Any use of open-source or third-party code is declared where applicable.

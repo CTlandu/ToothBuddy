@@ -1,6 +1,7 @@
 # Xcode / SwiftPM
 .swiftpm/xcode/xcuserdata/
 DerivedData/
+.build/
 *.xcuserstate
 
 # macOS
