@@ -12,7 +12,7 @@
 - [x] 4. Implement (TDD): SessionSlot, StreakEngine, ReminderPlanner; BrushingStore/NotificationScheduler/MyApp/BrushView wired
 - [x] 5. Verify (`swift test` 28/28 green; app BUILD SUCCEEDED; manual smoke checklist below — user to run)
 - [x] 6. Docs (README, PLAN, CHANGELOG, this status)
-- [ ] 7. Commit
+- [x] 7. Commit (5961327, pushed to origin/main)
 
 ## 2. Problem & Goal
 

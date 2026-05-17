@@ -57,7 +57,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 - ☑ 4. Implement (TDD: SessionSlot, StreakEngine, ReminderPlanner; app layer wired)
 - ☑ 5. Verify (`swift test` 28/28 green; app BUILD SUCCEEDED; manual smoke checklist pending user run)
 - ☑ 6. Docs (README, CHANGELOG, spec status)
-- ◐ 7. Commit
+- ☑ 7. Commit (5961327)
 
 ### Priority 2 — Family / Parent Layer
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
