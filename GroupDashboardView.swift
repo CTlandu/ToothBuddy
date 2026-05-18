@@ -69,6 +69,22 @@ private struct DashboardRow: View {
     let profile: Profile
     let metric: DashboardMetric
     @ObservedObject private var care = CareStore.shared
+    @ObservedObject private var store = BrushingStore.shared
+    @State private var shareItem: SharePayload?
+
+    private struct SharePayload: Identifiable { let id = UUID(); let url: URL }
+
+    private func makeReport(days: Int) {
+        let cal = Calendar.current
+        let end = Date()
+        let start = cal.date(byAdding: .day, value: -(days - 1), to: end) ?? end
+        let data = ReportBuilder.build(profileID: profile.id, profileName: profile.name,
+                                       in: store.allRecords(), start: start, end: end,
+                                       now: end, config: .default, calendar: cal)
+        if let url = ReportPDFRenderer.writeTempPDF(data) {
+            shareItem = SharePayload(url: url)
+        }
+    }
 
     var body: some View {
         VStack(spacing: 10) {
@@ -99,6 +115,16 @@ private struct DashboardRow: View {
                     Text("best \(metric.longestStreak)")
                         .font(.system(size: 11)).foregroundColor(.secondary)
                 }
+                Menu {
+                    Button("Last 30 days") { makeReport(days: 30) }
+                    Button("Last 90 days") { makeReport(days: 90) }
+                    Button("Last 365 days") { makeReport(days: 365) }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Theme.accentBlue)
+                        .frame(width: 34, height: 34)
+                }
             }
             HStack(alignment: .bottom, spacing: 4) {
                 ForEach(Array(metric.weeklyTrend.enumerated()), id: \.offset) { _, v in
@@ -122,6 +148,9 @@ private struct DashboardRow: View {
         .padding(14)
         .background(Color.gray.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .sheet(item: $shareItem) { payload in
+            ShareSheet(items: [payload.url])
+        }
     }
 
     private func slotDot(_ symbol: String, _ done: Bool) -> some View {

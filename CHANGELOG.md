@@ -4,6 +4,17 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P2.4: Per-profile dentist PDF report (spec 02)
+
+- **`ToothBuddyCore`**: `ReportBuilder`/`ReportData`/`DayCell` — range-bounded, profile-
+  isolated, deterministic: in-range sessions, active/total days, completion %, current/
+  longest streak (via `StreakEngine`), per-day active/perfect grid; reversed ranges
+  tolerated. `swift test` 53/53.
+- **App**: `ReportPDFRenderer` (UIGraphicsPDFRenderer — header, totals, calendar grid) +
+  temp-file share via `ShareSheet`; Group dashboard "Report" menu (last 30/90/365 days).
+  App `xcodebuild test` 12/12 (adds AC11 + PDF smoke).
+- AC14 perf test made non-flaky (generous regression-catching ceiling; spec note updated).
+
 ### Added — P2.3: Per-profile brush-head & dentist reminders (spec 02)
 
 - **`ToothBuddyCore`**: `CareKind` (brushHead 90d / dentist 180d defaults),

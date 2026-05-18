@@ -82,7 +82,10 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
   - ☑ P2.3 care reminders: Core `CareDueCalculator`+`CareReminderPlanner` (swift test
     50/50); app `CareStore` + `NotificationScheduler.rescheduleCare` + dashboard
     chips/Mark-done; app TEST 11/11 (AC10). Commit `ad846c1`.
-  - ☐ P2.4 report · ☐ P2.5 CloudKit
+  - ☑ P2.4 dentist PDF report: Core `ReportBuilder`/`ReportData` (swift test 53/53);
+    app `ReportPDFRenderer` + dashboard Report menu (30/90/365d) + share sheet;
+    app TEST 12/12 (AC11). Commit `<p24>`.
+  - ☐ P2.5 CloudKit (needs user's interactive Apple-Developer iCloud step + 2 accts/devices)
 
 ### Priority 3 — Content Engine
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

@@ -39,6 +39,7 @@ targets:
       - Persistence.swift
       - ProfileStore.swift
       - ProfilePickerView.swift
+      - ReportPDFRenderer.swift
       - SoundManager.swift
       - Theme.swift
       - TipsView.swift
