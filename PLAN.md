@@ -78,7 +78,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     user runs the legacy-JSON migration + picker checklist on device/sim — pending)
   - ☑ P2.2 Group + dashboard (local-modeled): Core `DashboardMetrics` (swift test 44/44);
     `CDGroup` + `GroupStore` + everyone-sees-everyone `GroupDashboardView` + Family tab;
-    app TEST 8/8 (AC7/AC9). Commit `<p22>`.
+    app TEST 8/8 (AC7/AC9). Commit `aec746a`.
   - ☐ P2.3 reminders · ☐ P2.4 report · ☐ P2.5 CloudKit
 
 ### Priority 3 — Content Engine
