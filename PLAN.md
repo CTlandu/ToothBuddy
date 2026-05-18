@@ -124,7 +124,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     `BrushingZoneMonitor` rewritten (same public API → BrushView unchanged) w/
     debounced currentZone + timed fallback + interruption handling, `CameraPreviewView`
     shares the session. Build clean (0 new-file warnings), app TEST 14/14, Core 80/80.
-    **Device smoke (spec §12) pending user.** Commit `<p42>`.
+    **Device smoke (spec §12) pending user.** Commit `ece3632`.
   - ☐ P4.3 lightweight 2D engagement game (stretch).
 
 ### Priority 5 — Adult Mode + Apple Integrations
