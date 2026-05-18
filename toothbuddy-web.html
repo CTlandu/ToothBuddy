@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToothBuddy – Better Brushing for the Whole Family</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral:   #F4A6A6;
+  --coral-d: #E08888;
+  --rose:    #E8B4B8;
+  --roseDk:  #C4787C;
+  --gold:    #FBBF24;
+  --orange:  #F97316;
+  --ink:     #2D2020;
+  --muted:   #7A6060;
+  --light:   #B09090;
+  --w85:     rgba(255,255,255,0.85);
+  --sh:      0 8px 32px rgba(224,136,136,0.16);
+  --shXL:    0 24px 72px rgba(224,136,136,0.24);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:#FFFBF5;color:var(--ink);overflow-x:hidden}
+
+/* grain */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px}
+
+/* blobs */
+.blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);animation:drift 12s ease-in-out infinite}
+.b1{width:500px;height:500px;background:var(--coral);opacity:.3;top:-180px;left:-150px}
+.b2{width:350px;height:350px;background:var(--rose);opacity:.26;top:40%;right:-100px;animation-delay:3s}
+.b3{width:280px;height:280px;background:var(--gold);opacity:.2;bottom:5%;left:10%;animation-delay:6s}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-28px)}}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;
+  padding:15px 48px;background:rgba(255,251,245,.75);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(224,136,136,.12)}
+.logo{font-family:'Baloo 2',cursive;font-size:1.5rem;font-weight:800;color:var(--coral-d);display:flex;align-items:center;gap:8px}
+.nav-right{display:flex;align-items:center;gap:14px}
+.pill{background:linear-gradient(135deg,var(--coral),var(--coral-d));color:#fff;font-size:.68rem;
+  font-weight:800;padding:5px 13px;border-radius:30px;letter-spacing:.8px;text-transform:uppercase}
+
+/* ── LANG SWITCHER (hero-center) ── */
+.lang-switch-wrap{display:flex;justify-content:center;margin:0 0 36px}
+.lang-switch{display:inline-flex;align-items:center;background:rgba(255,255,255,0.7);
+  border:1.5px solid rgba(224,136,136,.28);border-radius:50px;padding:4px;
+  box-shadow:0 4px 16px rgba(224,136,136,.14);backdrop-filter:blur(12px);gap:2px}
+.lang-btn{padding:8px 22px;border-radius:40px;border:none;background:transparent;
+  font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;color:var(--muted);
+  cursor:pointer;transition:all .22s ease;letter-spacing:.2px;white-space:nowrap}
+.lang-btn.active{background:linear-gradient(135deg,var(--coral),var(--coral-d));
+  color:#fff;box-shadow:0 3px 12px rgba(224,136,136,.38)}
+.lang-btn:not(.active):hover{color:var(--coral-d);background:rgba(244,166,166,.1)}
+
+/* ── HERO ── */
+.hero{position:relative;z-index:5;text-align:center;padding:88px 24px 48px}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;background:rgba(244,166,166,.15);
+  border:1px solid rgba(244,166,166,.4);border-radius:40px;padding:7px 18px;
+  font-size:.76rem;font-weight:800;color:var(--roseDk);letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:24px;animation:fadeD .5s ease both}
+.hero-tooth{font-size:7rem;display:block;margin:0 auto 16px;
+  animation:bounce .9s .1s cubic-bezier(.34,1.56,.64,1) both;
+  filter:drop-shadow(0 10px 24px rgba(224,136,136,.28))}
+.hero h1{font-family:'Baloo 2',cursive;font-size:clamp(2.5rem,6vw,5rem);font-weight:800;
+  line-height:1.05;color:var(--ink);margin-bottom:18px;
+  animation:fadeD .5s .12s ease both;letter-spacing:-1px}
+.hero h1 em{font-style:normal;color:var(--coral-d)}
+.hero-lead{font-size:clamp(.97rem,2.2vw,1.18rem);color:var(--muted);font-weight:600;
+  max-width:560px;margin:0 auto 20px;line-height:1.65;animation:fadeD .5s .2s ease both}
+.stars-row{display:flex;justify-content:center;gap:4px;font-size:1.3rem;
+  margin-bottom:36px;animation:fadeD .5s .28s ease both}
+
+/* ── WAITLIST ── */
+.wl-wrap{position:relative;z-index:5;max-width:500px;margin:0 auto 88px;padding:0 20px;
+  animation:fadeU .6s .35s ease both}
+.wl-card{background:var(--w85);backdrop-filter:blur(24px);
+  border:1.5px solid rgba(224,136,136,.22);border-radius:28px;padding:36px 32px;box-shadow:var(--shXL)}
+.wl-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:5px}
+.wl-sub{text-align:center;font-size:.83rem;color:var(--muted);font-weight:600;margin-bottom:24px}
+
+.field{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select{width:100%;padding:13px 16px;border:1.5px solid rgba(224,136,136,.28);border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:700;color:var(--ink);
+  background:rgba(255,255,255,.82);outline:none;transition:border-color .18s,box-shadow .18s;-webkit-appearance:none}
+input::placeholder{color:#C4A4A4;font-weight:600}
+input:focus,select:focus{border-color:var(--coral-d);box-shadow:0 0 0 3px rgba(224,136,136,.18)}
+select{cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23C07070' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:12px;padding-right:34px}
+
+.cta{width:100%;padding:15px;margin-top:3px;
+  background:linear-gradient(135deg,var(--coral) 0%,var(--coral-d) 100%);
+  color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:900;border:none;
+  border-radius:12px;cursor:pointer;box-shadow:0 6px 20px rgba(224,136,136,.4);
+  transition:transform .14s,box-shadow .14s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(224,136,136,.5)}
+.cta:active{transform:scale(.97)}
+.cta:disabled{opacity:.55;cursor:default;transform:none}
+
+.fine{text-align:center;font-size:.71rem;color:var(--light);font-weight:700;margin-top:10px}
+.err{display:none;text-align:center;font-size:.77rem;font-weight:800;color:#D05050;margin-top:8px}
+.err.on{display:block}
+
+.cnt-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px}
+.cnt-pill{background:linear-gradient(135deg,var(--gold),var(--orange));color:#fff;font-weight:900;
+  font-size:1rem;padding:6px 20px;border-radius:24px;box-shadow:0 4px 14px rgba(249,115,22,.3);
+  min-width:52px;text-align:center}
+.cnt-lbl{font-size:.81rem;color:var(--muted);font-weight:700}
+
+.success{display:none;text-align:center;padding:14px 0;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+.success.on{display:block}
+.success-ico{font-size:3rem;display:block;margin-bottom:10px}
+.success h3{font-family:'Baloo 2',cursive;font-size:1.45rem;font-weight:800;color:var(--coral-d);margin-bottom:7px}
+.success p{font-size:.84rem;color:var(--muted);font-weight:600;line-height:1.5}
+
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;border-radius:50%;animation:spin .5s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── FOR SECTION ── */
+.for-sec{position:relative;z-index:5;max-width:860px;margin:0 auto 88px;padding:0 24px}
+.sec-head{text-align:center;margin-bottom:38px}
+.sec-head h2{font-family:'Baloo 2',cursive;font-size:1.95rem;font-weight:800;color:var(--ink);margin-bottom:6px}
+.sec-head p{font-size:.87rem;color:var(--muted);font-weight:600}
+.for-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.for-card{background:var(--w85);backdrop-filter:blur(14px);border:1.5px solid rgba(224,136,136,.17);
+  border-radius:22px;padding:30px 26px;box-shadow:var(--sh);transition:transform .24s,box-shadow .24s}
+.for-card:hover{transform:translateY(-5px);box-shadow:var(--shXL)}
+.for-ico{font-size:2.5rem;margin-bottom:13px;display:block}
+.for-card h3{font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;margin-bottom:7px}
+.for-card p{font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.tag{font-size:.71rem;font-weight:800;padding:4px 11px;border-radius:20px;
+  background:rgba(244,166,166,.13);color:var(--roseDk);border:1px solid rgba(244,166,166,.28)}
+
+/* ── FEATURES ── */
+.feats{position:relative;z-index:5;max-width:960px;margin:0 auto 88px;padding:0 24px}
+.feats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+.fc{background:var(--w85);backdrop-filter:blur(14px);border:1.5px solid rgba(224,136,136,.15);
+  border-radius:19px;padding:24px 20px;box-shadow:var(--sh);transition:transform .24s,box-shadow .24s}
+.fc:hover{transform:translateY(-4px);box-shadow:var(--shXL)}
+.fc-ico{font-size:1.9rem;margin-bottom:11px;display:block}
+.fc h3{font-family:'Baloo 2',cursive;font-size:1.02rem;font-weight:800;margin-bottom:5px}
+.fc p{font-size:.81rem;color:var(--muted);font-weight:600;line-height:1.55}
+
+/* ── PROOF ── */
+.proof{position:relative;z-index:5;max-width:780px;margin:0 auto 88px;padding:0 24px}
+.proof-in{background:linear-gradient(135deg,var(--coral),#F09898,var(--coral-d));border-radius:24px;
+  padding:34px 48px;display:flex;justify-content:space-around;gap:20px;flex-wrap:wrap;
+  box-shadow:0 16px 48px rgba(224,136,136,.36)}
+.pi{text-align:center;color:#fff}
+.pn{font-family:'Baloo 2',cursive;font-size:2.1rem;font-weight:800;display:block;line-height:1;margin-bottom:4px}
+.pl{font-size:.77rem;font-weight:700;opacity:.85}
+
+footer{position:relative;z-index:5;text-align:center;padding:30px 24px 46px;
+  color:var(--light);font-size:.77rem;font-weight:600;line-height:1.8}
+footer a{color:var(--coral-d);text-decoration:none;font-weight:700}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeD{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeU{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{from{transform:scale(.2) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes pop{from{transform:scale(.65);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* text transition */
+[data-en],[data-zh]{transition:opacity .18s ease}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  nav{padding:13px 18px}
+  .for-grid{grid-template-columns:1fr}
+  .feats-grid{grid-template-columns:1fr 1fr}
+  .row2{grid-template-columns:1fr}
+  .proof-in{padding:26px 18px}
+  .wl-card{padding:28px 20px}
+}
+@media(max-width:480px){.feats-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="blobs">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">🦷 ToothBuddy</div>
+  <div class="nav-right">
+    <div class="pill" data-en="Coming Soon" data-zh="即将上线">Coming Soon</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag" data-en="🏅 Swift Student Challenge 2025" data-zh="🏅 Swift 学生挑战赛 2025">🏅 Swift Student Challenge 2025</div>
+  <span class="hero-tooth">🦷</span>
+
+  <!-- ══ LANGUAGE SWITCHER ══ -->
+  <div class="lang-switch-wrap">
+    <div class="lang-switch">
+      <button class="lang-btn active" onclick="setLang('en')">English</button>
+      <button class="lang-btn" onclick="setLang('zh')">中文</button>
+    </div>
+  </div>
+
+  <h1 data-en="Brushing that <em>kids actually</em><br>want to do"
+      data-zh="让刷牙变成<br><em>孩子主动要求</em>的事">
+    Brushing that <em>kids actually</em><br>want to do
+  </h1>
+  <p class="hero-lead"
+     data-en="Real-time camera guidance, streak tracking, and achievements that make brushing the best part of bedtime — for the whole family."
+     data-zh="实时摄像引导、连续打卡和成就解锁，让刷牙成为每天睡前最期待的仪式 — 全家都适用。">
+    Real-time camera guidance, streak tracking, and achievements that make brushing the best part of bedtime — for the whole family.
+  </p>
+  <div class="stars-row">⭐⭐⭐</div>
+</section>
+
+<!-- WAITLIST -->
+<section class="wl-wrap">
+  <div class="wl-card">
+    <div id="form-area">
+      <div class="wl-title" data-en="🎉 Get early access" data-zh="🎉 加入早鸟名单">🎉 Get early access</div>
+      <div class="wl-sub"
+           data-en="Be the first to know when ToothBuddy hits the App Store"
+           data-zh="第一时间收到 ToothBuddy 正式上线通知">
+        Be the first to know when ToothBuddy hits the App Store
+      </div>
+      <div class="field">
+        <div class="row2">
+          <input type="text" id="inp-name" placeholder="Your name" data-ph-en="Your name" data-ph-zh="你的名字" maxlength="50">
+          <select id="inp-role">
+            <option value="" disabled selected data-en="I'm a…" data-zh="我是…">I'm a…</option>
+            <option value="parent" data-en="Parent" data-zh="孩子家长">Parent</option>
+            <option value="adult" data-en="Adult user" data-zh="成人用户">Adult user</option>
+            <option value="both" data-en="Both" data-zh="两者都是">Both</option>
+          </select>
+        </div>
+        <input type="email" id="inp-email" placeholder="Email address" data-ph-en="Email address" data-ph-zh="邮箱地址" maxlength="120">
+      </div>
+      <div class="err" id="err-msg"
+           data-en="Please fill in all fields with a valid email."
+           data-zh="请填写所有字段，并输入有效的邮箱地址。">
+        Please fill in all fields with a valid email.
+      </div>
+      <button class="cta" id="submit-btn" onclick="handleSubmit()"
+              data-en="✨ Join the Waitlist"
+              data-zh="✨ 加入等候名单">
+        ✨ Join the Waitlist
+      </button>
+      <div class="fine"
+           data-en="🔒 No spam. Just a launch notification. Unsubscribe anytime."
+           data-zh="🔒 不发垃圾邮件，仅在上线时通知你，随时可退订。">
+        🔒 No spam. Just a launch notification. Unsubscribe anytime.
+      </div>
+      <div class="cnt-row">
+        <div class="cnt-pill" id="cnt-main">–</div>
+        <div class="cnt-lbl" data-en="people already on the list" data-zh="人已加入名单">people already on the list</div>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success" id="success-area">
+      <span class="success-ico">🎊</span>
+      <h3 data-en="You're on the list!" data-zh="加入成功！">You're on the list!</h3>
+      <p data-en="We'll send you one email the moment ToothBuddy hits the App Store. Thank you! 🦷"
+         data-zh="ToothBuddy 正式上线时，我们会立刻通知你。感谢你的支持！🦷">
+        We'll send you one email the moment ToothBuddy hits the App Store. Thank you! 🦷
+      </p>
+      <div class="cnt-row" style="margin-top:16px">
+        <div class="cnt-pill" id="cnt-success">–</div>
+        <div class="cnt-lbl" data-en="people joined" data-zh="人已加入">people joined</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR WHOM -->
+<section class="for-sec">
+  <div class="sec-head">
+    <h2 data-en="Built for real families" data-zh="为真实家庭而设计">Built for real families</h2>
+    <p data-en="Whether you're chasing a toddler or building your own habit — ToothBuddy meets you where you are."
+       data-zh="无论你是正在哄孩子刷牙的家长，还是想改善自己习惯的成年人 — ToothBuddy 都适合你。">
+      Whether you're chasing a toddler or building your own habit — ToothBuddy meets you where you are.
+    </p>
+  </div>
+  <div class="for-grid">
+    <div class="for-card">
+      <span class="for-ico">👨‍👩‍👧</span>
+      <h3 data-en="For Parents" data-zh="家长专区">For Parents</h3>
+      <p data-en="End the bedtime brushing battle. Star rewards and daily streaks give kids a reason to actually want to brush — no nagging needed."
+         data-zh="告别每晚的刷牙大战！星星奖励和每日连续打卡，让孩子自己主动要求去刷牙 — 不需要再催了。">
+        End the bedtime brushing battle. Star rewards and daily streaks give kids a reason to actually want to brush — no nagging needed.
+      </p>
+      <div class="tags">
+        <span class="tag" data-en="Streak Tracking" data-zh="连续打卡">Streak Tracking</span>
+        <span class="tag" data-en="Star Rewards" data-zh="星星奖励">Star Rewards</span>
+        <span class="tag" data-en="Achievement Badges" data-zh="成就徽章">Achievement Badges</span>
+      </div>
+    </div>
+    <div class="for-card">
+      <span class="for-ico">🧑</span>
+      <h3 data-en="For Adults" data-zh="成人用户">For Adults</h3>
+      <p data-en="You know you should brush for 2 minutes. ToothBuddy's live timer and camera preview make sure you actually do — and makes it oddly satisfying."
+         data-zh="你知道应该刷满 2 分钟。ToothBuddy 的实时计时器和摄像头预览确保你真的做到了 — 而且会莫名其妙地感到满足。">
+        You know you should brush for 2 minutes. ToothBuddy's live timer and camera preview make sure you actually do — and makes it oddly satisfying.
+      </p>
+      <div class="tags">
+        <span class="tag" data-en="2-Min Timer" data-zh="2分钟计时">2-Min Timer</span>
+        <span class="tag" data-en="Live Camera" data-zh="实时摄像">Live Camera</span>
+        <span class="tag" data-en="Progress History" data-zh="进度历史">Progress History</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="feats">
+  <div class="sec-head">
+    <h2 data-en="Every feature has a purpose" data-zh="每个功能都有意义">Every feature has a purpose</h2>
+    <p data-en="No bloat. Just the things that actually make brushing better."
+       data-zh="没有冗余功能，只有真正让刷牙变好的设计。">
+      No bloat. Just the things that actually make brushing better.
+    </p>
+  </div>
+  <div class="feats-grid">
+    <div class="fc">
+      <span class="fc-ico">📸</span>
+      <h3 data-en="Camera Preview" data-zh="摄像头预览">Camera Preview</h3>
+      <p data-en="See yourself brush in real time. No more missing the spots in the back."
+         data-zh="实时看见自己刷牙的样子，再也不会漏掉后面的死角。">See yourself brush in real time. No more missing the spots in the back.</p>
+    </div>
+    <div class="fc">
+      <span class="fc-ico">⏱️</span>
+      <h3 data-en="Smart Timer" data-zh="智能计时器">Smart Timer</h3>
+      <p data-en="A live progress bar counts up to the dentist-recommended 2 minutes."
+         data-zh="实时进度条倒计时，帮你刷满牙医建议的 2 分钟。">A live progress bar counts up to the dentist-recommended 2 minutes.</p>
+    </div>
+    <div class="fc">
+      <span class="fc-ico">⭐</span>
+      <h3 data-en="Star Ratings" data-zh="星级评分">Star Ratings</h3>
+      <p data-en="Earn 1–3 stars per session based on how long and well you brush."
+         data-zh="每次刷牙根据时长获得 1 到 3 颗星，看着满分的成就感爆棚。">Earn 1–3 stars per session based on how long and well you brush.</p>
+    </div>
+    <div class="fc">
+      <span class="fc-ico">🔥</span>
+      <h3 data-en="Daily Streaks" data-zh="每日连续打卡">Daily Streaks</h3>
+      <p data-en="Build your consecutive-day count and keep the flame alive every morning."
+         data-zh="累积连续刷牙天数，让那把火每天都不熄灭。">Build your consecutive-day count and keep the flame alive every morning.</p>
+    </div>
+    <div class="fc">
+      <span class="fc-ico">🏆</span>
+      <h3 data-en="Achievements" data-zh="成就系统">Achievements</h3>
+      <p data-en="Unlock badges and level up your rank as you hit brushing milestones."
+         data-zh="解锁徽章、提升等级，刷牙也有成就感。">Unlock badges and level up your rank as you hit brushing milestones.</p>
+    </div>
+    <div class="fc">
+      <span class="fc-ico">📊</span>
+      <h3 data-en="Session History" data-zh="历史记录">Session History</h3>
+      <p data-en="Review past sessions, average duration, and star performance over time."
+         data-zh="查看每次刷牙记录、平均时长和星级表现，进步看得见。">Review past sessions, average duration, and star performance over time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section class="proof">
+  <div class="proof-in">
+    <div class="pi">
+      <span class="pn">2 min</span>
+      <div class="pl" data-en="Dentist-recommended brushing time" data-zh="牙医推荐刷牙时长">Dentist-recommended<br>brushing time</div>
+    </div>
+    <div class="pi">
+      <span class="pn">3 ⭐</span>
+      <div class="pl" data-en="Max stars per session" data-zh="每次刷牙最高星级">Max stars per<br>session</div>
+    </div>
+    <div class="pi">
+      <span class="pn">iOS</span>
+      <div class="pl" data-en="iPhone & iPad native app" data-zh="iPhone & iPad 原生应用">iPhone & iPad<br>native app</div>
+    </div>
+    <div class="pi">
+      <span class="pn">Free</span>
+      <div class="pl" data-en="For early waitlist users" data-zh="早鸟用户免费体验">For early<br>waitlist users</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Made with 🦷 + ❤️ · Swift Student Challenge 2025<br>
+  © 2025 ToothBuddy · <a href="mailto:hello@toothbuddy.app">hello@toothbuddy.app</a>
+</footer>
+
+<!--
+═══════════════════════════════════════════════════════════════
+  GOOGLE SHEETS SETUP — 3 steps, ~5 min
+═══════════════════════════════════════════════════════════════
+STEP 1 — Create a Google Sheet with Row 1 headers:
+  A: Timestamp | B: Name | C: Email | D: Role
+
+STEP 2 — Extensions → Apps Script → paste this → Deploy as Web App
+  (Execute as: Me, Who has access: Anyone)
+
+  function doPost(e) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var d = JSON.parse(e.postData.contents);
+    sheet.appendRow([new Date(), d.name, d.email, d.role]);
+    return ContentService.createTextOutput(JSON.stringify({ok:true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+STEP 3 — Paste the Web App URL below where it says REPLACE_WITH_YOUR_URL
+═══════════════════════════════════════════════════════════════
+-->
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxYNTszwyZzoTp1uA6lx6s06sTo3mf8d0wOAQO-vl53sGPYIumoEj_bovDbyo_EKEcb/exec'; // ← 把上面拿到的 Apps Script URL 粘贴到这里
+const COUNT_KEY  = 'toothbuddy-v2-count';
+let   LANG       = 'en';
+
+// ─── LANGUAGE ─────────────────────────────────────────
+function setLang(lang) {
+  LANG = lang;
+
+  // toggle active button
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === (lang === 'en' ? 'English' : '中文'));
+  });
+
+  // swap all data-en / data-zh text nodes
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const txt = el.getAttribute('data-' + lang);
+    if (!txt) return;
+    // use innerHTML so tags like <em><br> are preserved
+    el.innerHTML = txt;
+  });
+
+  // swap placeholders
+  document.querySelectorAll('[data-ph-en]').forEach(el => {
+    el.placeholder = el.getAttribute('data-ph-' + lang) || '';
+  });
+
+  // swap select options
+  document.querySelectorAll('select option[data-en]').forEach(opt => {
+    opt.textContent = opt.getAttribute('data-' + lang) || opt.getAttribute('data-en');
+  });
+
+  // update html lang
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+}
+
+// ─── COUNTER ──────────────────────────────────────────
+async function getCount() {
+  try {
+    const r = await window.storage.get(COUNT_KEY, true);
+    return r ? (parseInt(r.value) || 0) : 0;
+  } catch { return 0; }
+}
+async function incrementCount() {
+  const n = (await getCount()) + 1;
+  try { await window.storage.set(COUNT_KEY, String(n), true); } catch {}
+  return n;
+}
+async function refreshCounter() {
+  const n = await getCount();
+  document.getElementById('cnt-main').textContent = n || '0';
+}
+
+// ─── SUBMIT ───────────────────────────────────────────
+async function handleSubmit() {
+  const name  = document.getElementById('inp-name').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const role  = document.getElementById('inp-role').value;
+  const errEl = document.getElementById('err-msg');
+  const btn   = document.getElementById('submit-btn');
+
+  errEl.classList.remove('on');
+  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !role) {
+    errEl.classList.add('on');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = LANG === 'zh'
+    ? '<span class="spin"></span>提交中…'
+    : '<span class="spin"></span>Joining…';
+
+  if (SHEETS_URL !== 'REPLACE_WITH_YOUR_URL') {
+    fetch(SHEETS_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, role, lang: LANG, ts: new Date().toISOString() })
+    }).catch(() => {});
+  }
+
+  const total = await incrementCount();
+  document.getElementById('cnt-main').textContent    = total;
+  document.getElementById('cnt-success').textContent = total;
+
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('success-area').classList.add('on');
+
+  // re-apply language to success card
+  setLang(LANG);
+}
+
+// enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('form-area').style.display !== 'none')
+    handleSubmit();
+});
+
+refreshCounter();
+</script>
+</body>
+</html>

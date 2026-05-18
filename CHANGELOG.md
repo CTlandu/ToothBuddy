@@ -4,6 +4,14 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P2.5a: Pure sync merge resolver (spec 02 §6.8 / AC12)
+
+- **`ToothBuddyCore`**: `SyncMergeable` protocol + `SyncMergeResolver.merge` —
+  last-writer-wins by `modifiedAt`, tombstone beats stale/tie, union of ids (no loss),
+  deterministic stable ordering. `swift test` 58/58. No iCloud dependency.
+- P2.5b (CloudKit container/CKShare wiring) is blocked on the maintainer's interactive
+  Apple-Developer setup (see `specs/02-family-layer.md` §5/§6.8).
+
 ### Added — P2.4: Per-profile dentist PDF report (spec 02)
 
 - **`ToothBuddyCore`**: `ReportBuilder`/`ReportData`/`DayCell` — range-bounded, profile-
