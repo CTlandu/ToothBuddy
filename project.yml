@@ -26,6 +26,7 @@ targets:
       - BrushingZoneMonitor.swift
       - BrushView.swift
       - CameraPreviewView.swift
+      - CameraService.swift
       - CareStore.swift
       - ContentHistoryStore.swift
       - ContentView.swift
@@ -44,6 +45,7 @@ targets:
       - SoundManager.swift
       - Theme.swift
       - TipsView.swift
+      - VisionFrameProcessor.swift
       - VoiceCoach.swift
       - Assets.xcassets
       - Nunito-Regular.ttf

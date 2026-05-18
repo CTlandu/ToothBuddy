@@ -118,8 +118,13 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 - Engagement-grade only (locked); Core uses pure `CoarseZone`, app `BrushingZone` 1:1.
   - ☑ P4.1 Core engine: `BrushingZoneEstimator`/`ZoneCoverageTracker`/`GuidanceDecider`
     + signal DTOs (swift test 80/80, AC1–AC7). Commit `5f6cc3d`.
-  - ☐ P4.2 App Vision adapter (`VisionZoneMonitor`) + BrushView wiring + no-camera
-    fallback — smoke-only (real device needed to verify camera behavior).
+  - ☑ P4.2 Vision adapter (spec annex `specs/04-2-vision-adapter.md`, confirmed
+    `017b7ed`): single shared `CameraService` (preview+Vision, one camera claim),
+    `VisionFrameProcessor` (nonisolated, throttled, Sendable-only across queues),
+    `BrushingZoneMonitor` rewritten (same public API → BrushView unchanged) w/
+    debounced currentZone + timed fallback + interruption handling, `CameraPreviewView`
+    shares the session. Build clean (0 new-file warnings), app TEST 14/14, Core 80/80.
+    **Device smoke (spec §12) pending user.** Commit `<p42>`.
   - ☐ P4.3 lightweight 2D engagement game (stretch).
 
 ### Priority 5 — Adult Mode + Apple Integrations

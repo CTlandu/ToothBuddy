@@ -4,6 +4,21 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P4.2: Vision camera adapter (spec 04.2)
+
+- **App**: `CameraService` — the single shared `AVCaptureSession` feeding both the selfie
+  preview and Vision (one camera claim, eliminates the dual-session black-screen bug);
+  `VisionFrameProcessor` (nonisolated data-output delegate, ≤12 fps, face-landmarks mouth
+  centroid + hand pose + EMA motion → Sendable `ZoneSample`, isolated DEVICE-TUNE
+  mirror/flip knobs); `BrushingZoneMonitor` rewritten to drive the unit-tested Core
+  engine with a debounced `currentZone` (≤1 change/sec → no voice/UI thrash) and a
+  graceful timed-sequence fallback (no permission / no face / interruption). Public API
+  byte-compatible → **BrushView unchanged**. `CameraPreviewView` now shares the one
+  session. Camera released on screen teardown (battery/privacy).
+- Verified: build clean (0 warnings in new files), app `xcodebuild test` 14/14, Core
+  `swift test` 80/80. **On-device behavior is smoke-tested by the maintainer** (spec
+  04.2 §12 checklist) — it cannot be unit/simulator-tested.
+
 ### Added — P4.1: Camera-guidance Core engine (spec 04)
 
 - **`ToothBuddyCore`**: `CoarseZone` + signal DTOs (`FaceSignal`/`HandSignal`/

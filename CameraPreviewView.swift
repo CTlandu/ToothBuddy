@@ -1,51 +1,29 @@
 import SwiftUI
 import AVFoundation
 
-/// Wraps the front camera in a SwiftUI view for the brushing screen.
+/// Front-camera selfie preview for the brushing screen. Displays the **single shared**
+/// `CameraService` session (Spec 04.2 §3/§9) — it does NOT create its own session, so the
+/// camera is claimed exactly once (also feeding Vision). Fully functional / black
+/// placeholder when unauthorized; no crash, no leak.
 struct CameraPreviewView: UIViewRepresentable {
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView()
         view.backgroundColor = .black
-        let session = AVCaptureSession()
-        session.beginConfiguration()
-        session.sessionPreset = .high
-        defer { session.commitConfiguration() }
-
-        // Only configure when already authorized (BrushView shows this only after permission is granted).
-        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            return view
-        }
-        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
-              let input = try? AVCaptureDeviceInput(device: device),
-              session.canAddInput(input) else {
-            return view
-        }
-        session.addInput(input)
-
-        let layer = AVCaptureVideoPreviewLayer(session: session)
-        layer.videoGravity = .resizeAspectFill
+        let layer = CameraService.shared.previewLayer
+        layer.removeFromSuperlayer()           // safe if re-mounted
         view.previewLayer = layer
         view.layer.insertSublayer(layer, at: 0)
-
-        context.coordinator.session = session
-        context.coordinator.previewLayer = layer
-        DispatchQueue.global(qos: .userInitiated).async { [weak session] in
-            session?.startRunning()
-        }
+        CameraService.shared.startPreview()    // live as soon as the screen shows
         return view
     }
 
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
-        // Frame is set in layoutSubviews of the host view
+        // Frame is set in layoutSubviews of the host view.
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-
-    class Coordinator {
-        var session: AVCaptureSession?
-        var previewLayer: AVCaptureVideoPreviewLayer?
+    /// Brushing screen torn down → fully release the camera (battery / privacy dot).
+    static func dismantleUIView(_ uiView: CameraPreviewUIView, coordinator: ()) {
+        CameraService.shared.stop()
     }
 }
 
