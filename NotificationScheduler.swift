@@ -57,6 +57,42 @@ final class NotificationScheduler {
         }
     }
 
+    private static let carePrefix = "tb.care."
+
+    /// Per-profile brush-head / dentist reminders (Spec 02 §6.6). Overdue items are NOT
+    /// re-nagged here (the planner only emits future due dates); the dashboard shows them.
+    func rescheduleCare(inputs: [ProfileCareInput]) {
+        Task {
+            let pending = await center.pendingNotificationRequests()
+            let stale = pending.map(\.identifier).filter { $0.hasPrefix(Self.carePrefix) }
+            center.removePendingNotificationRequests(withIdentifiers: stale)
+
+            let settings = await center.notificationSettings()
+            let status = settings.authorizationStatus
+            guard status == .authorized || status == .provisional else { return }
+
+            let plan = CareReminderPlanner.plan(inputs, now: Date(), calendar: .current)
+            for r in plan {
+                let interval = r.fireDate.timeIntervalSinceNow
+                guard interval > 0 else { continue }
+                let content = UNMutableNotificationContent()
+                switch r.kind {
+                case .brushHead:
+                    content.title = "Time for a new brush head 🪥"
+                    content.body = "\(r.profileName)'s toothbrush head is due for a swap."
+                case .dentist:
+                    content.title = "Dentist check-up due 🦷"
+                    content.body = "It's time to book \(r.profileName)'s dental visit."
+                }
+                content.sound = .default
+                let id = "\(Self.carePrefix)\(r.kind.rawValue).\(r.profileID.uuidString)"
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+                try? await center.add(UNNotificationRequest(identifier: id,
+                                                            content: content, trigger: trigger))
+            }
+        }
+    }
+
     private static func title(for kind: ReminderKind) -> String {
         switch kind {
         case .morningRoutine: return "Good morning! ☀️"

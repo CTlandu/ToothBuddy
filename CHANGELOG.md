@@ -4,6 +4,17 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P2.3: Per-profile brush-head & dentist reminders (spec 02)
+
+- **`ToothBuddyCore`**: `CareKind` (brushHead 90d / dentist 180d defaults),
+  `CareDueCalculator` (anchor + interval; no baseline → not due, never nags),
+  `CareReminderPlanner` (future due dates only — overdue is shown, not re-nagged).
+  `swift test` 50/50.
+- **App**: `CareStore` (per-profile `CDProfileCare`, "Mark done" resets the anchor),
+  `NotificationScheduler.rescheduleCare` (authorized-only, unique ids per profile+kind),
+  Group dashboard care chips with due/overdue state + Set/Done buttons; rescheduled on
+  scene-active and after marking. App `xcodebuild test` 11/11 (adds AC10).
+
 ### Added — P2.2: Peer Group + everyone-sees-everyone dashboard (spec 02, local-modeled)
 
 - **`ToothBuddyCore`**: `DashboardMetrics` / `DashboardMetric` — today AM/PM, current &

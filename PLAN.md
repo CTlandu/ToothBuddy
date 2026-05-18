@@ -79,7 +79,10 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
   - ☑ P2.2 Group + dashboard (local-modeled): Core `DashboardMetrics` (swift test 44/44);
     `CDGroup` + `GroupStore` + everyone-sees-everyone `GroupDashboardView` + Family tab;
     app TEST 8/8 (AC7/AC9). Commit `aec746a`.
-  - ☐ P2.3 reminders · ☐ P2.4 report · ☐ P2.5 CloudKit
+  - ☑ P2.3 care reminders: Core `CareDueCalculator`+`CareReminderPlanner` (swift test
+    50/50); app `CareStore` + `NotificationScheduler.rescheduleCare` + dashboard
+    chips/Mark-done; app TEST 11/11 (AC10). Commit `<p23>`.
+  - ☐ P2.4 report · ☐ P2.5 CloudKit
 
 ### Priority 3 — Content Engine
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

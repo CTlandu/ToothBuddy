@@ -68,6 +68,7 @@ struct GroupDashboardView: View {
 private struct DashboardRow: View {
     let profile: Profile
     let metric: DashboardMetric
+    @ObservedObject private var care = CareStore.shared
 
     var body: some View {
         VStack(spacing: 10) {
@@ -112,6 +113,11 @@ private struct DashboardRow: View {
                     .frame(width: 34)
             }
             .frame(height: 32)
+
+            HStack(spacing: 8) {
+                careChip(.brushHead, "Brush head", "🪥")
+                careChip(.dentist, "Dentist", "🦷")
+            }
         }
         .padding(14)
         .background(Color.gray.opacity(0.08))
@@ -122,5 +128,31 @@ private struct DashboardRow: View {
         Image(systemName: done ? symbol : "circle.dotted")
             .font(.system(size: 13))
             .foregroundColor(done ? Theme.accentBlue : .secondary)
+    }
+
+    @ViewBuilder
+    private func careChip(_ kind: CareKind, _ label: String, _ icon: String) -> some View {
+        let s = care.status(profile.id, kind)
+        let (text, due): (String, Bool) = {
+            guard let days = s.daysRemaining else { return ("set baseline", false) }
+            if days < 0 { return ("overdue \(-days)d", true) }
+            if s.isDue { return ("due today", true) }
+            return ("in \(days)d", false)
+        }()
+        HStack(spacing: 5) {
+            Text(icon).font(.system(size: 12))
+            Text(label).font(.system(size: 11, weight: .semibold))
+            Text(text).font(.system(size: 11)).foregroundColor(due ? .orange : .secondary)
+            Button(s.daysRemaining == nil ? "Set" : "Done") {
+                care.markDone(profile.id, kind)
+                NotificationScheduler.shared.rescheduleCare(inputs: CareStore.shared.careInputs())
+            }
+            .font(.system(size: 11, weight: .bold))
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 8).padding(.vertical, 6)
+        .background((due ? Color.orange : Color.gray).opacity(0.12))
+        .clipShape(Capsule())
+        .frame(maxWidth: .infinity)
     }
 }

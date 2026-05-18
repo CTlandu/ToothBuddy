@@ -65,6 +65,8 @@ private struct RootView: View {
                 NotificationScheduler.shared.reschedule(
                     records: BrushingStore.shared.records,
                     streak: BrushingStore.shared.streak)
+                NotificationScheduler.shared.rescheduleCare(
+                    inputs: CareStore.shared.careInputs())
             }
         }
     }
