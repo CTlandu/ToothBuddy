@@ -4,6 +4,14 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P3.1: Offline content selection engine (spec 03)
+
+- **`ToothBuddyCore`**: `ContentItem` + bundled original `ContentLibrary` (facts/jokes/
+  tips/story beats, some seasonal; no licensed IP) + `ContentSelector` — tone gating
+  (playful/essentials), seasonal preference with neutral fallback, no-repeat-then-reset,
+  fully deterministic by day-seed. `swift test` 64/64. Offline, no account, asset-light.
+- Music-sync (Apple Music/MusicKit) and LLM generation deferred to their own later specs.
+
 ### Added — P2.5a: Pure sync merge resolver (spec 02 §6.8 / AC12)
 
 - **`ToothBuddyCore`**: `SyncMergeable` protocol + `SyncMergeResolver.merge` —

@@ -97,8 +97,13 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
       wire `SyncMergeResolver` for app-level dedupe. Spec 02 §5/§6.8, AC12–14.
       _Not blocking any other priority — P3/P4 proceed independently._
 
-### Priority 3 — Content Engine
-- ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
+### Priority 3 — Content Engine (offline; spec confirmed `7187a98`)
+- ☑ 1. Spec (`specs/03-content-engine.md`) · ☑ 2. Confirm (2026-05-18, all PROPOSED)
+- Staged (music & LLM deferred to own later specs):
+  - ☑ P3.1 Core `ContentLibrary` + `ContentSelector` (tone/seasonal/no-repeat/
+    deterministic; swift test 64/64). Commit `<p31>`.
+  - ☐ P3.2 2-min TTS session (`SessionScript` pure + VoiceCoach) ·
+    ☐ P3.3 gamified course (`CourseProgression` + TipsView) · ☐ P3.4 seasonal
 
 ### Priority 4 — Camera Guidance Upgrade
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
