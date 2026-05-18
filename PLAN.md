@@ -81,7 +81,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     app TEST 8/8 (AC7/AC9). Commit `aec746a`.
   - ☑ P2.3 care reminders: Core `CareDueCalculator`+`CareReminderPlanner` (swift test
     50/50); app `CareStore` + `NotificationScheduler.rescheduleCare` + dashboard
-    chips/Mark-done; app TEST 11/11 (AC10). Commit `<p23>`.
+    chips/Mark-done; app TEST 11/11 (AC10). Commit `ad846c1`.
   - ☐ P2.4 report · ☐ P2.5 CloudKit
 
 ### Priority 3 — Content Engine
