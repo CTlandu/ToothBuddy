@@ -33,6 +33,9 @@ targets:
       - MyApp.swift
       - NotificationScheduler.swift
       - OnboardingView.swift
+      - Persistence.swift
+      - ProfileStore.swift
+      - ProfilePickerView.swift
       - SoundManager.swift
       - Theme.swift
       - TipsView.swift

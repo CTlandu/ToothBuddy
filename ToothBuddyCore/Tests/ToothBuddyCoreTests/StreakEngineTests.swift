@@ -20,8 +20,9 @@ final class StreakEngineTests: XCTestCase {
     /// One active session (130s ≥ 2 min) on day offset `n` at `hour`.
     private func rec(_ n: Int, hour: Int = 9) -> BrushingRecord {
         let start = cal.date(byAdding: .hour, value: hour, to: day(n))!
-        return BrushingRecord(startDate: start, endDate: start.addingTimeInterval(130))
+        return BrushingRecord(profileID: pid, startDate: start, endDate: start.addingTimeInterval(130))
     }
+    private let pid = UUID()
     /// `now` = today (offset 0) at 10:00.
     private var now: Date { cal.date(byAdding: .hour, value: 10, to: base)! }
 
@@ -105,7 +106,7 @@ final class StreakEngineTests: XCTestCase {
         func d(_ n: Int) -> Date { ny.date(byAdding: .day, value: n, to: dstBase)! }
         func r(_ n: Int) -> BrushingRecord {
             let s = ny.date(byAdding: .hour, value: 9, to: d(n))!
-            return BrushingRecord(startDate: s, endDate: s.addingTimeInterval(130))
+            return BrushingRecord(profileID: pid, startDate: s, endDate: s.addingTimeInterval(130))
         }
         let nowNY = ny.date(byAdding: .hour, value: 10, to: dstBase)!
         let result = StreakEngine.evaluate(records: [r(-2), r(-1), r(0)],

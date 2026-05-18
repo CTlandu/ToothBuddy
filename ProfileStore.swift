@@ -1,0 +1,86 @@
+import Foundation
+import CoreData
+import Combine
+import ToothBuddyCore
+
+/// Owns profiles + the per-device active profile (Spec 02 §6.1–§6.2). Active profile is
+/// device-local in UserDefaults and NEVER synced.
+@MainActor
+final class ProfileStore: ObservableObject {
+    static let shared = ProfileStore()
+
+    @Published private(set) var profiles: [Profile] = []
+    @Published private(set) var activeProfileID: UUID?
+
+    private let ctx: NSManagedObjectContext
+    private let activeKey = "ToothBuddy.activeProfileID"
+
+    init(controller: PersistenceController = .shared) {
+        ctx = controller.container.viewContext
+        if let s = UserDefaults.standard.string(forKey: activeKey) {
+            activeProfileID = UUID(uuidString: s)
+        }
+        reload()
+    }
+
+    var activeProfile: Profile? {
+        profiles.first { $0.id == activeProfileID }
+    }
+
+    func reload() {
+        let req = NSFetchRequest<CDProfile>(entityName: "CDProfile")
+        req.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+        let rows = (try? ctx.fetch(req)) ?? []
+        profiles = rows.compactMap { $0.toDTO() }
+        // Keep the active selection valid.
+        if let id = activeProfileID, !profiles.contains(where: { $0.id == id }) {
+            setActive(profiles.first?.id)
+        } else if activeProfileID == nil, profiles.count == 1 {
+            setActive(profiles.first?.id)
+        }
+    }
+
+    func setActive(_ id: UUID?) {
+        activeProfileID = id
+        if let id { UserDefaults.standard.set(id.uuidString, forKey: activeKey) }
+        else { UserDefaults.standard.removeObject(forKey: activeKey) }
+    }
+
+    @discardableResult
+    func createProfile(name: String, color: ProfileColor, symbol: ProfileSymbol,
+                        birthYear: Int? = nil, creatorLabel: String = "",
+                        makeActive: Bool = true) -> Profile? {
+        guard let valid = Profile.validatedName(name) else { return nil }
+        let now = Date()
+        let dto = Profile(name: valid, colorTag: color, symbol: symbol,
+                          birthYear: birthYear, creatorLabel: creatorLabel,
+                          createdAt: now, modifiedAt: now)
+        let cd = CDProfile(context: ctx)
+        cd.apply(dto)
+        save()
+        reload()
+        if makeActive { setActive(dto.id) }
+        return dto
+    }
+
+    func deleteProfile(_ id: UUID) {
+        let req = NSFetchRequest<CDProfile>(entityName: "CDProfile")
+        req.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        for row in (try? ctx.fetch(req)) ?? [] { ctx.delete(row) }   // cascades records
+        save()
+        reload()
+    }
+
+    /// Look up the managed object for relationship wiring (used by BrushingStore).
+    func managedProfile(_ id: UUID) -> CDProfile? {
+        let req = NSFetchRequest<CDProfile>(entityName: "CDProfile")
+        req.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        req.fetchLimit = 1
+        return (try? ctx.fetch(req))?.first
+    }
+
+    private func save() {
+        guard ctx.hasChanges else { return }
+        try? ctx.save()
+    }
+}

@@ -18,8 +18,9 @@ final class ReminderPlannerTests: XCTestCase {
         var dc = cal.dateComponents([.year, .month, .day], from: day(n))
         dc.hour = h; dc.minute = m
         let start = cal.date(from: dc)!
-        return BrushingRecord(startDate: start, endDate: start.addingTimeInterval(130))
+        return BrushingRecord(profileID: pid, startDate: start, endDate: start.addingTimeInterval(130))
     }
+    private let pid = UUID()
     private func nowAt(_ h: Int, _ m: Int = 0) -> Date {
         var dc = cal.dateComponents([.year, .month, .day], from: base)
         dc.hour = h; dc.minute = m

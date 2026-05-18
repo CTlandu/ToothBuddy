@@ -8,8 +8,10 @@ enum AppTab: String, CaseIterable {
 
 struct ContentView: View {
     @StateObject private var store = BrushingStore.shared
+    @StateObject private var profiles = ProfileStore.shared
     @State private var selectedTab: AppTab = .brush
     @State private var previousTab: AppTab = .brush
+    @State private var showProfileSwitcher = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,6 +36,11 @@ struct ContentView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: store.isBrushing)
         .background(Theme.appBackground.ignoresSafeArea())
         .ignoresSafeArea(edges: .bottom)
+        .sheet(isPresented: $showProfileSwitcher) {
+            ProfilePickerView(store: profiles, isGate: false) {
+                showProfileSwitcher = false
+            }
+        }
     }
 
     private var deletedRecordBanner: some View {
@@ -68,14 +75,31 @@ struct ContentView: View {
 
     private var appHeader: some View {
         HStack(spacing: 7) {
+            Spacer().frame(width: 44)
+            Spacer()
             ToothImageView(size: 26)
             Text("ToothBuddy")
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .tracking(1)
                 .foregroundColor(Theme.textPrimary)
+            Spacer()
+            profileButton
         }
         .shadow(color: Theme.accentBlue.opacity(0.3), radius: 6, x: 0, y: 2)
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
+    }
+
+    private var profileButton: some View {
+        Button { showProfileSwitcher = true } label: {
+            Image(systemName: profiles.activeProfile?.symbol.systemImage ?? "person.crop.circle")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .frame(width: 36, height: 36)
+                .background((profiles.activeProfile?.colorTag.color) ?? Theme.accentBlue)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var tabOrderIndex: Int { Self.tabOrder.firstIndex(of: selectedTab) ?? 0 }

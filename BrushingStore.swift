@@ -1,113 +1,147 @@
 import Foundation
+import CoreData
+import Combine
 import ToothBuddyCore
 
-/// Persists brushing records to a JSON file in Application Support for easy export and extension.
+/// Active-profile-scoped brushing store, backed by Core Data (Spec 02). Public surface is
+/// kept compatible with existing call sites (records / streak / add / delete / undo).
 @MainActor
 final class BrushingStore: ObservableObject {
     static let shared = BrushingStore()
 
+    /// The ACTIVE profile's records, newest first.
     @Published private(set) var records: [BrushingRecord] = []
-
-    /// Forgiving streak (Spec 01). Recomputed from `records` on every change.
+    /// Forgiving streak (Spec 01) for the active profile.
     @Published private(set) var streak: StreakResult = .empty
-
-    /// When non-nil, show "Record deleted. Undo" so the user can restore.
+    /// When non-nil, show "Record deleted. Undo".
     @Published var lastDeletedRecord: BrushingRecord?
-
-    /// True while a brushing session is active; used by ContentView to hide the tab bar.
+    /// True while a session is active; ContentView hides the tab bar.
     @Published var isBrushing = false
 
-    private let fileName = "brushing_records.json"
-    private var fileURL: URL? {
-        guard let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-        let dir = support.appendingPathComponent("ToothBuddy", isDirectory: true)
-        if !FileManager.default.fileExists(atPath: dir.path) {
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        }
-        return dir.appendingPathComponent(fileName)
+    private let ctx: NSManagedObjectContext
+    private let profiles: ProfileStore
+    private var cancellables: Set<AnyCancellable> = []
+    private let migratedKey = "ToothBuddy.didMigrateToCoreData_v1"
+    private let legacyAchievementsKey = "ToothBuddy.unlockedAchievements"
+
+    init(controller: PersistenceController = .shared, profiles: ProfileStore = .shared) {
+        ctx = controller.viewContext
+        self.profiles = profiles
+        runMigrationIfNeeded()
+        reload()
+        profiles.$activeProfileID
+            .dropFirst()
+            .sink { [weak self] _ in self?.reload() }
+            .store(in: &cancellables)
     }
 
-    private init() {
-        load()
-    }
+    // MARK: Derived
 
-    func load() {
-        defer { recomputeStreak() }
-        guard let url = fileURL, FileManager.default.fileExists(atPath: url.path) else {
-            records = []
-            return
-        }
-        do {
-            let data = try Data(contentsOf: url)
-            records = try JSONDecoder().decode([BrushingRecord].self, from: data)
-            records.sort { $0.startDate > $1.startDate }
-        } catch {
-            records = []
-        }
-    }
-
-    /// Single source of truth for the streak. Pure math lives in ToothBuddyCore.
-    private func recomputeStreak() {
-        streak = StreakEngine.evaluate(records: records,
-                                       now: Date(),
-                                       config: .default,
-                                       calendar: .current)
-    }
-
-    /// Number of sessions that started today (for "Today's goal").
-    var recordsTodayCount: Int {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return records.filter { calendar.startOfDay(for: $0.startDate) == today }.count
-    }
-
-    /// Current forgiving streak. Backed by `streak` (Spec 01); kept for existing call sites.
     var consecutiveDaysCount: Int { streak.currentStreak }
-
-    /// Longest streak ever achieved (never decreases).
     var longestStreak: Int { streak.longestStreak }
 
-    /// Average session duration in seconds (0 if no records).
+    var recordsTodayCount: Int {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        return records.filter { cal.startOfDay(for: $0.startDate) == today }.count
+    }
+
     var averageDurationSeconds: Int {
         guard !records.isEmpty else { return 0 }
-        let total = records.reduce(0) { $0 + $1.durationSeconds }
-        return total / records.count
+        return records.reduce(0) { $0 + $1.durationSeconds } / records.count
     }
 
-    func add(_ record: BrushingRecord) {
-        records.insert(record, at: 0)
-        save()
-        Task { @MainActor in
-            GamificationStore.shared.checkAndUnlock(records: records)
+    // MARK: Load
+
+    func reload() {
+        guard let pid = profiles.activeProfileID else {
+            records = []; streak = .empty; return
         }
+        let req = NSFetchRequest<CDBrushingRecord>(entityName: "CDBrushingRecord")
+        req.predicate = NSPredicate(format: "profile.id == %@", pid as CVarArg)
+        req.sortDescriptors = [NSSortDescriptor(key: "startDate", ascending: false)]
+        let rows = (try? ctx.fetch(req)) ?? []
+        records = rows.compactMap { $0.toDTO() }
+        recomputeStreak()
     }
 
-    /// Removes the record by id, stores it in lastDeletedRecord for undo. Call restoreLastDeleted() to undo.
+    private func recomputeStreak() {
+        streak = StreakEngine.evaluate(records: records, now: Date(),
+                                       config: .default, calendar: .current)
+    }
+
+    // MARK: Mutations
+
+    /// Record a completed session for the active profile.
+    func recordSession(start: Date, end: Date) {
+        guard let pid = profiles.activeProfileID,
+              let cdp = profiles.managedProfile(pid) else { return }
+        let r = CDBrushingRecord(context: ctx)
+        r.id = UUID(); r.startDate = start; r.endDate = end
+        r.modifiedAt = Date(); r.profile = cdp
+        saveAndReload()
+        GamificationStore.shared.checkAndUnlock(records: records)
+    }
+
     func deleteRecord(id: UUID) {
-        guard let index = records.firstIndex(where: { $0.id == id }) else { return }
-        lastDeletedRecord = records.remove(at: index)
-        save()
+        let req = NSFetchRequest<CDBrushingRecord>(entityName: "CDBrushingRecord")
+        req.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        req.fetchLimit = 1
+        guard let row = (try? ctx.fetch(req))?.first else { return }
+        lastDeletedRecord = row.toDTO()
+        ctx.delete(row)
+        saveAndReload()
     }
 
-    /// Restores the last deleted record and clears lastDeletedRecord.
     func restoreLastDeleted() {
-        guard let record = lastDeletedRecord else { return }
-        records.insert(record, at: 0)
+        guard let rec = lastDeletedRecord,
+              let cdp = profiles.managedProfile(rec.profileID) else { return }
+        let r = CDBrushingRecord(context: ctx)
+        r.id = rec.id; r.startDate = rec.startDate; r.endDate = rec.endDate
+        r.modifiedAt = Date(); r.profile = cdp
         lastDeletedRecord = nil
-        save()
+        saveAndReload()
     }
 
-    /// Clears the last-deleted reference without restoring (e.g. user dismissed the undo banner).
-    func clearLastDeleted() {
-        lastDeletedRecord = nil
+    func clearLastDeleted() { lastDeletedRecord = nil }
+
+    private func saveAndReload() {
+        if ctx.hasChanges { try? ctx.save() }
+        reload()
     }
 
-    private func save() {
-        recomputeStreak()   // every mutation path (add/delete/restore) calls save()
-        guard let url = fileURL else { return }
-        do {
-            let data = try JSONEncoder().encode(records)
-            try data.write(to: url)
-        } catch { }
+    // MARK: Zero-loss migration (Spec 02 §7.2 / AC1) — idempotent.
+
+    private func runMigrationIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: migratedKey) else { return }
+        defer { defaults.set(true, forKey: migratedKey) }
+
+        guard let support = FileManager.default.urls(for: .applicationSupportDirectory,
+                                                     in: .userDomainMask).first else { return }
+        let legacyURL = support.appendingPathComponent("ToothBuddy/brushing_records.json")
+        guard let data = try? Data(contentsOf: legacyURL),
+              let legacy = try? MigrationTransform.decodeLegacy(data),
+              !legacy.isEmpty else { return }   // fresh install → nothing to migrate
+
+        // Create the default profile and own all legacy records.
+        guard let def = profiles.createProfile(name: "Me", color: .sky, symbol: .star,
+                                               makeActive: true),
+              let cdp = profiles.managedProfile(def.id) else { return }
+        for rec in MigrationTransform.migrate(legacy: legacy, defaultProfileID: def.id) {
+            let r = CDBrushingRecord(context: ctx)
+            r.id = rec.id; r.startDate = rec.startDate; r.endDate = rec.endDate
+            r.modifiedAt = Date(); r.profile = cdp
+        }
+        // Migrate legacy global achievements → this profile.
+        if let aData = defaults.data(forKey: legacyAchievementsKey),
+           let ids = try? JSONDecoder().decode([String].self, from: aData) {
+            for aid in ids {
+                let a = CDAchievementUnlock(context: ctx)
+                a.achievementID = aid; a.unlockedAt = Date(); a.profile = cdp
+            }
+        }
+        if ctx.hasChanges { try? ctx.save() }
+        // Legacy JSON is intentionally left on disk as a one-release backup.
     }
 }

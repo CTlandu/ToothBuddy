@@ -4,6 +4,9 @@ import Foundation
 /// Pure value type — lives in ToothBuddyCore so it is unit-testable from the CLI.
 public struct BrushingRecord: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID
+    /// Owning profile (Spec 02). Non-optional — legacy records without it are decoded via
+    /// `LegacyBrushingRecord` and assigned a profile by `MigrationTransform`.
+    public var profileID: UUID
     public var startDate: Date
     public var endDate: Date
 
@@ -20,8 +23,9 @@ public struct BrushingRecord: Identifiable, Codable, Equatable, Sendable {
         return 0
     }
 
-    public init(id: UUID = UUID(), startDate: Date, endDate: Date) {
+    public init(id: UUID = UUID(), profileID: UUID, startDate: Date, endDate: Date) {
         self.id = id
+        self.profileID = profileID
         self.startDate = startDate
         self.endDate = endDate
     }

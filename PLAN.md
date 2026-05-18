@@ -66,8 +66,17 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 - ☑ 6. Docs (README, CHANGELOG, spec status)
 - ☑ 7. Commit (5961327)
 
-### Priority 2 — Family / Parent Layer
-- ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
+### Priority 2 — Group Sharing (peer, no-admin; reframed 2026-05-18)
+- ☑ 1. Spec (`specs/02-family-layer.md`, rewritten peer-Group model)
+- ☑ 2. Confirm (user approved 2026-05-18; commit `dee0355`)
+- Staged P2.1→P2.5:
+  - ☑ P2.1a Core: Profile + profileID + MigrationTransform + aggregator (`swift test` 39/39)
+  - ☑ P2.1b App: programmatic Core Data stack (`NSPersistentCloudKitContainer`, local),
+    ProfileStore, BrushingStore/GamificationStore reworked per-profile, migration runner,
+    profile picker + first-run gate. App BUILD SUCCEEDED; app TEST SUCCEEDED (5/5).
+  - ◐ P2.1c Verify + docs + commit (automated all green; manual smoke = user runs the
+    legacy-JSON migration + picker checklist on device/sim)
+  - ☐ P2.2 Group + dashboard · ☐ P2.3 reminders · ☐ P2.4 report · ☐ P2.5 CloudKit
 
 ### Priority 3 — Content Engine
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

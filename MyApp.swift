@@ -39,21 +39,27 @@ struct MyApp: App {
 /// the app becomes active.
 private struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @StateObject private var profiles = ProfileStore.shared
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
-            if hasCompletedOnboarding {
-                ContentView()
-                    .transition(.opacity)
-            } else {
+            if !hasCompletedOnboarding {
                 OnboardingView {
                     withAnimation(.easeInOut(duration: 0.45)) {
                         hasCompletedOnboarding = true
                     }
                 }
+            } else if profiles.activeProfile == nil {
+                // First-run gate: must create or pick a profile (Spec 02 §6.2).
+                ProfilePickerView(store: profiles, isGate: true)
+                    .transition(.opacity)
+            } else {
+                ContentView()
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: profiles.activeProfile == nil)
         .onChange(of: scenePhase) { phase in
             if phase == .active {
                 NotificationScheduler.shared.reschedule(

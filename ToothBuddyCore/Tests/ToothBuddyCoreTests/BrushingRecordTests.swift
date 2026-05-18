@@ -2,9 +2,10 @@ import XCTest
 @testable import ToothBuddyCore
 
 final class BrushingRecordTests: XCTestCase {
+    private let pid = UUID()
     private func record(durationSeconds: Int) -> BrushingRecord {
         let start = Date(timeIntervalSince1970: 1_000_000)
-        return BrushingRecord(startDate: start,
+        return BrushingRecord(profileID: pid, startDate: start,
                               endDate: start.addingTimeInterval(TimeInterval(durationSeconds)))
     }
 
@@ -14,7 +15,7 @@ final class BrushingRecordTests: XCTestCase {
 
     func testDurationNeverNegative() {
         let start = Date(timeIntervalSince1970: 1_000_000)
-        let r = BrushingRecord(startDate: start, endDate: start.addingTimeInterval(-50))
+        let r = BrushingRecord(profileID: pid, startDate: start, endDate: start.addingTimeInterval(-50))
         XCTAssertEqual(r.durationSeconds, 0)
         XCTAssertEqual(r.starCount, 0)
     }

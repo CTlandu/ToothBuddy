@@ -1,4 +1,6 @@
 import Foundation
+import CoreData
+import Combine
 import ToothBuddyCore
 
 /// Achievement badge for gamification.
@@ -9,18 +11,26 @@ struct Achievement: Identifiable, Equatable {
     let description: String
 }
 
-/// Gamification store: achievements, levels, badges. Computes from BrushingStore.
+/// Per-profile gamification (Spec 02 §6.3 / AC4). Unlocked achievements are stored in
+/// Core Data as `CDAchievementUnlock` rows scoped to the active profile.
 @MainActor
 final class GamificationStore: ObservableObject {
     static let shared = GamificationStore()
 
     @Published private(set) var unlockedAchievementIds: Set<String> = []
 
-    private let achievementKey = "ToothBuddy.unlockedAchievements"
     private let store = BrushingStore.shared
+    private let profiles = ProfileStore.shared
+    private let ctx: NSManagedObjectContext
+    private var cancellables: Set<AnyCancellable> = []
 
-    private init() {
+    private init(controller: PersistenceController = .shared) {
+        ctx = controller.viewContext
         loadUnlocked()
+        profiles.$activeProfileID
+            .dropFirst()
+            .sink { [weak self] _ in self?.loadUnlocked() }
+            .store(in: &cancellables)
     }
 
     var level: Int {
@@ -71,8 +81,7 @@ final class GamificationStore: ObservableObject {
         Self.allAchievements.filter { unlockedAchievementIds.contains($0.id) }
     }
 
-    /// Returns a human-readable progress string for the given achievement,
-    /// e.g. "7 / 10 sessions" for a partially completed count-based achievement.
+    /// Human-readable progress, e.g. "7 / 10 sessions".
     func progressDescription(for achievement: Achievement, records: [BrushingRecord]) -> String {
         let streak = store.consecutiveDaysCount
         switch achievement.id {
@@ -103,60 +112,42 @@ final class GamificationStore: ObservableObject {
 
     func checkAndUnlock(records: [BrushingRecord]) {
         var newlyUnlocked: [String] = []
+        func consider(_ id: String, _ condition: Bool) {
+            if condition, !unlockedAchievementIds.contains(id) { newlyUnlocked.append(id) }
+        }
 
-        if records.count >= 1, !unlockedAchievementIds.contains("first-brush") {
-            newlyUnlocked.append("first-brush")
-        }
-        if records.count >= 5, !unlockedAchievementIds.contains("five-sessions") {
-            newlyUnlocked.append("five-sessions")
-        }
-        if records.count >= 10, !unlockedAchievementIds.contains("ten-sessions") {
-            newlyUnlocked.append("ten-sessions")
-        }
+        consider("first-brush",   records.count >= 1)
+        consider("five-sessions", records.count >= 5)
+        consider("ten-sessions",  records.count >= 10)
 
         let streak = store.consecutiveDaysCount
-        if streak >= 3, !unlockedAchievementIds.contains("streak-3") {
-            newlyUnlocked.append("streak-3")
-        }
-        if streak >= 7, !unlockedAchievementIds.contains("streak-7") {
-            newlyUnlocked.append("streak-7")
-        }
+        consider("streak-3", streak >= 3)
+        consider("streak-7", streak >= 7)
 
-        let hasTwoMin = records.contains { $0.durationSeconds >= 120 }
-        if hasTwoMin, !unlockedAchievementIds.contains("two-min") {
-            newlyUnlocked.append("two-min")
-        }
+        consider("two-min", records.contains { $0.durationSeconds >= 120 })
+        consider("five-perfect", records.filter { $0.starCount >= 3 }.count >= 5)
 
-        let perfectCount = records.filter { $0.starCount >= 3 }.count
-        if perfectCount >= 5, !unlockedAchievementIds.contains("five-perfect") {
-            newlyUnlocked.append("five-perfect")
-        }
+        let cal = Calendar.current
+        consider("early-bird", records.contains { cal.component(.hour, from: $0.startDate) < 8 })
 
-        let calendar = Calendar.current
-        let hasEarlyBird = records.contains { record in
-            calendar.component(.hour, from: record.startDate) < 8
-        }
-        if hasEarlyBird, !unlockedAchievementIds.contains("early-bird") {
-            newlyUnlocked.append("early-bird")
-        }
-
+        guard !newlyUnlocked.isEmpty, let pid = profiles.activeProfileID,
+              let cdp = profiles.managedProfile(pid) else { return }
         for id in newlyUnlocked {
             unlockedAchievementIds.insert(id)
+            let row = CDAchievementUnlock(context: ctx)
+            row.achievementID = id
+            row.unlockedAt = Date()
+            row.profile = cdp
         }
-        if !newlyUnlocked.isEmpty {
-            saveUnlocked()
-        }
+        if ctx.hasChanges { try? ctx.save() }
     }
 
+    /// Load the active profile's unlocked achievements from Core Data.
     private func loadUnlocked() {
-        guard let data = UserDefaults.standard.data(forKey: achievementKey),
-              let ids = try? JSONDecoder().decode([String].self, from: data) else { return }
-        unlockedAchievementIds = Set(ids)
-    }
-
-    private func saveUnlocked() {
-        let ids = Array(unlockedAchievementIds)
-        guard let data = try? JSONEncoder().encode(ids) else { return }
-        UserDefaults.standard.set(data, forKey: achievementKey)
+        guard let pid = profiles.activeProfileID else { unlockedAchievementIds = []; return }
+        let req = NSFetchRequest<CDAchievementUnlock>(entityName: "CDAchievementUnlock")
+        req.predicate = NSPredicate(format: "profile.id == %@", pid as CVarArg)
+        let rows = (try? ctx.fetch(req)) ?? []
+        unlockedAchievementIds = Set(rows.compactMap { $0.achievementID })
     }
 }

@@ -520,12 +520,11 @@ struct BrushView: View {
         zoneMonitor.stopMonitoring()
         store.isBrushing = false
         guard let start = startDate else { return }
-        let record = BrushingRecord(startDate: start, endDate: Date())
-        store.add(record)
+        store.recordSession(start: start, end: Date())   // scoped to active profile (Spec 02)
         // Contextual permission (after first completed session) + refresh reminders. Spec 01 §4.7.
         NotificationScheduler.shared.requestAuthorizationIfNeeded()
         NotificationScheduler.shared.reschedule(records: store.records, streak: store.streak)
-        doneSheetRecord = record
+        doneSheetRecord = store.records.first
         showDoneSheet = true
         startDate = nil
         isBrushing = false
