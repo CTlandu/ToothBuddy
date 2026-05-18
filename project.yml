@@ -1,0 +1,87 @@
+# XcodeGen spec — the source of truth for the Xcode project.
+# Regenerate with:  xcodegen generate   (ToothBuddy.xcodeproj is git-ignored)
+# Migrated from .swiftpm on 2026-05-18 (see PLAN.md decision log). The pure logic
+# still lives in the local ToothBuddyCore Swift package (run `cd ToothBuddyCore && swift test`).
+
+name: ToothBuddy
+options:
+  bundleIdPrefix: com.ctlandu
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+packages:
+  ToothBuddyCore:
+    path: ToothBuddyCore
+
+targets:
+  ToothBuddy:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    # Explicit file list (deterministic — never pulls in docs / ToothBuddyCore / .build).
+    sources:
+      - BrushingStore.swift
+      - BrushingZoneMonitor.swift
+      - BrushView.swift
+      - CameraPreviewView.swift
+      - ContentView.swift
+      - FloatingToothBubblesView.swift
+      - GamificationStore.swift
+      - HistoryView.swift
+      - MyApp.swift
+      - NotificationScheduler.swift
+      - OnboardingView.swift
+      - SoundManager.swift
+      - Theme.swift
+      - TipsView.swift
+      - VoiceCoach.swift
+      - Assets.xcassets
+      - Nunito-Regular.ttf
+      - Nunito-SemiBold.ttf
+      - Nunito-Bold.ttf
+      - Nunito-ExtraBold.ttf
+    dependencies:
+      - package: ToothBuddyCore
+        product: ToothBuddyCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ctlandu.ToothBuddy
+        DEVELOPMENT_TEAM: 89A8S223WV
+        TARGETED_DEVICE_FAMILY: "1,2"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: Support/Info.plist
+        # No app icon designed yet (the .swiftpm used a placeholder). Empty name
+        # disables the AppIcon requirement; set this to "AppIcon" once one exists.
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        # iCloud/CloudKit entitlements are intentionally NOT here yet — added in the
+        # P2 CloudKit stage together with the user's interactive signing step.
+
+  ToothBuddyTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - Tests/ToothBuddyAppTests
+    dependencies:
+      - target: ToothBuddy
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+
+schemes:
+  ToothBuddy:
+    build:
+      targets:
+        ToothBuddy: all
+        ToothBuddyTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - ToothBuddyTests
