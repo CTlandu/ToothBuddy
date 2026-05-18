@@ -87,9 +87,15 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     app TEST 12/12 (AC11). Commit `d65e04f`.
   - P2.5 CloudKit:
     - ☑ P2.5a Core `SyncMergeResolver` (LWW/tombstone/union; swift test 58/58) — no iCloud
-    - ⛔ P2.5b CloudKit wiring — BLOCKED on user's interactive Apple-Developer setup
-      (enable iCloud/CloudKit container + Background Modes + entitlements; 2 iCloud
-      accounts + 2 devices for CKShare smoke)
+    - ⛔ P2.5b CloudKit wiring — **DEFERRED (parked 2026-05-18 at user request)**.
+      Resume only when the user completes the interactive Apple-Developer setup:
+      enable iCloud/CloudKit container `iCloud.com.ctlandu.ToothBuddy` + Background
+      Modes (remote notifications) + Push + entitlements; provide 2 iCloud accounts +
+      2 devices for the CKShare invite/accept + convergence smoke. Then: `project.yml`
+      entitlements + `cloudKitContainerOptions` on private+shared stores, CKShare
+      create/accept (`UICloudSharingController`, `userDidAcceptCloudKitShareWith`),
+      wire `SyncMergeResolver` for app-level dedupe. Spec 02 §5/§6.8, AC12–14.
+      _Not blocking any other priority — P3/P4 proceed independently._
 
 ### Priority 3 — Content Engine
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
