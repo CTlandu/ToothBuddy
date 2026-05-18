@@ -4,6 +4,14 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P3.3: Gamified oral-health course (spec 03)
+
+- **`ToothBuddyCore`**: `Lesson` + bundled ordered `CourseLibrary` (8 original lessons)
+  + `CourseProgression.unlockedCount` (1 unlocked, +1 every 2 active days, capped).
+  `swift test` 72/72.
+- **App**: TipsView gains a course section — lessons lock/unlock by the active profile's
+  distinct active-day count, with a lesson detail sheet (UI smoke).
+
 ### Added — P3.2: 2-minute spoken-content session (spec 03)
 
 - **`ToothBuddyCore`**: `ScriptCue`/`SessionScript.build` — deterministic 2-min timeline

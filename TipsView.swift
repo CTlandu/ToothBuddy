@@ -1,4 +1,5 @@
 import SwiftUI
+import ToothBuddyCore
 
 // MARK: - Category system
 
@@ -196,15 +197,31 @@ private func tipEmojiView(_ systemImage: String, size: CGFloat, accent: Color = 
 struct TipsView: View {
     @State private var selectedTip: BrushingTip?
     @State private var contentAppeared = false
+    @StateObject private var store = BrushingStore.shared
+    @State private var selectedLesson: Lesson?
+
+    /// Distinct active days for the active profile (drives course unlocks, Spec 03 §5.4).
+    private var activeDays: Int {
+        let cal = Calendar.current
+        return Set(store.records.map { cal.startOfDay(for: $0.startDate) }).count
+    }
+    private var unlockedLessons: Int {
+        CourseProgression.unlockedCount(activeDays: activeDays,
+                                        totalLessons: CourseLibrary.all.count)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
+                courseSection
+                    .padding(.horizontal, 18)
+
                 Text("BRUSHING TIPS")
                     .font(.system(size: 12, weight: .heavy))
                     .tracking(1.5)
                     .foregroundColor(Theme.textMuted)
                     .padding(.horizontal, 18)
+                    .padding(.top, 6)
 
                 // Hero card — first tip
                 if let hero = brushingTips.first {
@@ -235,6 +252,72 @@ struct TipsView: View {
         .sheet(item: $selectedTip) { tip in
             TipDetailView(tip: tip)
         }
+        .sheet(item: $selectedLesson) { lesson in
+            NavigationStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(lesson.title)
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                        Text(lesson.body)
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.textPrimary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+                }
+                .navigationTitle("Lesson \(lesson.id)")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+    }
+
+    // MARK: Oral-health course (Spec 03 §5.4)
+
+    private var courseSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("ORAL-HEALTH COURSE")
+                .font(.system(size: 12, weight: .heavy))
+                .tracking(1.5)
+                .foregroundColor(Theme.textMuted)
+            Text("\(unlockedLessons) of \(CourseLibrary.all.count) lessons unlocked — keep brushing to unlock more")
+                .font(.system(size: 12))
+                .foregroundColor(Theme.textMuted)
+            ForEach(CourseLibrary.all) { lesson in
+                courseRow(lesson, locked: lesson.id > unlockedLessons)
+            }
+        }
+    }
+
+    private func courseRow(_ lesson: Lesson, locked: Bool) -> some View {
+        Button { if !locked { selectedLesson = lesson } } label: {
+            HStack(spacing: 12) {
+                Image(systemName: locked ? "lock.fill" : "checkmark.seal.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(locked ? Theme.textMuted : Theme.accentBlue)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(lesson.title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(locked ? Theme.textMuted : Theme.textPrimary)
+                    if locked {
+                        Text("Unlocks after \((lesson.id - 1) * CourseProgression.lessonEvery) active days")
+                            .font(.system(size: 11))
+                            .foregroundColor(Theme.textMuted)
+                    }
+                }
+                Spacer()
+                if !locked {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Theme.textMuted)
+                }
+            }
+            .padding(12)
+            .background(Color.gray.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .disabled(locked)
     }
 
     // MARK: Hero card

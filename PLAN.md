@@ -104,8 +104,11 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     deterministic; swift test 64/64). Commit `7635c4a`.
   - ☑ P3.2 2-min TTS session: Core `SessionScript` (swift test 69/69); app
     `ContentHistoryStore` + BrushView speaks content/encourage cues mid-session
-    (quadrants stay with zoneMonitor); app TEST 14/14. Commit `<p32>`.
-  - ☐ P3.3 gamified course (`CourseProgression` + TipsView) · ☐ P3.4 seasonal
+    (quadrants stay with zoneMonitor); app TEST 14/14. Commit `577f97c`.
+  - ☑ P3.3 gamified course: Core `CourseProgression`+`CourseLibrary` (swift test
+    72/72, AC6); TipsView course section (locked/unlocked by active-profile active
+    days) — UI smoke. App TEST 14/14. Commit `<p33>`.
+  - ☐ P3.4 seasonal (more seasonal items + minor accent)
 
 ### Priority 4 — Camera Guidance Upgrade
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
