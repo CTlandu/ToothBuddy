@@ -110,7 +110,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     days) — UI smoke. App TEST 14/14. Commit `7bc1775`.
   - ☑ P3.4 seasonal: spring/summer/autumn content added; Core seasonal-coverage +
     neutral-fallback tests (swift test 73/73). Visual accent intentionally out of
-    scope (cosmetic, zero logic). Commit `<p34>`.
+    scope (cosmetic, zero logic). Commit `f6b9c27`.
   - **P3 COMPLETE** (music & LLM remain deferred to own later specs).
 
 ### Priority 4 — Camera Guidance Upgrade
