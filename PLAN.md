@@ -84,7 +84,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     chips/Mark-done; app TEST 11/11 (AC10). Commit `ad846c1`.
   - ☑ P2.4 dentist PDF report: Core `ReportBuilder`/`ReportData` (swift test 53/53);
     app `ReportPDFRenderer` + dashboard Report menu (30/90/365d) + share sheet;
-    app TEST 12/12 (AC11). Commit `<p24>`.
+    app TEST 12/12 (AC11). Commit `d65e04f`.
   - ☐ P2.5 CloudKit (needs user's interactive Apple-Developer iCloud step + 2 accts/devices)
 
 ### Priority 3 — Content Engine
