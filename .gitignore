@@ -13,3 +13,6 @@ DerivedData/
 
 # Tooling
 .firecrawl/
+
+# User wants this design preview kept local, untracked
+toothbuddy-web.html
