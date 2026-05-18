@@ -113,8 +113,14 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     scope (cosmetic, zero logic). Commit `f6b9c27`.
   - **P3 COMPLETE** (music & LLM remain deferred to own later specs).
 
-### Priority 4 — Camera Guidance Upgrade
-- ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
+### Priority 4 — Camera Guidance Upgrade (spec confirmed `672392d`)
+- ☑ 1. Spec (`specs/04-camera-guidance.md`) · ☑ 2. Confirm (2026-05-18, all PROPOSED)
+- Engagement-grade only (locked); Core uses pure `CoarseZone`, app `BrushingZone` 1:1.
+  - ☑ P4.1 Core engine: `BrushingZoneEstimator`/`ZoneCoverageTracker`/`GuidanceDecider`
+    + signal DTOs (swift test 80/80, AC1–AC7). Commit `<p41>`.
+  - ☐ P4.2 App Vision adapter (`VisionZoneMonitor`) + BrushView wiring + no-camera
+    fallback — smoke-only (real device needed to verify camera behavior).
+  - ☐ P4.3 lightweight 2D engagement game (stretch).
 
 ### Priority 5 — Adult Mode + Apple Integrations
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

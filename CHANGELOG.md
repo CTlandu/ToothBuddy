@@ -4,6 +4,15 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P4.1: Camera-guidance Core engine (spec 04)
+
+- **`ToothBuddyCore`**: `CoarseZone` + signal DTOs (`FaceSignal`/`HandSignal`/
+  `ZoneSample`) + `BrushingZoneEstimator` (signals → coarse zone + isActivelyBrushing),
+  `ZoneCoverageTracker`, `GuidanceDecider` (camera steer-to-least-covered + debounce;
+  deterministic fallback-timed cadence). Pure, no Vision import. `swift test` 80/80
+  (AC1–AC7). Engagement-grade only — never clinical (positioning lock).
+- P4.2 (Vision adapter + wiring) and P4.3 (2D game) follow; smile-album deferred.
+
 ### Added — P3.4: Seasonal content (spec 03) — P3 complete
 
 - **`ToothBuddyCore`**: spring/summer/autumn `ContentItem`s added so every season (plus
