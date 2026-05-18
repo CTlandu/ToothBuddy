@@ -74,8 +74,8 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
   - ☑ P2.1b App: programmatic Core Data stack (`NSPersistentCloudKitContainer`, local),
     ProfileStore, BrushingStore/GamificationStore reworked per-profile, migration runner,
     profile picker + first-run gate. App BUILD SUCCEEDED; app TEST SUCCEEDED (5/5).
-  - ◐ P2.1c Verify + docs + commit (automated all green; manual smoke = user runs the
-    legacy-JSON migration + picker checklist on device/sim)
+  - ☑ P2.1c Verify + docs + commit (`4d673d3`; automated all green; manual smoke =
+    user runs the legacy-JSON migration + picker checklist on device/sim — pending)
   - ☐ P2.2 Group + dashboard · ☐ P2.3 reminders · ☐ P2.4 report · ☐ P2.5 CloudKit
 
 ### Priority 3 — Content Engine
