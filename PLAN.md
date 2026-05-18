@@ -117,7 +117,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 - ☑ 1. Spec (`specs/04-camera-guidance.md`) · ☑ 2. Confirm (2026-05-18, all PROPOSED)
 - Engagement-grade only (locked); Core uses pure `CoarseZone`, app `BrushingZone` 1:1.
   - ☑ P4.1 Core engine: `BrushingZoneEstimator`/`ZoneCoverageTracker`/`GuidanceDecider`
-    + signal DTOs (swift test 80/80, AC1–AC7). Commit `<p41>`.
+    + signal DTOs (swift test 80/80, AC1–AC7). Commit `5f6cc3d`.
   - ☐ P4.2 App Vision adapter (`VisionZoneMonitor`) + BrushView wiring + no-camera
     fallback — smoke-only (real device needed to verify camera behavior).
   - ☐ P4.3 lightweight 2D engagement game (stretch).
