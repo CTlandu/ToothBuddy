@@ -133,7 +133,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     only; ~12 lines, no existing line moved). §6.4 refinement: in-session win
     celebration only (no end card; existing Done sheet keeps stars) — documented.
     Build clean (0 new-file warnings), app TEST 14/14. **Device visual smoke
-    (spec §12) pending user.** Commit `<p43>`. **P4 COMPLETE.**
+    (spec §12) pending user.** Commit `6fb2d7c`. **P4 COMPLETE.**
 
 ### Priority 5 — Adult Mode + Apple Integrations
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
