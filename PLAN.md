@@ -107,8 +107,11 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     (quadrants stay with zoneMonitor); app TEST 14/14. Commit `577f97c`.
   - ☑ P3.3 gamified course: Core `CourseProgression`+`CourseLibrary` (swift test
     72/72, AC6); TipsView course section (locked/unlocked by active-profile active
-    days) — UI smoke. App TEST 14/14. Commit `<p33>`.
-  - ☐ P3.4 seasonal (more seasonal items + minor accent)
+    days) — UI smoke. App TEST 14/14. Commit `7bc1775`.
+  - ☑ P3.4 seasonal: spring/summer/autumn content added; Core seasonal-coverage +
+    neutral-fallback tests (swift test 73/73). Visual accent intentionally out of
+    scope (cosmetic, zero logic). Commit `<p34>`.
+  - **P3 COMPLETE** (music & LLM remain deferred to own later specs).
 
 ### Priority 4 — Camera Guidance Upgrade
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

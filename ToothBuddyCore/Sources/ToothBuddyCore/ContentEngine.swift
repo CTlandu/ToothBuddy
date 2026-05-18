@@ -44,6 +44,8 @@ public enum ContentLibrary {
         .init(kind: .fact, text: "A snail can have thousands of tiny teeth on its tongue. You only get 32 — take care of them!", audience: .kid),
         .init(kind: .fact, text: "Brushing for two minutes removes far more plaque than a quick thirty-second swipe.", audience: .everyone),
         .init(kind: .fact, text: "Reindeer have great teeth for chewing icy lichen — keep yours strong this winter too!", audience: .kid, season: .winter),
+        .init(kind: .fact, text: "Spring smiles: flowers bloom and so does fresh breath — brush away winter's plaque!", audience: .kid, season: .spring),
+        .init(kind: .fact, text: "Summer popsicles are fun, but sugar lingers — a good night brush keeps cavities away.", audience: .everyone, season: .summer),
 
         // Jokes
         .init(kind: .joke, text: "What did the tooth say to the dentist? You're filling me with joy!", audience: .kid),
@@ -59,6 +61,7 @@ public enum ContentLibrary {
         .init(kind: .tip, text: "Spit, don't rinse: leaving a little toothpaste protects your enamel longer.", audience: .everyone),
         .init(kind: .tip, text: "Replace your brush head every three months, or sooner if it looks frayed.", audience: .everyone),
         .init(kind: .tip, text: "Wait 30 minutes after sugary or acidic food before brushing.", audience: .everyone),
+        .init(kind: .tip, text: "Autumn means more snacking — keep a brush and a glass of water handy after treats.", audience: .everyone, season: .autumn),
 
         // Story beats
         .init(kind: .storyBeat, text: "Captain Molar boards the Sugar Pirate ship — scrub the upper deck (top teeth) first!", audience: .kid),

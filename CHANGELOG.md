@@ -4,6 +4,15 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P3.4: Seasonal content (spec 03) — P3 complete
+
+- **`ToothBuddyCore`**: spring/summer/autumn `ContentItem`s added so every season (plus
+  winter & halloween) has flavor; `ContentSelector` already prefers them with neutral
+  fallback. Core seasonal-coverage + fallback tests; `swift test` 73/73.
+- Visual seasonal accent intentionally left out of scope (pure cosmetic, no logic).
+- **Priority 3 (Content Engine) complete.** Music-sync and LLM generation remain
+  deferred to their own later specs.
+
 ### Added — P3.3: Gamified oral-health course (spec 03)
 
 - **`ToothBuddyCore`**: `Lesson` + bundled ordered `CourseLibrary` (8 original lessons)

@@ -60,8 +60,10 @@ final class ContentSelectorTests: XCTestCase {
 
     // AC1 — no-repeat then reset.
     func testNoRepeatThenReset() {
-        let now = date(2026, 4, 1)   // spring → no seasonal tips → neutral pool
-        let tipIDs = ContentLibrary.all.filter { $0.kind == .tip }.map(\.id)
+        let now = date(2026, 4, 1)   // spring → no seasonal tips → neutral (.none) pool
+        // The selector's eligible pool for this date is the neutral tips only.
+        let tipIDs = ContentLibrary.all
+            .filter { $0.kind == .tip && $0.season == .none }.map(\.id)
         XCTAssertGreaterThan(tipIDs.count, 1)
 
         // History = all tips but one → must return that one.
@@ -85,9 +87,36 @@ final class ContentSelectorTests: XCTestCase {
                                           history: [], tone: .playful, calendar: cal)
         XCTAssertEqual(winter?.season, .winter)
 
-        // Summer → no summer facts → falls back to a neutral (season == .none) fact.
+        // Summer now HAS a seasonal fact → it is preferred.
         let summer = ContentSelector.pick(kind: .fact, now: date(2026, 7, 1),
                                           history: [], tone: .playful, calendar: cal)
-        XCTAssertEqual(summer?.season, ContentSeason.none)
+        XCTAssertEqual(summer?.season, .summer)
+
+        // Neutral fallback still works: no spring jokes exist → returns a .none joke.
+        let springJoke = ContentSelector.pick(kind: .joke, now: date(2026, 4, 1),
+                                              history: [], tone: .playful, calendar: cal)
+        XCTAssertEqual(springJoke?.season, ContentSeason.none)
+    }
+
+    // P3.4 — every season has flavor; the selector surfaces it.
+    func testSeasonalCoverage() {
+        let seasons: [(Date, ContentSeason)] = [
+            (date(2026, 12, 15), .winter),
+            (date(2026, 4, 1),  .spring),
+            (date(2026, 7, 1),  .summer),
+            (date(2026, 10, 10), .autumn),
+            (date(2026, 10, 25), .halloween)
+        ]
+        for (d, s) in seasons {
+            XCTAssertTrue(ContentLibrary.all.contains { $0.season == s },
+                          "no content for season \(s)")
+            // For at least one kind, the selector returns the seasonal item that day.
+            let picks = ContentKind.allCases.compactMap {
+                ContentSelector.pick(kind: $0, now: d, history: [],
+                                     tone: .playful, calendar: cal)
+            }
+            XCTAssertTrue(picks.contains { $0.season == s },
+                          "selector surfaced no \(s) item on \(d)")
+        }
     }
 }
