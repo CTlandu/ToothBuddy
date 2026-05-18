@@ -29,6 +29,8 @@ targets:
       - ContentView.swift
       - FloatingToothBubblesView.swift
       - GamificationStore.swift
+      - GroupStore.swift
+      - GroupDashboardView.swift
       - HistoryView.swift
       - MyApp.swift
       - NotificationScheduler.swift

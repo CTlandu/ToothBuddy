@@ -76,7 +76,10 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     profile picker + first-run gate. App BUILD SUCCEEDED; app TEST SUCCEEDED (5/5).
   - ☑ P2.1c Verify + docs + commit (`4d673d3`; automated all green; manual smoke =
     user runs the legacy-JSON migration + picker checklist on device/sim — pending)
-  - ☐ P2.2 Group + dashboard · ☐ P2.3 reminders · ☐ P2.4 report · ☐ P2.5 CloudKit
+  - ☑ P2.2 Group + dashboard (local-modeled): Core `DashboardMetrics` (swift test 44/44);
+    `CDGroup` + `GroupStore` + everyone-sees-everyone `GroupDashboardView` + Family tab;
+    app TEST 8/8 (AC7/AC9). Commit `<p22>`.
+  - ☐ P2.3 reminders · ☐ P2.4 report · ☐ P2.5 CloudKit
 
 ### Priority 3 — Content Engine
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

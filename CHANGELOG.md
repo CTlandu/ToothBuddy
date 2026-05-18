@@ -4,6 +4,18 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P2.2: Peer Group + everyone-sees-everyone dashboard (spec 02, local-modeled)
+
+- **`ToothBuddyCore`**: `DashboardMetrics` / `DashboardMetric` — today AM/PM, current &
+  longest streak (reuses `StreakEngine`), last-7-days active, 4-week trend, missed-yesterday;
+  pure & profile-isolated. `swift test` 44/44.
+- **App**: `CDGroup` entity + `CDProfile.group` relationship added to the programmatic
+  model (additive, CloudKit-compatible); `GroupStore` (create group attaching profiles,
+  leave keeps profile local, disband); `GroupDashboardView` listing every profile with
+  metrics — no roles, no gating; new **Family** tab.
+- App `xcodebuild test` 8/8 (adds AC7 create-attaches, AC9 leave-keeps-local, disband).
+- CloudKit go-live for the Group is still P2.5.
+
 ### Added — P2.1: Multiple profiles + per-profile data + zero-loss migration (spec 02)
 
 - **`ToothBuddyCore`**: `Profile` (+ `ProfileColor`/`ProfileSymbol`), non-optional
