@@ -55,6 +55,7 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 ### Scaffolding
 - ☑ ROADMAP.md
 - ☑ PLAN.md + ROADMAP Process section + commit
+- ☑ Project migration `.swiftpm` → Xcode `.xcodeproj` (XcodeGen; commit `528c226`; P2/P5 prerequisite)
 
 ### Priority 1 — Habit & Behavior Engine
 - ☑ 1. Spec (`specs/01-habit-engine.md`)
