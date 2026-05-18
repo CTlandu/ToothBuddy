@@ -24,6 +24,7 @@ targets:
     sources:
       - BrushingStore.swift
       - BrushingZoneMonitor.swift
+      - BrushGameOverlay.swift
       - BrushView.swift
       - CameraPreviewView.swift
       - CameraService.swift

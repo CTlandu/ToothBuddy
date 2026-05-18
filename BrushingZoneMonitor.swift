@@ -56,6 +56,10 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     static let shared = BrushingZoneMonitor()
 
     @Published private(set) var currentZone: BrushingZone?
+    /// Additive signal for the Sugar Bugs game (Spec 04.3 §5). True while the user is
+    /// actively brushing the current zone (camera), or always-true in timed fallback so
+    /// the game still plays. Does not affect any existing behavior or `currentZone`.
+    @Published private(set) var isBrushingActive = false
 
     private let camera = CameraService.shared
     private let cfg = ZoneGuidanceConfig.default
@@ -110,6 +114,7 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
         observers.removeAll()
         window.removeAll()
         currentZone = nil
+        isBrushingActive = false
     }
 
     // MARK: - Frame ingest (hopped to main from the video queue)
@@ -148,6 +153,9 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
             if e.isActivelyBrushing, let z = e.zone {
                 coverage.record(z, dt: decisionInterval)
             }
+            isBrushingActive = e.isActivelyBrushing
+        } else {
+            isBrushingActive = true   // timed fallback: game still plays (Spec 04.3 §6.3)
         }
 
         let out = GuidanceDecider.decide(mode: mode,

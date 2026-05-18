@@ -125,7 +125,15 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     debounced currentZone + timed fallback + interruption handling, `CameraPreviewView`
     shares the session. Build clean (0 new-file warnings), app TEST 14/14, Core 80/80.
     **Device smoke (spec §12) pending user.** Commit `ece3632`.
-  - ☐ P4.3 lightweight 2D engagement game (stretch).
+  - ☑ P4.3 Sugar Bugs game (spec annex `specs/04-3-brush-game.md`, confirmed
+    `3fa146b`): Core `BrushGame` rules (swift test 87/87); app `BrushGameOverlay`
+    (Canvas+TimelineView jelly bugs/bubble-pop juice, SwiftUI HUD/floaters/win
+    celebration, Reduce-Motion + ≤8-bug/≤60-confetti caps), additive
+    `BrushingZoneMonitor.isBrushingActive`, BrushView conditional overlay (playful tone
+    only; ~12 lines, no existing line moved). §6.4 refinement: in-session win
+    celebration only (no end card; existing Done sheet keeps stars) — documented.
+    Build clean (0 new-file warnings), app TEST 14/14. **Device visual smoke
+    (spec §12) pending user.** Commit `<p43>`. **P4 COMPLETE.**
 
 ### Priority 5 — Adult Mode + Apple Integrations
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

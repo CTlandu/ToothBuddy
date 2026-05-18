@@ -267,6 +267,15 @@ struct BrushView: View {
                     .allowsHitTesting(false)
             }
 
+            // Sugar Bugs game (Spec 04.3) — playful tone only; decorative, below the
+            // existing LIVE pill / zone prompt. Camera-off → it plays the timed fallback.
+            if isBrushing, ContentHistoryStore.shared.tone == .playful {
+                BrushGameOverlay()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 32))
+                    .allowsHitTesting(false)
+            }
+
             if isBrushing {
                 // LIVE pill + disclaimer aligned to top
                 VStack(spacing: 5) {

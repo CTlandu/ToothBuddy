@@ -116,11 +116,19 @@ Sugar Bugs that squash and burst into toothpaste bubbles.*
 - `isBrushingActive` is `true` whenever a timed zone is current (no motion data), so bugs
   on the timed zone auto-clear at the same pace — the game still plays and feels good with
   zero camera. Consistent with P4.2's fallback philosophy. ([OPEN-3])
-### 6.4 End (timer hits the session end / user taps Done)
-- Overlay freezes interaction, shows the §3 summary card. Stars from coverage:
-  zonesCleared ≥ 6 → 3★, ≥ 4 → 2★, ≥ 1 → 1★, else 0 (config). "Done" dismisses exactly
-  like today (no change to the existing done-sheet flow; the game card sits above it and
-  is dismissed first, or replaces the visual celebration — see §9 integration).
+### 6.4 End / win — IMPLEMENTATION REFINEMENT (recorded 2026-05-18, preserves intent)
+A *separate* end-of-timer summary card would need the overlay to persist briefly after
+`isBrushing == false` and coordinate with the existing done-sheet — a fragile lifecycle
+bug surface that cannot be device-verified here. Lower-bug realization that keeps the
+same goals (juice + celebration + stars):
+- **Win moment (overlay-owned, in-session):** when `BrushGame.totalRemaining` hits 0, the
+  overlay plays a full "All sparkly clean! ✨" celebration (big bounce title + confetti,
+  Reduce-Motion aware) right there — no lifecycle coordination, no flow blocking.
+- **End-of-session stars/record:** handled by the **existing, unchanged** Done sheet
+  (it already renders a `StarRatingView` + the session record). The game does not add a
+  competing card. `BrushGame.stars()` is still computed/tested for future reuse.
+This is a deliberate, documented refinement within the confirmed design's goals, not a
+feature cut — kids still get the celebration; stars still appear (existing flow).
 
 ## 7. Core API (`ToothBuddyCore`, pure, TDD)
 ```swift
@@ -174,8 +182,8 @@ engine never knows about pixels. Acceptance §11 tests this exhaustively.
 - The existing zone text prompt + voice stay (the game *complements*, doesn't replace
   them — kids who ignore the game still get guided; [OPEN-2]). The game's own zone
   spotlight is visual reinforcement.
-- The existing done-sheet/record flow is **unchanged**; the game summary card is shown by
-  the overlay and auto-dismisses when brushing stops (it never blocks the existing flow).
+- The existing done-sheet/record flow is **unchanged**; per §6.4 the game shows only an
+  in-session win celebration (no end card) so there is zero teardown coordination.
 - Diff target: ≤ ~6 added lines in BrushView; no existing line moved. Behavior with the
   game off (essentials/none) is byte-identical to today.
 

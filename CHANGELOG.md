@@ -4,6 +4,24 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P4.3: "Sugar Bugs" brushing game (spec 04.3) — P4 complete
+
+- **`ToothBuddyCore`**: `BrushGame`/`BrushGameConfig` — pure rules (seed bugs/zone, clear
+  by active brushing time with a fractional accumulator, score, zones-cleared, stars).
+  `swift test` 87/87.
+- **App**: `BrushGameOverlay` — `Canvas` + `TimelineView` jelly Sugar Bugs that squash &
+  burst into toothpaste bubbles with `+10` floaters, pulsing zone ring, slim HUD, and an
+  in-session "All sparkly clean!" win celebration; Reduce-Motion aware; hard caps (≤8
+  bugs, ≤60 confetti); sim/draw separated; throttled sound. Additive
+  `BrushingZoneMonitor.isBrushingActive` (existing API/`currentZone` untouched). BrushView
+  shows it only for the `playful` tone (essentials = unchanged screen); also plays in the
+  no-camera timed fallback.
+- §6.4 refinement (documented): in-session win celebration only — no separate end card;
+  the existing, unchanged Done sheet keeps the star rating. Lower bug surface, same goals.
+- Verified: build clean (0 warnings in new files), app `xcodebuild test` 14/14, Core
+  `swift test` 87/87. **On-device look/feel is smoke-tested by the maintainer** (spec
+  04.3 §12) — visuals cannot be unit/sim-tested.
+
 ### Added — P4.2: Vision camera adapter (spec 04.2)
 
 - **App**: `CameraService` — the single shared `AVCaptureSession` feeding both the selfie
