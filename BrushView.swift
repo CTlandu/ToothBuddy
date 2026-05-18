@@ -11,6 +11,10 @@ struct BrushView: View {
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
     @State private var timer: Timer?
+    /// Spec 03 §5.3 — varying spoken content for this session (content/encourage cues
+    /// only; quadrant guidance stays with zoneMonitor to avoid overlap).
+    @State private var sessionCues: [ScriptCue] = []
+    @State private var spokenCueTimes: Set<Int> = []
     @State private var showDoneSheet = false
     @State private var doneSheetRecord: BrushingRecord?
     /// True once camera permission is granted so the preview view gets a valid session.
@@ -496,6 +500,20 @@ struct BrushView: View {
         store.isBrushing = true
         elapsedSeconds = 0
         zoneMonitor.startMonitoring()
+        // Build this session's varying content timeline (Spec 03).
+        let tone = ContentHistoryStore.shared.tone
+        let cal = Calendar.current
+        let dayIdx = Int(cal.startOfDay(for: Date()).timeIntervalSinceReferenceDate / 86_400)
+        let kinds: [ContentKind] = tone == .essentials
+            ? [.tip] : [.fact, .joke, .storyBeat, .tip]
+        let kind = kinds[((dayIdx % kinds.count) + kinds.count) % kinds.count]
+        let content = ContentSelector.pick(kind: kind, now: Date(),
+                                           history: ContentHistoryStore.shared.recent(),
+                                           tone: tone, calendar: cal)
+        sessionCues = SessionScript.build(durationSeconds: 120, tone: tone,
+                                          content: content, calendar: cal)
+        spokenCueTimes = []
+        if let cid = content?.id { ContentHistoryStore.shared.record(cid) }
         // Announce the first zone immediately after a short delay so the TTS doesn't overlap
         // with any system sound from the button tap.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [self] in
@@ -507,6 +525,13 @@ struct BrushView: View {
             Task { @MainActor in
                 guard let start = startDate else { return }
                 elapsedSeconds = Int(Date().timeIntervalSince(start))
+                for cue in sessionCues
+                where cue.atSecond == elapsedSeconds
+                    && (cue.kind == .content || cue.kind == .encourage)
+                    && !spokenCueTimes.contains(cue.atSecond) {
+                    spokenCueTimes.insert(cue.atSecond)
+                    voiceCoach.speak(cue.text)
+                }
             }
         }
         RunLoop.main.add(timer!, forMode: .common)
@@ -529,6 +554,8 @@ struct BrushView: View {
         startDate = nil
         isBrushing = false
         elapsedSeconds = 0
+        sessionCues = []
+        spokenCueTimes = []
     }
 }
 

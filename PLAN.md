@@ -101,9 +101,11 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 - ☑ 1. Spec (`specs/03-content-engine.md`) · ☑ 2. Confirm (2026-05-18, all PROPOSED)
 - Staged (music & LLM deferred to own later specs):
   - ☑ P3.1 Core `ContentLibrary` + `ContentSelector` (tone/seasonal/no-repeat/
-    deterministic; swift test 64/64). Commit `<p31>`.
-  - ☐ P3.2 2-min TTS session (`SessionScript` pure + VoiceCoach) ·
-    ☐ P3.3 gamified course (`CourseProgression` + TipsView) · ☐ P3.4 seasonal
+    deterministic; swift test 64/64). Commit `7635c4a`.
+  - ☑ P3.2 2-min TTS session: Core `SessionScript` (swift test 69/69); app
+    `ContentHistoryStore` + BrushView speaks content/encourage cues mid-session
+    (quadrants stay with zoneMonitor); app TEST 14/14. Commit `<p32>`.
+  - ☐ P3.3 gamified course (`CourseProgression` + TipsView) · ☐ P3.4 seasonal
 
 ### Priority 4 — Camera Guidance Upgrade
 - ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit

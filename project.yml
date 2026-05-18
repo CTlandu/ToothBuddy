@@ -27,6 +27,7 @@ targets:
       - BrushView.swift
       - CameraPreviewView.swift
       - CareStore.swift
+      - ContentHistoryStore.swift
       - ContentView.swift
       - FloatingToothBubblesView.swift
       - GamificationStore.swift

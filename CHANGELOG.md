@@ -4,6 +4,16 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P3.2: 2-minute spoken-content session (spec 03)
+
+- **`ToothBuddyCore`**: `ScriptCue`/`SessionScript.build` — deterministic 2-min timeline
+  (intro, 4 quadrants, content cue when present, encourage, wrap; tone-aware; clamped).
+  `swift test` 69/69.
+- **App**: `ContentHistoryStore` (per-device no-repeat ring + tone setting); BrushView
+  builds a per-session script (kind rotates by day, content via `ContentSelector`) and
+  speaks **content + encouragement** cues mid-session via `VoiceCoach` — quadrant guidance
+  stays with `zoneMonitor` to avoid overlap. App `xcodebuild test` 14/14 (adds AC5 + ring).
+
 ### Added — P3.1: Offline content selection engine (spec 03)
 
 - **`ToothBuddyCore`**: `ContentItem` + bundled original `ContentLibrary` (facts/jokes/
