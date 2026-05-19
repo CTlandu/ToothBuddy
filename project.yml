@@ -35,6 +35,7 @@ targets:
       - GamificationStore.swift
       - GroupStore.swift
       - GroupDashboardView.swift
+      - HabitCurveView.swift
       - HistoryView.swift
       - MyApp.swift
       - NotificationScheduler.swift

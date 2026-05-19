@@ -25,6 +25,13 @@ public enum ProfileSymbol: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Experience mode for a profile (Spec 05 §6.1). `kid` is the full playful experience
+/// (Sugar Bugs, stars, confetti, playful voice); `adult` is the calm minimal experience.
+/// Default is `kid`; existing stored profiles decode as `kid` (additive, zero-loss).
+public enum ProfileMode: String, Codable, CaseIterable, Sendable {
+    case kid, adult
+}
+
 /// A brushing identity. Records, streak, achievements and reminders are all scoped to a
 /// `Profile.id`. Spec 02 §6.1. `creatorLabel` is display-only (no permission meaning —
 /// the peer Group model has no roles).
@@ -37,6 +44,9 @@ public struct Profile: Identifiable, Codable, Equatable, Sendable {
     public var creatorLabel: String
     public var createdAt: Date
     public var modifiedAt: Date
+    /// Spec 05 §6.1. Default `kid`. Decoding a profile stored before P5 (no `mode` key)
+    /// yields `kid` — see `init(from:)` — so the migration is zero-loss & additive.
+    public var mode: ProfileMode
 
     public init(id: UUID = UUID(),
                 name: String,
@@ -45,7 +55,8 @@ public struct Profile: Identifiable, Codable, Equatable, Sendable {
                 birthYear: Int? = nil,
                 creatorLabel: String = "",
                 createdAt: Date = Date(),
-                modifiedAt: Date = Date()) {
+                modifiedAt: Date = Date(),
+                mode: ProfileMode = .kid) {
         self.id = id
         self.name = name
         self.colorTag = colorTag
@@ -54,6 +65,23 @@ public struct Profile: Identifiable, Codable, Equatable, Sendable {
         self.creatorLabel = creatorLabel
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
+        self.mode = mode
+    }
+
+    /// Custom decoding only to keep the new `mode` key optional: profiles persisted
+    /// before P5 have no `mode` and must read back as `.kid` (Spec 05 §6.1 / AC1).
+    /// `encode(to:)` and `CodingKeys` stay compiler-synthesized (round-trips `mode`).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        colorTag = try c.decode(ProfileColor.self, forKey: .colorTag)
+        symbol = try c.decode(ProfileSymbol.self, forKey: .symbol)
+        birthYear = try c.decodeIfPresent(Int.self, forKey: .birthYear)
+        creatorLabel = try c.decode(String.self, forKey: .creatorLabel)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        modifiedAt = try c.decode(Date.self, forKey: .modifiedAt)
+        mode = try c.decodeIfPresent(ProfileMode.self, forKey: .mode) ?? .kid
     }
 
     /// Trimmed name if valid (non-empty, ≤ 24 chars after trimming), else nil.

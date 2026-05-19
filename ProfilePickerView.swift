@@ -34,12 +34,32 @@ struct ProfilePickerView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(store.profiles) { p in
-                        Button {
-                            store.setActive(p.id)
-                            onDone()
-                        } label: { ProfileRow(profile: p,
-                                               selected: p.id == store.activeProfileID) }
-                        .buttonStyle(.plain)
+                        HStack(spacing: 10) {
+                            Button {
+                                store.setActive(p.id)
+                                onDone()
+                            } label: { ProfileRow(profile: p,
+                                                   selected: p.id == store.activeProfileID) }
+                            .buttonStyle(.plain)
+                            // Spec 05 §6.1 — per-profile experience mode. Flipping one
+                            // profile never changes a sibling on the same device.
+                            Menu {
+                                Picker("Mode", selection: Binding(
+                                    get: { p.mode },
+                                    set: { store.setMode($0, for: p.id) })) {
+                                    Text("Kid").tag(ProfileMode.kid)
+                                    Text("Adult").tag(ProfileMode.adult)
+                                }
+                            } label: {
+                                Image(systemName: p.mode == .adult
+                                      ? "person.fill" : "figure.child")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 40, height: 40)
+                                    .background(Color.gray.opacity(0.10))
+                                    .clipShape(Circle())
+                            }
+                        }
                     }
                     Button { creating = true } label: {
                         Label("Add profile", systemImage: "plus.circle.fill")
@@ -99,6 +119,7 @@ private struct CreateProfileView: View {
     @State private var name = ""
     @State private var color: ProfileColor = .sky
     @State private var symbol: ProfileSymbol = .star
+    @State private var mode: ProfileMode = .kid
     @Environment(\.dismiss) private var dismiss
 
     private let cols = Array(repeating: GridItem(.flexible()), count: 4)
@@ -107,6 +128,17 @@ private struct CreateProfileView: View {
         NavigationStack {
             Form {
                 Section("Name") { TextField("e.g. Mia", text: $name) }
+                Section("Mode") {
+                    Picker("Experience", selection: $mode) {
+                        Text("Kid").tag(ProfileMode.kid)
+                        Text("Adult").tag(ProfileMode.adult)
+                    }
+                    .pickerStyle(.segmented)
+                    Text(mode == .adult
+                         ? "Calm, no games or stars — just a quiet streak."
+                         : "Playful — Sugar Bugs, stars and a cheery voice.")
+                        .font(.caption).foregroundColor(.secondary)
+                }
                 Section("Color") { colorGrid }
                 Section("Avatar") { avatarGrid }
             }
@@ -147,7 +179,8 @@ private struct CreateProfileView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .confirmationAction) {
             Button("Create") {
-                if store.createProfile(name: name, color: color, symbol: symbol) != nil {
+                if store.createProfile(name: name, color: color, symbol: symbol,
+                                       mode: mode) != nil {
                     onFinish(true)
                     dismiss()
                 }

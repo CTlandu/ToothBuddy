@@ -7,6 +7,24 @@ struct BrushView: View {
     @StateObject private var zoneMonitor = BrushingZoneMonitor.shared
     @StateObject private var gamification = GamificationStore.shared
     @StateObject private var voiceCoach = VoiceCoach.shared
+    @StateObject private var profiles = ProfileStore.shared
+    /// Spec 05 §6.1 — the active profile's experience mode (per-profile; a kid sibling
+    /// on the same device is unaffected). Drives the calm adult presentation.
+    private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
+    /// Spec 05 §6.1 — the calm "morning ✓ / evening ✓" summary shown instead of stars
+    /// for an adult profile. Derived from the active profile's records (today).
+    private var adultSlotSummary: String {
+        let cal = Calendar.current
+        let today0 = cal.startOfDay(for: Date())
+        var am = false, pm = false
+        for r in store.records where cal.startOfDay(for: r.startDate) == today0 {
+            switch SessionSlot.slot(for: r.startDate, boundaryHour: 12, calendar: cal) {
+            case .morning: am = true
+            case .evening: pm = true
+            }
+        }
+        return "Morning \(am ? "✓" : "—")   ·   Evening \(pm ? "✓" : "—")"
+    }
     @State private var isBrushing = false
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
@@ -73,7 +91,9 @@ struct BrushView: View {
                     Theme.appBackground
                         .opacity(0.95)
                         .ignoresSafeArea()
-                    DoneResultSheet(record: record, onDismiss: { showDoneSheet = false }, onDelete: {
+                    DoneResultSheet(record: record, isAdult: isAdult,
+                                    slotSummary: adultSlotSummary,
+                                    onDismiss: { showDoneSheet = false }, onDelete: {
                         store.deleteRecord(id: record.id)
                         showDoneSheet = false
                     })
@@ -267,9 +287,10 @@ struct BrushView: View {
                     .allowsHitTesting(false)
             }
 
-            // Sugar Bugs game (Spec 04.3) — playful tone only; decorative, below the
-            // existing LIVE pill / zone prompt. Camera-off → it plays the timed fallback.
-            if isBrushing, ContentHistoryStore.shared.tone == .playful {
+            // Sugar Bugs game (Spec 04.3) — playful, non-adult only (Spec 05 §6.1);
+            // decorative, below the LIVE pill / zone prompt. Camera-off → timed fallback.
+            if isBrushing, !isAdult,
+               ContentHistoryStore.shared.effectiveTone(forAdult: isAdult) == .playful {
                 BrushGameOverlay()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
@@ -509,8 +530,9 @@ struct BrushView: View {
         store.isBrushing = true
         elapsedSeconds = 0
         zoneMonitor.startMonitoring()
-        // Build this session's varying content timeline (Spec 03).
-        let tone = ContentHistoryStore.shared.tone
+        // Build this session's varying content timeline (Spec 03); adult profiles
+        // default to the calm `essentials` tone unless the user set one (Spec 05 §6.1).
+        let tone = ContentHistoryStore.shared.effectiveTone(forAdult: isAdult)
         let cal = Calendar.current
         let dayIdx = Int(cal.startOfDay(for: Date()).timeIntervalSinceReferenceDate / 86_400)
         let kinds: [ContentKind] = tone == .essentials
@@ -571,6 +593,9 @@ struct BrushView: View {
 // MARK: - Done result popup: compact card, star-based feedback, delete option
 private struct DoneResultSheet: View {
     let record: BrushingRecord
+    /// Spec 05 §6.1 — adult ⇒ no stars/confetti, calm copy, quiet slot summary.
+    var isAdult: Bool = false
+    var slotSummary: String = ""
     let onDismiss: () -> Void
     let onDelete: () -> Void
     @State private var cardAppeared = false
@@ -579,6 +604,7 @@ private struct DoneResultSheet: View {
     private var duration: Int { record.durationSeconds }
 
     private var title: String {
+        if isAdult { return "Brushing logged" }
         switch stars {
         case 3: return "Perfect!"
         case 2: return "Good job!"
@@ -587,6 +613,7 @@ private struct DoneResultSheet: View {
     }
 
     private var titleColor: Color {
+        if isAdult { return Theme.textPrimary }
         switch stars {
         case 3: return Color(red: 232/255, green: 152/255, blue: 152/255)  // coral pink, matches theme
         case 2: return Theme.accentBlue
@@ -595,6 +622,11 @@ private struct DoneResultSheet: View {
     }
 
     private var message: String {
+        if isAdult {
+            return duration >= 120
+                ? "Logged a full two-minute session."
+                : "Logged. Aim for two minutes when you can."
+        }
         switch stars {
         case 3: return "You brushed for 2 minutes. That's the recommended time."
         case 2: return "You're building a great habit. Keep it up!"
@@ -603,6 +635,7 @@ private struct DoneResultSheet: View {
     }
 
     private var funFact: String {
+        if isAdult { return slotSummary }
         switch stars {
         case 3: return "Did you know? Tooth enamel is the hardest part of your body."
         case 2: return "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth."
@@ -620,7 +653,9 @@ private struct DoneResultSheet: View {
                 .font(.system(size: 36, weight: .bold, design: .rounded))
                 .foregroundColor(Theme.textPrimary)
 
-            StarRatingView(count: stars, size: 24)
+            if !isAdult {
+                StarRatingView(count: stars, size: 24)
+            }
 
             VStack(spacing: 6) {
                 Text(message)
@@ -642,16 +677,20 @@ private struct DoneResultSheet: View {
                     .padding(.vertical, 14)
                     .background(
                         LinearGradient(
-                            colors: [
-                                Color(red: 255/255, green: 138/255, blue: 128/255),
-                                Color(red: 235/255, green: 100/255, blue: 90/255)
-                            ],
+                            colors: isAdult
+                                ? [Theme.accentBlue, Theme.accentBlue]
+                                : [
+                                    Color(red: 255/255, green: 138/255, blue: 128/255),
+                                    Color(red: 235/255, green: 100/255, blue: 90/255)
+                                ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .shadow(color: Color(red: 235/255, green: 100/255, blue: 90/255).opacity(0.45), radius: 8, y: 4)
+                    .shadow(color: (isAdult ? Theme.accentBlue
+                                            : Color(red: 235/255, green: 100/255, blue: 90/255))
+                            .opacity(isAdult ? 0.25 : 0.45), radius: 8, y: 4)
             }
 
             Button("Delete this record", action: onDelete)

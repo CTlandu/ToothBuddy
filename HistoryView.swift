@@ -4,20 +4,26 @@ import ToothBuddyCore
 struct HistoryView: View {
     @StateObject private var store = BrushingStore.shared
     @StateObject private var gamification = GamificationStore.shared
+    @StateObject private var profiles = ProfileStore.shared
+    /// Spec 05 §6.1 — adult ⇒ no kid gamification (level/achievements), show the
+    /// calm habit curve instead. Per-profile; a kid sibling is unaffected.
+    private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
     @State private var contentAppeared = false
     @State private var selectedAchievement: Achievement?
 
     var body: some View {
         List {
-            Section {
-                levelCard
-                    .opacity(contentAppeared ? 1 : 0)
-                    .offset(y: contentAppeared ? 0 : 12)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+            if !isAdult {
+                Section {
+                    levelCard
+                        .opacity(contentAppeared ? 1 : 0)
+                        .offset(y: contentAppeared ? 0 : 12)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                .listSectionSeparator(.hidden)
             }
-            .listSectionSeparator(.hidden)
 
             Section {
                 streakCard
@@ -29,6 +35,18 @@ struct HistoryView: View {
             }
             .listSectionSeparator(.hidden)
 
+            if isAdult, let pid = profiles.activeProfileID {
+                Section {
+                    HabitCurveView(records: store.records, profileID: pid)
+                        .opacity(contentAppeared ? 1 : 0)
+                        .offset(y: contentAppeared ? 0 : 12)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                .listSectionSeparator(.hidden)
+            }
+
             Section {
                 statsRow
                     .opacity(contentAppeared ? 1 : 0)
@@ -39,15 +57,17 @@ struct HistoryView: View {
             }
             .listSectionSeparator(.hidden)
 
-            Section(header: achievementsHeader) {
-                achievementsRow
-                    .opacity(contentAppeared ? 1 : 0)
-                    .offset(y: contentAppeared ? 0 : 12)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+            if !isAdult {
+                Section(header: achievementsHeader) {
+                    achievementsRow
+                        .opacity(contentAppeared ? 1 : 0)
+                        .offset(y: contentAppeared ? 0 : 12)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                .listSectionSeparator(.hidden)
             }
-            .listSectionSeparator(.hidden)
 
             Section(header: recentSessionsHeader) {
                 if store.records.isEmpty {

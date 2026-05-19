@@ -4,6 +4,25 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P5.1: Adult minimal mode (spec 05)
+
+- **`ToothBuddyCore`**: `ProfileMode` (`kid` default | `adult`) on `Profile` with a custom
+  `init(from:)` so profiles persisted before P5 (no `mode` key) decode as `kid` —
+  additive, zero-loss, CloudKit-compatible (same rule as the P2.1 schema). Pure
+  `HabitCurve.points` — per-day `completed01` (0/0.5/1.0) + a clamped trailing-mean
+  `adherence`, profile-isolated & deterministic. `swift test` 95/95 (all prior tests
+  still green — additive only, AC8).
+- **App**: `CDProfile.mode` (optional String, default `"kid"`) in the programmatic model;
+  `ProfileStore.createProfile(mode:)` + `setMode(_:for:)` (per-profile — a sibling on the
+  same device is unaffected). For an `adult` profile: BrushView shows **no** Sugar Bugs
+  overlay, the Done sheet drops stars/confetti for a calm "Brushing logged" summary with
+  a quiet "Morning ✓ · Evening ✓" line, content tone defaults to `essentials` (an
+  explicit P3 user tone still wins), and History hides level/achievements and shows a
+  calm `HabitCurveView` instead. Profile create gains a Kid/Adult picker; each picker row
+  gets a quick mode menu. A `kid` profile is byte-for-byte the existing experience.
+- Verified: build clean, app `xcodebuild test` 16/16, Core `swift test` 95/95. On-device
+  visual switch is part of the maintainer smoke (spec 05 §12).
+
 ### Added — P4.3: "Sugar Bugs" brushing game (spec 04.3) — P4 complete
 
 - **`ToothBuddyCore`**: `BrushGame`/`BrushGameConfig` — pure rules (seed bugs/zone, clear

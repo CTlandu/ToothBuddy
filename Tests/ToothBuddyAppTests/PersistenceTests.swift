@@ -56,6 +56,37 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(storeA.records.count, 1)
     }
 
+    // Spec 05 AC1/AC6 — mode persists, defaults to kid, and is per-profile isolated.
+    func testProfileModeDefaultsKidAndFlipsPerProfile() {
+        let (_, ps) = freshStores()
+        let kid = ps.createProfile(name: "Kid", color: .sky, symbol: .star)!
+        let adult = ps.createProfile(name: "Mom", color: .mint, symbol: .leaf,
+                                     mode: .adult)!
+        XCTAssertEqual(ps.profiles.first { $0.id == kid.id }?.mode, .kid)
+        XCTAssertEqual(ps.profiles.first { $0.id == adult.id }?.mode, .adult)
+
+        ps.setMode(.adult, for: kid.id)
+        XCTAssertEqual(ps.profiles.first { $0.id == kid.id }?.mode, .adult)
+        // Flipping one profile must not touch the sibling.
+        XCTAssertEqual(ps.profiles.first { $0.id == adult.id }?.mode, .adult)
+        ps.setMode(.kid, for: adult.id)
+        XCTAssertEqual(ps.profiles.first { $0.id == adult.id }?.mode, .kid)
+        XCTAssertEqual(ps.profiles.first { $0.id == kid.id }?.mode, .adult)
+    }
+
+    // Spec 05 §6.1 — explicit user tone wins; otherwise adult⇒essentials, kid⇒playful.
+    func testEffectiveToneFollowsModeUntilUserSetsItExplicitly() {
+        UserDefaults.standard.removeObject(forKey: "ToothBuddy.contentTone")
+        let s = ContentHistoryStore.shared
+        XCTAssertFalse(s.toneExplicitlySet)
+        XCTAssertEqual(s.effectiveTone(forAdult: true), .essentials)
+        XCTAssertEqual(s.effectiveTone(forAdult: false), .playful)
+        s.setTone(.playful)                       // explicit choice
+        XCTAssertTrue(s.toneExplicitlySet)
+        XCTAssertEqual(s.effectiveTone(forAdult: true), .playful)   // user wins
+        UserDefaults.standard.removeObject(forKey: "ToothBuddy.contentTone")
+    }
+
     func testDeleteProfileCascadesRecords() {
         let (pc, ps) = freshStores()
         let a = ps.createProfile(name: "A", color: .sky, symbol: .star)!

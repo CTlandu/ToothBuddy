@@ -49,18 +49,28 @@ final class ProfileStore: ObservableObject {
     @discardableResult
     func createProfile(name: String, color: ProfileColor, symbol: ProfileSymbol,
                         birthYear: Int? = nil, creatorLabel: String = "",
+                        mode: ProfileMode = .kid,
                         makeActive: Bool = true) -> Profile? {
         guard let valid = Profile.validatedName(name) else { return nil }
         let now = Date()
         let dto = Profile(name: valid, colorTag: color, symbol: symbol,
                           birthYear: birthYear, creatorLabel: creatorLabel,
-                          createdAt: now, modifiedAt: now)
+                          createdAt: now, modifiedAt: now, mode: mode)
         let cd = CDProfile(context: ctx)
         cd.apply(dto)
         save()
         reload()
         if makeActive { setActive(dto.id) }
         return dto
+    }
+
+    /// Flip a profile's experience mode (Spec 05 §6.1). Per-profile — siblings unaffected.
+    func setMode(_ mode: ProfileMode, for id: UUID) {
+        guard let cd = managedProfile(id) else { return }
+        cd.mode = mode.rawValue
+        cd.modifiedAt = Date()
+        save()
+        reload()
     }
 
     func deleteProfile(_ id: UUID) {

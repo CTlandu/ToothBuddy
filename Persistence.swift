@@ -13,6 +13,7 @@ final class CDProfile: NSManagedObject {
     @NSManaged var creatorLabel: String?
     @NSManaged var createdAt: Date?
     @NSManaged var modifiedAt: Date?
+    @NSManaged var mode: String?            // Spec 05 §7 — additive, default "kid"
     @NSManaged var records: NSSet?
     @NSManaged var care: CDProfileCare?
     @NSManaged var achievements: NSSet?
@@ -101,7 +102,10 @@ enum ToothBuddyModel {
             attr("birthYear", .integer64AttributeType),
             attr("creatorLabel", .stringAttributeType),
             attr("createdAt", .dateAttributeType),
-            attr("modifiedAt", .dateAttributeType)
+            attr("modifiedAt", .dateAttributeType),
+            // Spec 05 §7 — additive, optional + default ⇒ existing rows read as "kid"
+            // (same zero-loss CloudKit-compatible rule as the P2.1 schema).
+            attr("mode", .stringAttributeType, optional: true, def: "kid")
         ]
         record.properties = [
             attr("id", .UUIDAttributeType),
@@ -221,7 +225,8 @@ extension CDProfile {
                        birthYear: birthYear?.intValue,
                        creatorLabel: creatorLabel ?? "",
                        createdAt: createdAt ?? Date(),
-                       modifiedAt: modifiedAt ?? Date())
+                       modifiedAt: modifiedAt ?? Date(),
+                       mode: ProfileMode(rawValue: mode ?? "kid") ?? .kid)
     }
 
     func apply(_ p: Profile) {
@@ -230,6 +235,7 @@ extension CDProfile {
         birthYear = p.birthYear.map(NSNumber.init(value:))
         creatorLabel = p.creatorLabel
         createdAt = p.createdAt; modifiedAt = p.modifiedAt
+        mode = p.mode.rawValue
     }
 }
 

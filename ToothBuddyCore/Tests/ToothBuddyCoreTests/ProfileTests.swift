@@ -34,4 +34,30 @@ final class ProfileTests: XCTestCase {
                                                from: JSONEncoder().encode(p))
         XCTAssertEqual(decoded, p)
     }
+
+    // Spec 05 AC1 — mode defaults to .kid; pre-P5 JSON (no "mode") decodes as .kid.
+    func testModeDefaultsToKid() {
+        let p = Profile(name: "Leo", colorTag: .sky, symbol: .star)
+        XCTAssertEqual(p.mode, .kid)
+        XCTAssertEqual(Profile.migrationDefault().mode, .kid)
+    }
+
+    func testDecodingLegacyProfileWithoutModeYieldsKid() throws {
+        // A profile JSON exactly as persisted before P5 — no "mode" key.
+        let legacy = """
+        {"id":"\(UUID().uuidString)","name":"Old","colorTag":"sky","symbol":"star",
+         "creatorLabel":"","createdAt":0,"modifiedAt":0}
+        """.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(Profile.self, from: legacy)
+        XCTAssertEqual(decoded.mode, .kid)
+        XCTAssertEqual(decoded.name, "Old")
+    }
+
+    func testModeRoundTripsWhenAdult() throws {
+        let p = Profile(name: "Sam", colorTag: .mint, symbol: .leaf, mode: .adult)
+        let decoded = try JSONDecoder().decode(Profile.self,
+                                               from: JSONEncoder().encode(p))
+        XCTAssertEqual(decoded.mode, .adult)
+        XCTAssertEqual(decoded, p)
+    }
 }

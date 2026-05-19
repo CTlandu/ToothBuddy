@@ -140,9 +140,12 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 - Staged P5.1→P5.4 (NOT parked like P2.5b — automatic signing covers HealthKit + App
   Group with no manual portal step / no multi-account/device; only §12 device smoke is
   user-pending, same as the P4 camera/game smokes):
-  - ◐ P5.1 Adult minimal mode: Core `Profile.mode` (kid|adult, additive zero-loss
-    migration) + pure `HabitCurve`; app per-profile minimal UI (no Sugar Bugs/stars,
-    calm Done, `essentials` default).
+  - ☑ P5.1 Adult minimal mode (`<this commit>`): Core `Profile.mode` (kid|adult,
+    custom `init(from:)` zero-loss migration) + pure `HabitCurve` (swift test 95/95);
+    app `CDProfile.mode` + `ProfileStore.setMode`, per-profile minimal UI (no Sugar
+    Bugs/stars, calm "Brushing logged" Done w/ slot summary, `essentials` default,
+    History hides level/achievements → `HabitCurveView`), create/​row mode pickers.
+    App test 16/16, build clean. Device visual smoke (spec 05 §12) pending user.
   - ☐ P5.2 App Intents / Siri (Log/Start/Streak; active-profile, per-slot idempotent).
   - ☐ P5.3 Widgets + Live Activities (new `ToothBuddyWidget` extension target +
     App Group `group.com.ctlandu.ToothBuddy`; pure `WidgetSnapshotBuilder`).
