@@ -8,6 +8,7 @@ struct BrushView: View {
     @StateObject private var gamification = GamificationStore.shared
     @StateObject private var voiceCoach = VoiceCoach.shared
     @StateObject private var profiles = ProfileStore.shared
+    @StateObject private var intentBridge = BrushingIntentBridge.shared
     /// Spec 05 §6.1 — the active profile's experience mode (per-profile; a kid sibling
     /// on the same device is unaffected). Drives the calm adult presentation.
     private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
@@ -56,6 +57,10 @@ struct BrushView: View {
         }
         .padding(.top, 8)
         .padding(.horizontal, 18)
+        // Spec 05 §6.3 — StartBrushingIntent: begin a session once, then clear the
+        // request. Handles both a warm app (onChange) and a cold launch (onAppear).
+        .onChange(of: intentBridge.startRequested) { _ in handleIntentStart() }
+        .onAppear { handleIntentStart() }
         .onAppear {
             tipStartDate = Date()
             tipRotationTimer?.invalidate()
@@ -521,6 +526,14 @@ struct BrushView: View {
         let m = totalSeconds / 60
         let s = totalSeconds % 60
         return String(format: "%02d:%02d", m, s)
+    }
+
+    /// Consume a pending StartBrushingIntent (Spec 05 §6.3). Idempotent & crash-safe:
+    /// only starts when not already brushing; always clears the flag.
+    private func handleIntentStart() {
+        guard intentBridge.startRequested else { return }
+        intentBridge.consume()
+        if !isBrushing { startBrushing() }
     }
 
     private func startBrushing() {

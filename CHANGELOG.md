@@ -4,6 +4,23 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P5.2: App Intents / Siri Shortcuts (spec 05)
+
+- **`ToothBuddyCore`**: pure `QuickLog.isCurrentSlotLogged` + `QuickLogDecision` — the
+  per-slot idempotency rule (project boundary 12), profile-isolated & deterministic.
+  `swift test` 100/100.
+- **App**: `BrushingStore.quickLogForCurrentSlot` (logs a ~2-min session for the active
+  profile, idempotent within the AM/PM slot — does not touch the in-app flow);
+  `BrushingIntentBridge` (StartBrushingIntent → Brush tab + auto-start, crash-safe,
+  consumed once); `ToothBuddyIntents` — `LogBrushingIntent` (background),
+  `StartBrushingIntent` (opens app), `BrushingStreakIntent` (read-only), all active-
+  profile-only and graceful with no profile, plus `ToothBuddyShortcuts`
+  (`AppShortcutsProvider`) exposing Siri phrases. No entitlement, no extension (in-process,
+  iOS 16+).
+- Verified: build clean, app `xcodebuild test` 18/18 (adds AC7 idempotency +
+  no-profile), Core `swift test` 100/100. On-device Siri/Shortcuts trigger is part of the
+  maintainer smoke (spec 05 §12).
+
 ### Added — P5.1: Adult minimal mode (spec 05)
 
 - **`ToothBuddyCore`**: `ProfileMode` (`kid` default | `adult`) on `Profile` with a custom

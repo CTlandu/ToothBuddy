@@ -146,7 +146,11 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     Bugs/stars, calm "Brushing logged" Done w/ slot summary, `essentials` default,
     History hides level/achievements → `HabitCurveView`), create/​row mode pickers.
     App test 16/16, build clean. Device visual smoke (spec 05 §12) pending user.
-  - ☐ P5.2 App Intents / Siri (Log/Start/Streak; active-profile, per-slot idempotent).
+  - ☑ P5.2 App Intents / Siri (`<this commit>`): Core pure `QuickLog` (swift test
+    100/100); app `BrushingStore.quickLogForCurrentSlot` (per-slot idempotent),
+    `BrushingIntentBridge`, `ToothBuddyIntents` (Log/Start/Streak, active-profile,
+    graceful) + `ToothBuddyShortcuts`. App test 18/18, build clean. Siri/Shortcuts
+    device smoke (spec 05 §12) pending user.
   - ☐ P5.3 Widgets + Live Activities (new `ToothBuddyWidget` extension target +
     App Group `group.com.ctlandu.ToothBuddy`; pure `WidgetSnapshotBuilder`).
   - ☐ P5.4 HealthKit `toothbrushingEvent` (write-only/opt-in/revocable; pure

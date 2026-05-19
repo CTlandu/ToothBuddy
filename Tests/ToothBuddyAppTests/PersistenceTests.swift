@@ -87,6 +87,31 @@ final class PersistenceTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "ToothBuddy.contentTone")
     }
 
+    // Spec 05 §6.3 / AC7 — quick-log is idempotent within a slot.
+    func testQuickLogIsIdempotentWithinSlot() {
+        let (pc, ps) = freshStores()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id)
+        let store = BrushingStore(controller: pc, profiles: ps)
+
+        XCTAssertEqual(store.quickLogForCurrentSlot(), .logged)
+        XCTAssertEqual(store.records.count, 1)
+        let streakAfterFirst = store.consecutiveDaysCount
+
+        // Second call in the same slot → no new record, streak unchanged.
+        XCTAssertEqual(store.quickLogForCurrentSlot(), .alreadyLoggedThisSlot)
+        XCTAssertEqual(store.records.count, 1)
+        XCTAssertEqual(store.consecutiveDaysCount, streakAfterFirst)
+    }
+
+    func testQuickLogNoProfileIsGraceful() {
+        let (pc, ps) = freshStores()
+        ps.setActive(nil)
+        let store = BrushingStore(controller: pc, profiles: ps)
+        XCTAssertEqual(store.quickLogForCurrentSlot(), .noProfile)
+        XCTAssertTrue(store.records.isEmpty)
+    }
+
     func testDeleteProfileCascadesRecords() {
         let (pc, ps) = freshStores()
         let a = ps.createProfile(name: "A", color: .sky, symbol: .star)!

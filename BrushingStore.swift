@@ -90,6 +90,28 @@ final class BrushingStore: ObservableObject {
         GamificationStore.shared.checkAndUnlock(records: records)
     }
 
+    /// One-tap / Siri quick-log (Spec 05 §6.3). Idempotent within the current AM/PM
+    /// slot — a second call in the same slot does not duplicate or inflate the streak.
+    /// Logs a ~2-minute session ending at `now`. Does NOT affect the in-app flow.
+    @discardableResult
+    func quickLogForCurrentSlot(now: Date = Date()) -> QuickLogDecision {
+        guard let pid = profiles.activeProfileID,
+              let cdp = profiles.managedProfile(pid) else { return .noProfile }
+        reload()   // ensure `records` reflects the active profile (intent cold-launch)
+        if QuickLog.isCurrentSlotLogged(records: records, profileID: pid,
+                                        now: now, calendar: .current) {
+            return .alreadyLoggedThisSlot
+        }
+        let r = CDBrushingRecord(context: ctx)
+        r.id = UUID()
+        r.startDate = now.addingTimeInterval(-120)
+        r.endDate = now
+        r.modifiedAt = Date(); r.profile = cdp
+        saveAndReload()
+        GamificationStore.shared.checkAndUnlock(records: records)
+        return .logged
+    }
+
     func deleteRecord(id: UUID) {
         let req = NSFetchRequest<CDBrushingRecord>(entityName: "CDBrushingRecord")
         req.predicate = NSPredicate(format: "id == %@", id as CVarArg)

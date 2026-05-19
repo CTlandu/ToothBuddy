@@ -10,6 +10,7 @@ enum AppTab: String, CaseIterable {
 struct ContentView: View {
     @StateObject private var store = BrushingStore.shared
     @StateObject private var profiles = ProfileStore.shared
+    @StateObject private var intentBridge = BrushingIntentBridge.shared
     @State private var selectedTab: AppTab = .brush
     @State private var previousTab: AppTab = .brush
     @State private var showProfileSwitcher = false
@@ -41,6 +42,11 @@ struct ContentView: View {
             ProfilePickerView(store: profiles, isGate: false) {
                 showProfileSwitcher = false
             }
+        }
+        // Spec 05 §6.3 — StartBrushingIntent: jump to the Brush tab; BrushView
+        // consumes the request and begins the session.
+        .onChange(of: intentBridge.startRequested) { requested in
+            if requested { selectedTab = .brush }
         }
     }
 
