@@ -151,8 +151,15 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     `BrushingIntentBridge`, `ToothBuddyIntents` (Log/Start/Streak, active-profile,
     graceful) + `ToothBuddyShortcuts`. App test 18/18, build clean. Siri/Shortcuts
     device smoke (spec 05 §12) pending user.
-  - ☐ P5.3 Widgets + Live Activities (new `ToothBuddyWidget` extension target +
-    App Group `group.com.ctlandu.ToothBuddy`; pure `WidgetSnapshotBuilder`).
+  - ☑ P5.3 Widgets + Live Activities (`<this commit>`): Core pure `WidgetSnapshot`/
+    `WidgetSnapshotBuilder` (swift test 105/105); new `ToothBuddyWidget` app-extension
+    target + App Group `group.com.ctlandu.ToothBuddy` (entitlements both targets,
+    `NSSupportsLiveActivities`); small/medium Home Screen widget (reads App Group
+    snapshot only, never blank) + iOS-16.1-gated ActivityKit Live Activity (Lock
+    Screen/Dynamic Island, stale-dismiss); `WidgetBridge` on log/switch/background.
+    Fixed a reentrant-`shared` launch crash (post-init `widgetSyncEnabled` flag). App
+    test 18/18 w/ extension embedded, build clean. Widget/Live-Activity device smoke
+    (spec 05 §12) pending user.
   - ☐ P5.4 HealthKit `toothbrushingEvent` (write-only/opt-in/revocable; pure
     `HealthExportDecider`; entitlement via project.yml).
 

@@ -7,7 +7,17 @@ import ToothBuddyCore
 /// kept compatible with existing call sites (records / streak / add / delete / undo).
 @MainActor
 final class BrushingStore: ObservableObject {
-    static let shared = BrushingStore()
+    static let shared: BrushingStore = {
+        let s = BrushingStore()
+        s.widgetSyncEnabled = true   // only the shared instance drives the widget
+        return s
+    }()
+
+    /// Spec 05 §6.4 — true only on the fully-constructed shared singleton. Checked in
+    /// `reload()` so the in-`init()` reload does NOT touch `BrushingStore.shared`
+    /// (that would reentrantly evaluate the static during its own initialization and
+    /// trap at launch); unit-test stores keep it false so they stay isolated.
+    private var widgetSyncEnabled = false
 
     /// The ACTIVE profile's records, newest first.
     @Published private(set) var records: [BrushingRecord] = []
@@ -54,6 +64,10 @@ final class BrushingStore: ObservableObject {
     // MARK: Load
 
     func reload() {
+        // Spec 05 §6.4 — keep the widget snapshot in lock-step with every change that
+        // flows through reload() (session logged, profile switched). Shared instance
+        // only, so unit tests with their own store stay isolated.
+        defer { if widgetSyncEnabled { WidgetBridge.refresh() } }
         guard let pid = profiles.activeProfileID else {
             records = []; streak = .empty; return
         }

@@ -4,6 +4,30 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P5.3: Home-screen widget + Live Activity (spec 05)
+
+- **`ToothBuddyCore`**: pure `WidgetSnapshot` + `WidgetSnapshotBuilder` — Codable
+  profile-isolated summary (streak via `StreakEngine`, today AM/PM, late-evening
+  `atRisk`), deterministic, with a friendly `.placeholder`. `swift test` 105/105.
+- **App + new `ToothBuddyWidget` app-extension target** (XcodeGen) sharing logic via
+  `ToothBuddyCore` and data via the App Group `group.com.ctlandu.ToothBuddy`
+  (entitlements on both targets; `NSSupportsLiveActivities`): a small/medium Home Screen
+  widget (streak + today's slots + at-risk; never blank — placeholder until first write)
+  reading only the App Group snapshot; an ActivityKit Live Activity (Lock Screen +
+  Dynamic Island, 2-min countdown + zone hint) started/updated/ended from BrushView,
+  with stale-dismiss on launch so a killed session never leaves a stuck activity. All
+  ActivityKit use is `iOS 16.1`-gated and additive (brushing unchanged if unsupported).
+  `WidgetBridge` pushes the snapshot + reloads timelines on session log / profile switch
+  / scene-background.
+- Fixed a launch crash: `BrushingStore.reload()` referenced `BrushingStore.shared` while
+  that singleton was still initializing (reentrant static init trap). Now a post-init
+  `widgetSyncEnabled` instance flag gates the widget refresh — shared instance only,
+  unit-test stores stay isolated.
+- Verified: build clean (0 new-file warnings), app `xcodebuild test` 18/18 (with the
+  extension embedded + App Group entitlements), Core `swift test` 105/105. Widget gallery
+  / Lock Screen / Dynamic Island visuals are maintainer device smoke (spec 05 §12) —
+  automatic signing provisions the App Group with no manual portal step (unlike P2.5b).
+
 ### Added — P5.2: App Intents / Siri Shortcuts (spec 05)
 
 - **`ToothBuddyCore`**: pure `QuickLog.isCurrentSlotLogged` + `QuickLogDecision` — the

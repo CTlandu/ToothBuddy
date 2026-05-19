@@ -26,6 +26,8 @@
 	<string>public.app-category.medical</string>
 	<key>NSCameraUsageDescription</key>
 	<string>ToothBuddy uses the front camera so you can see yourself while brushing.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>

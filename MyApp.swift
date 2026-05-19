@@ -60,6 +60,11 @@ private struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: profiles.activeProfile == nil)
+        .task {
+            // Spec 05 §6.5 — clear any Live Activity left over from a killed session.
+            BrushingLiveActivity.endStaleOnLaunch()
+            WidgetBridge.refresh()
+        }
         .onChange(of: scenePhase) { phase in
             if phase == .active {
                 NotificationScheduler.shared.reschedule(
@@ -67,6 +72,8 @@ private struct RootView: View {
                     streak: BrushingStore.shared.streak)
                 NotificationScheduler.shared.rescheduleCare(
                     inputs: CareStore.shared.careInputs())
+            } else if phase == .background {
+                WidgetBridge.refresh()   // Spec 05 §6.4
             }
         }
     }

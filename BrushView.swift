@@ -543,6 +543,10 @@ struct BrushView: View {
         store.isBrushing = true
         elapsedSeconds = 0
         zoneMonitor.startMonitoring()
+        // Spec 05 §6.5 — Live Activity (additive; no-op if unsupported/disabled).
+        BrushingLiveActivity.start(
+            profileName: profiles.activeProfile?.name ?? "ToothBuddy",
+            totalSeconds: 120)
         // Build this session's varying content timeline (Spec 03); adult profiles
         // default to the calm `essentials` tone unless the user set one (Spec 05 §6.1).
         let tone = ContentHistoryStore.shared.effectiveTone(forAdult: isAdult)
@@ -569,6 +573,12 @@ struct BrushView: View {
             Task { @MainActor in
                 guard let start = startDate else { return }
                 elapsedSeconds = Int(Date().timeIntervalSince(start))
+                // Spec 05 §6.5 — refresh the Live Activity every 5s (chatty-safe).
+                if elapsedSeconds % 5 == 0 {
+                    BrushingLiveActivity.update(
+                        secondsRemaining: max(0, 120 - elapsedSeconds),
+                        zoneHint: zoneMonitor.currentZone?.announcement ?? "Keep brushing")
+                }
                 for cue in sessionCues
                 where cue.atSecond == elapsedSeconds
                     && (cue.kind == .content || cue.kind == .encourage)
@@ -587,6 +597,7 @@ struct BrushView: View {
         timer = nil
         voiceCoach.stop()
         zoneMonitor.stopMonitoring()
+        BrushingLiveActivity.end()   // Spec 05 §6.5 — never a stuck activity
         store.isBrushing = false
         guard let start = startDate else { return }
         store.recordSession(start: start, end: Date())   // scoped to active profile (Spec 02)
