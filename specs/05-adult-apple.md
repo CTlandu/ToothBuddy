@@ -8,7 +8,7 @@
 
 ## 1. Status
 - [x] 1. Spec drafted
-- [ ] 2. Confirm gate — user must approve §13 OPEN questions ⛔ **(no feature code before this)**
+- [x] 2. Confirm gate — user approved 2026-05-19 (all PROPOSED) ✅
 - [ ] 3. Test infra delta (none expected — pure logic in existing ToothBuddyCore; new
        Widget extension target added to `project.yml` at P5.3)
 - [ ] 4. Implement (TDD, staged P5.1 → P5.4)
@@ -306,7 +306,19 @@ phrase + Shortcuts app entry; adult vs kid profile visual switch.
   samples on completed sessions, opt-in & revocable, idempotent, **no reading** any Health
   data, no other Health types. (**PROPOSED:** yes.)
 
-_Answers — to be recorded here on user confirmation (Phase 2)._
+_Answers — confirmed by user 2026-05-19:_
+- **OPEN-1 →** Accepted: all 4, in order P5.1 → P5.2 → P5.3 → P5.4.
+- **OPEN-2 →** Per-**profile** `Profile.mode` (`kid` default | `adult`; additive zero-loss
+  migration; adult ⇒ minimal UI + `essentials` default).
+- **OPEN-3 →** Implement **all** of P5.1–P5.4 now; entitlements declared in `project.yml`
+  (automatic signing covers HealthKit + App Group — no manual portal step, no
+  multi-account/multi-device). Only the §12 on-device visual/permission smoke is
+  user-pending (same pattern as the P4 camera/game smokes). P5 is **not** parked like P2.5b.
+- **OPEN-4 →** Yes: add the `ToothBuddyWidget` app-extension target to `project.yml`
+  (WidgetKit + ActivityKit) with App Group id `group.com.ctlandu.ToothBuddy`.
+- **OPEN-5 →** Strictly write-only `toothbrushingEvent`, opt-in & revocable, idempotent,
+  **no reading** any Health data, no other Health types.
+No remaining blocking OPENs.
 
 ## 14. Docs to Update (Phase 6)
 `README.md` (adult mode + Apple integrations), `ROADMAP.md` (P5 ticks),

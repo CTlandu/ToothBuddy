@@ -135,8 +135,19 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     Build clean (0 new-file warnings), app TEST 14/14. **Device visual smoke
     (spec §12) pending user.** Commit `6fb2d7c`. **P4 COMPLETE.**
 
-### Priority 5 — Adult Mode + Apple Integrations
-- ☐ 1. Spec · ☐ 2. Confirm · ☐ 4. Implement · ☐ 5. Verify · ☐ 6. Docs · ☐ 7. Commit
+### Priority 5 — Adult Mode + Apple Integrations (spec confirmed `a64b8c4`)
+- ☑ 1. Spec (`specs/05-adult-apple.md`) · ☑ 2. Confirm (2026-05-19, all PROPOSED)
+- Staged P5.1→P5.4 (NOT parked like P2.5b — automatic signing covers HealthKit + App
+  Group with no manual portal step / no multi-account/device; only §12 device smoke is
+  user-pending, same as the P4 camera/game smokes):
+  - ◐ P5.1 Adult minimal mode: Core `Profile.mode` (kid|adult, additive zero-loss
+    migration) + pure `HabitCurve`; app per-profile minimal UI (no Sugar Bugs/stars,
+    calm Done, `essentials` default).
+  - ☐ P5.2 App Intents / Siri (Log/Start/Streak; active-profile, per-slot idempotent).
+  - ☐ P5.3 Widgets + Live Activities (new `ToothBuddyWidget` extension target +
+    App Group `group.com.ctlandu.ToothBuddy`; pure `WidgetSnapshotBuilder`).
+  - ☐ P5.4 HealthKit `toothbrushingEvent` (write-only/opt-in/revocable; pure
+    `HealthExportDecider`; entitlement via project.yml).
 
 ## Decision Log
 
@@ -148,4 +159,5 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
 | 2026-05-18 | Iterative per-feature cadence (spec → confirm → implement). |
 | 2026-05-18 | Progress tracked dual-track: this file + session task list. |
 | 2026-05-18 | Project is Xcode 26 / CLI-driven. iPad/Mac Swift Playgrounds.app support dropped (required to get `swift test`). Root `Package.swift` is now hand-maintained (the "auto-generated" warning no longer applies). |
+| 2026-05-19 | P5 spec confirmed. Per-profile `Profile.mode` (kid|adult). P5 is NOT parked like P2.5b: no manual portal/multi-account/multi-device — automatic signing covers HealthKit + App Group; only §12 on-device smoke is user-pending. HealthKit is strictly write-only `toothbrushingEvent`. New `ToothBuddyWidget` extension target + App Group `group.com.ctlandu.ToothBuddy` at P5.3. |
 | 2026-05-18 | **Migrated `.swiftpm` → Xcode `.xcodeproj`** (XcodeGen, `project.yml`; root app `Package.swift` removed). Required because App Playgrounds cannot carry iCloud/CloudKit entitlements that P2 (and P5) need. `.xcodeproj` git-ignored; `project.yml` is the source of truth. `ToothBuddyCore` package + its `swift test` suite unchanged. Supersedes the line above. Verified: app BUILD SUCCEEDED, app TEST SUCCEEDED, Core 28/28. Folder is still named `ToothBuddy.swiftpm` (not renamed — would break the `ToothBuddy-src` symlink); name is legacy only. |
