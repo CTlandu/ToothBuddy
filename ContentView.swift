@@ -81,20 +81,20 @@ struct ContentView: View {
     }
 
     private var appHeader: some View {
-        HStack(spacing: 7) {
+        HStack(spacing: 8) {
             Spacer().frame(width: 44)
             Spacer()
-            ToothImageView(size: 26)
+            BuddyView()
+                .frame(width: 32, height: 36)
             Text("ToothBuddy")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .tracking(1)
-                .foregroundColor(Theme.textPrimary)
+                .font(Duo.Fnt.ebd(26))
+                .tracking(0.5)
+                .foregroundColor(Duo.ink)
             Spacer()
             profileButton
         }
-        .shadow(color: Theme.accentBlue.opacity(0.3), radius: 6, x: 0, y: 2)
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
     }
 
     private var profileButton: some View {
@@ -158,19 +158,19 @@ struct ContentView: View {
     private static let tabOrder: [AppTab] = [.history, .brush, .family, .tips]
 
     private var customTabBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 6) {
             ForEach(Self.tabOrder, id: \.self) { tab in
                 tabButton(tab)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
         .padding(.bottom, 24)
-        .background(Color.white.opacity(0.7))
+        .background(Color.white)
         .overlay(
             Rectangle()
-                .fill(Theme.borderLight)
-                .frame(height: 1),
+                .fill(Duo.ink)
+                .frame(height: 2),
             alignment: .top
         )
     }
@@ -185,31 +185,43 @@ struct ContentView: View {
             VStack(spacing: 4) {
                 Group {
                     if tab == .brush {
-                        ToothImageView(size: 24)
-                            .opacity(isSelected ? 1.0 : 0.38)
+                        BuddyView()
+                            .frame(width: 26, height: 28)
+                            .opacity(isSelected ? 1.0 : 0.5)
                     } else {
                         Image(systemName: tab.symbolName)
                             .font(.system(size: 22, weight: isSelected ? .bold : .regular))
-                            .foregroundColor(isSelected ? Theme.startButtonEnd : Theme.textMuted)
+                            .foregroundColor(isSelected ? .white : Duo.muted)
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
-                .scaleEffect(isSelected ? 1.08 : 1)
+                .scaleEffect(isSelected ? 1.06 : 1)
                 .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isSelected)
                 Text(tab.label)
-                    .font(.system(size: 11, weight: .heavy))
-                    .tracking(0.5)
-                    .foregroundColor(isSelected ? Theme.startButtonEnd : Theme.textMuted)
+                    .font(Duo.Fnt.ebd(11))
+                    .tracking(0.4)
+                    .foregroundColor(isSelected ? (tab == .brush ? Duo.ink : .white) : Duo.muted)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .padding(.horizontal, 20)
-            .background(isSelected ? Theme.startButtonEnd.opacity(0.12) : Color.clear)
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(isSelected ? Theme.startButtonEnd.opacity(0.25) : Color.clear, lineWidth: 1)
+            .padding(.horizontal, 6)
+            .background(
+                Group {
+                    if isSelected {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Duo.greenShadow)
+                                .offset(y: 3)
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Duo.green)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(Duo.ink, lineWidth: 2)
+                                )
+                        }
+                    }
+                }
             )
-            .clipShape(RoundedRectangle(cornerRadius: 18))
             .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(BounceButtonStyle())

@@ -410,75 +410,43 @@ struct BrushView: View {
     private var goalBar: some View {
         let sessionsToday = store.recordsTodayCount
         let goal = 2
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("TODAY'S GOAL")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Theme.textMuted)
-                Spacer()
-                HStack(spacing: 8) {
-                    HStack(spacing: 3) {
-                        Image(systemName: gamification.levelSystemImage)
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(symbolColor(for: gamification.levelSystemImage))
-                            .symbolRenderingMode(.hierarchical)
-                        Text("Lv.\(gamification.level)")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(Theme.accentBlue)
-                    }
-                    Text("\(min(sessionsToday, goal))/\(goal) sessions")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(Theme.textMuted)
+        return DuoCard(padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("TODAY'S GOAL")
+                        .font(Duo.Fnt.ebd(11))
+                        .tracking(0.8)
+                        .foregroundColor(Duo.ink)
+                    Spacer()
+                    DuoBadge(text: "LV \(gamification.level)",
+                             leadingEmoji: "🌱",
+                             role: .primary)
+                    Text("\(min(sessionsToday, goal))/\(goal)")
+                        .font(Duo.Fnt.ebd(12))
+                        .foregroundColor(Duo.muted)
+                        .padding(.leading, 6)
                 }
+                DuoProgressPips(completed: min(sessionsToday, goal), total: goal)
+                Text("A.M. · P.M.")
+                    .font(Duo.Fnt.sbd(11))
+                    .foregroundColor(Duo.muted)
             }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.black.opacity(0.08))
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                colors: [Theme.startButtonStart, Theme.startButtonEnd],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: geo.size.width * CGFloat(min(sessionsToday, goal)) / CGFloat(goal))
-                }
-            }
-            .frame(height: 10)
         }
-        .padding(12)
-        .background(Theme.surfaceFrost)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.surfaceFrostBorder, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
         .padding(.bottom, 18)
         .animation(.easeOut(duration: 0.5), value: store.recordsTodayCount)
     }
 
     private var buttonSection: some View {
-        Button {
+        DuoButton(
+            isBrushing ? "DONE BRUSHING!" : "START BRUSHING!",
+            role: isBrushing ? .secondary : .primary
+        ) {
             if isBrushing {
                 stopBrushing()
             } else {
                 startBrushing()
             }
-        } label: {
-            Text(isBrushing ? "Done Brushing!" : "Start Brushing!")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .tracking(1)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(isBrushing ? Theme.stopButtonGradient : Theme.startButtonGradient)
-                .clipShape(RoundedRectangle(cornerRadius: 28))
-                .shadow(
-                    color: (isBrushing ? Theme.stopButtonStart : Theme.startButtonEnd).opacity(0.5),
-                    radius: 15,
-                    y: 6
-                )
         }
-        .buttonStyle(BounceButtonStyle())
     }
 
     // MARK: - Timer display between camera and button

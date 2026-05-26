@@ -11,18 +11,19 @@ enum NunitoFont {
     static let body: Font = .custom("Nunito-Regular", size: 16)
 }
 
-/// Cream gradient theme, evoking teeth/oral care.
+/// Theme tokens — now backed by Duolingo palette (see DuoTheme.swift).
+/// Existing call sites stay untouched; values just shifted hue/saturation.
 enum Theme {
-    // Background gradient: ivory -> cream -> warm cream
-    static let backgroundStart = Color(red: 255/255, green: 251/255, blue: 245/255)  // #FFFBF5
-    static let backgroundMid = Color(red: 248/255, green: 243/255, blue: 236/255)   // #F8F3EC
-    static let backgroundEnd = Color(red: 240/255, green: 232/255, blue: 224/255)    // #F0E8E0
+    // Background gradient — paper-white → pale Duolingo green
+    static let backgroundStart = Color(red: 0.969, green: 0.973, blue: 0.941)  // Duo.bgTop
+    static let backgroundMid = Color(red: 0.953, green: 0.973, blue: 0.929)
+    static let backgroundEnd = Color(red: 0.925, green: 0.969, blue: 0.910)    // Duo.bgBottom
 
     static var appBackground: LinearGradient {
         LinearGradient(
             colors: [backgroundStart, backgroundMid, backgroundEnd],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
+            startPoint: .top,
+            endPoint: .bottom
         )
     }
 
@@ -49,11 +50,12 @@ enum Theme {
         }
     }
 
-    // Buttons: child lip color (soft coral / rose pink)
-    static let startButtonStart = Color(red: 244/255, green: 166/255, blue: 166/255)   // #F4A6A6 soft coral
-    static let startButtonEnd = Color(red: 232/255, green: 152/255, blue: 152/255)     // #E89898 deeper coral
-    static let stopButtonStart = Color(red: 244/255, green: 63/255, blue: 94/255)
-    static let stopButtonEnd = Color(red: 251/255, green: 146/255, blue: 60/255)
+    // Primary CTA — Duolingo green
+    static let startButtonStart = Color(red: 0.345, green: 0.800, blue: 0.008)  // Duo.green
+    static let startButtonEnd = Color(red: 0.247, green: 0.561, blue: 0.000)    // Duo.greenShadow
+    // Stop / "done brushing" CTA — keep semantic warm red
+    static let stopButtonStart = Color(red: 0.110, green: 0.690, blue: 0.965)   // Duo.blue (action-ready)
+    static let stopButtonEnd = Color(red: 0.063, green: 0.514, blue: 0.714)     // Duo.blueShadow
 
     static var startButtonGradient: LinearGradient {
         LinearGradient(colors: [startButtonStart, startButtonEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -76,16 +78,16 @@ enum Theme {
         LinearGradient(colors: [streakOrangeStart, streakOrangeEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    // Accent: child lip color (soft coral pink)
-    static let accentBlue = Color(red: 232/255, green: 180/255, blue: 184/255)  // #E8B4B8 dusty rose
-    // Text on light background
-    static let textPrimary = Color(red: 45/255, green: 45/255, blue: 45/255)
-    static let textMuted = Color(red: 107/255, green: 107/255, blue: 107/255)
-    static let textMutedStrong = Color(red: 80/255, green: 80/255, blue: 80/255)
-    static let borderLight = Color.black.opacity(0.06)
-    static let borderAccent = Color.black.opacity(0.15)
-    static let surfaceFrost = Color.white.opacity(0.85)
-    static let surfaceFrostBorder = Color.black.opacity(0.08)
+    // Accent — Duolingo green (primary brand)
+    static let accentBlue = Color(red: 0.345, green: 0.800, blue: 0.008)  // Duo.green
+    // Text — Duolingo near-black ink
+    static let textPrimary = Color(red: 0.169, green: 0.145, blue: 0.208)  // Duo.ink
+    static let textMuted = Color(red: 0.443, green: 0.443, blue: 0.478)    // Duo.muted
+    static let textMutedStrong = Color(red: 0.275, green: 0.243, blue: 0.314)
+    static let borderLight = Color(red: 0.169, green: 0.145, blue: 0.208).opacity(0.12)
+    static let borderAccent = Color(red: 0.169, green: 0.145, blue: 0.208).opacity(0.5)
+    static let surfaceFrost = Color.white
+    static let surfaceFrostBorder = Color(red: 0.169, green: 0.145, blue: 0.208).opacity(0.15)
 }
 
 /// Maps an SF Symbol name to a thematic accent color for icon display.

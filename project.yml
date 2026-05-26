@@ -35,6 +35,9 @@ targets:
       - CareStore.swift
       - ContentHistoryStore.swift
       - ContentView.swift
+      - DuoTheme.swift
+      - DuoComponents.swift
+      - DuoCharacters.swift
       - FloatingToothBubblesView.swift
       - GamificationStore.swift
       - GroupStore.swift
