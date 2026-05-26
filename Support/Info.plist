@@ -28,6 +28,8 @@
 	<string>ToothBuddy uses the front camera so you can see yourself while brushing.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>ToothBuddy can save your completed brushing sessions to Apple Health. It only writes tooth-brushing events and never reads any of your health data.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>

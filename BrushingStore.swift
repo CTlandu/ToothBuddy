@@ -98,10 +98,16 @@ final class BrushingStore: ObservableObject {
         guard let pid = profiles.activeProfileID,
               let cdp = profiles.managedProfile(pid) else { return }
         let r = CDBrushingRecord(context: ctx)
-        r.id = UUID(); r.startDate = start; r.endDate = end
+        let sid = UUID()
+        r.id = sid; r.startDate = start; r.endDate = end
         r.modifiedAt = Date(); r.profile = cdp
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
+        // Spec 05 §6.6 — opt-in, idempotent Health export (no-op unless authorized).
+        if widgetSyncEnabled {
+            HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
+                                                 end: end, isCompleted: true)
+        }
     }
 
     /// One-tap / Siri quick-log (Spec 05 §6.3). Idempotent within the current AM/PM
@@ -117,12 +123,18 @@ final class BrushingStore: ObservableObject {
             return .alreadyLoggedThisSlot
         }
         let r = CDBrushingRecord(context: ctx)
-        r.id = UUID()
-        r.startDate = now.addingTimeInterval(-120)
+        let sid = UUID()
+        let start = now.addingTimeInterval(-120)
+        r.id = sid
+        r.startDate = start
         r.endDate = now
         r.modifiedAt = Date(); r.profile = cdp
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
+        if widgetSyncEnabled {
+            HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
+                                                 end: now, isCompleted: true)
+        }
         return .logged
     }
 

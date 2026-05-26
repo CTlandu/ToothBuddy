@@ -160,8 +160,14 @@ Legend: ☐ not started · ◐ in progress · ☑ done · ⛔ blocked on user co
     Fixed a reentrant-`shared` launch crash (post-init `widgetSyncEnabled` flag). App
     test 18/18 w/ extension embedded, build clean. Widget/Live-Activity device smoke
     (spec 05 §12) pending user.
-  - ☐ P5.4 HealthKit `toothbrushingEvent` (write-only/opt-in/revocable; pure
-    `HealthExportDecider`; entitlement via project.yml).
+  - ☑ P5.4 HealthKit `toothbrushingEvent` (`<this commit>`): Core pure
+    `HealthExportDecider` (swift test 108/108); app `HealthExporter` (write-only,
+    share-only auth, idempotent w/ ExternalUUID + per-device id set, revocable,
+    canImport-gated), entitlement + `NSHealthUpdateUsageDescription` via project.yml,
+    hooked into both completion paths, adult contextual opt-in row. App test 18/18,
+    build clean. Health-app device smoke (spec 05 §12) pending user.
+  - **P5 COMPLETE** (all P5.1–P5.4 shipped; NOT parked like P2.5b — automatic signing
+    covers HealthKit + App Group; only spec 05 §12 device smoke is user-pending).
 
 ## Decision Log
 

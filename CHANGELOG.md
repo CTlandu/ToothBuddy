@@ -4,6 +4,27 @@ All notable changes to ToothBuddy. Format loosely follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Added — P5.4: HealthKit `toothbrushingEvent` export (spec 05) — P5 complete
+
+- **`ToothBuddyCore`**: pure `HealthExportDecider.shouldExport` — write iff completed and
+  not already exported (idempotent; re-completion/relaunch never double-writes).
+  `swift test` 108/108.
+- **App**: `HealthExporter` — write-only, opt-in, revocable, idempotent. Requests
+  **share-only** authorization for the single `.toothbrushingEvent` type (never any read
+  type, never reads Health), writes one `HKCategorySample` per completed session with
+  `HKMetadataKeyExternalUUID` = session id, and tracks a per-device exported-id set
+  (second safety net beyond the external UUID). HealthKit entitlement +
+  `NSHealthUpdateUsageDescription` added; all use `canImport(HealthKit)`-gated and a
+  no-op unless available & authorized — local records stay the source of truth, revoking
+  silently disables with no error spam or data loss. Hooked into both completion paths
+  (in-app finish + Siri quick-log), shared-instance only. Adult History gains a
+  contextual "Save brushing to Apple Health" opt-in row (never on cold launch).
+- Verified: build clean (0 new-file warnings), app `xcodebuild test` 18/18, Core
+  `swift test` 108/108. The Health permission grant + Health-app verification is
+  maintainer device smoke (spec 05 §12) — automatic signing provisions the HealthKit
+  entitlement with no manual portal step (unlike P2.5b).
+- **Priority 5 (Adult Mode + Apple Integrations) complete.**
+
 ### Added — P5.3: Home-screen widget + Live Activity (spec 05)
 
 - **`ToothBuddyCore`**: pure `WidgetSnapshot` + `WidgetSnapshotBuilder` — Codable

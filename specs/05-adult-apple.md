@@ -9,12 +9,14 @@
 ## 1. Status
 - [x] 1. Spec drafted
 - [x] 2. Confirm gate — user approved 2026-05-19 (all PROPOSED) ✅
-- [ ] 3. Test infra delta (none expected — pure logic in existing ToothBuddyCore; new
-       Widget extension target added to `project.yml` at P5.3)
-- [ ] 4. Implement (TDD, staged P5.1 → P5.4)
-- [ ] 5. Verify
-- [ ] 6. Docs
-- [ ] 7. Commit
+- [x] 3. Test infra delta (new `ToothBuddyWidget` app-extension target in `project.yml`
+       at P5.3; pure logic in existing ToothBuddyCore)
+- [x] 4. Implement (TDD, staged P5.1 → P5.4 — all shipped)
+- [x] 5. Verify (Core `swift test` 108/108; app `xcodebuild test` 18/18; build clean;
+       **on-device §12 smoke is maintainer-pending** — Health app / Dynamic Island /
+       widget gallery / Siri cannot be unit/sim-tested)
+- [x] 6. Docs (README/ROADMAP/PLAN/CHANGELOG + this Status)
+- [x] 7. Commit (P5.1 `9192d18`, P5.2, P5.3, P5.4 — pushed)
 
 ## 2. Problem & Goal
 ToothBuddy today is a kid-shaped experience (stars, confetti, Sugar Bugs, playful voice).

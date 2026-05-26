@@ -45,6 +45,16 @@ struct HistoryView: View {
                         .listRowSeparator(.hidden)
                 }
                 .listSectionSeparator(.hidden)
+
+                Section {
+                    HealthConnectRow()
+                        .opacity(contentAppeared ? 1 : 0)
+                        .offset(y: contentAppeared ? 0 : 12)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                .listSectionSeparator(.hidden)
             }
 
             Section {
@@ -459,5 +469,49 @@ private struct AchievementDetailSheet: View {
               denominator > 0
         else { return unlocked ? 1 : 0 }
         return CGFloat(min(numerator / denominator, 1.0))
+    }
+}
+
+// MARK: - Adult Apple Health opt-in (Spec 05 §6.6)
+
+/// Contextual, write-only Health opt-in. Tapping requests share-only authorization for
+/// `toothbrushingEvent`. Never reads any health data; the local record stays the truth.
+private struct HealthConnectRow: View {
+    @State private var authorized = HealthExporter.shared.isAuthorized
+    @State private var requesting = false
+
+    var body: some View {
+        Group {
+            if !HealthExporter.shared.isAvailable {
+                EmptyView()
+            } else if authorized {
+                Label("Saving brushing to Apple Health", systemImage: "heart.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.pink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(RoundedRectangle(cornerRadius: 20).fill(Theme.surfaceFrost))
+            } else {
+                Button {
+                    requesting = true
+                    Task {
+                        authorized = await HealthExporter.shared.requestAuthorization()
+                        requesting = false
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "heart.text.square")
+                        Text(requesting ? "Connecting…" : "Save brushing to Apple Health")
+                            .font(.system(size: 15, weight: .semibold))
+                        Spacer()
+                    }
+                    .foregroundColor(Theme.textPrimary)
+                    .padding(16)
+                    .background(RoundedRectangle(cornerRadius: 20).fill(Theme.surfaceFrost))
+                }
+                .buttonStyle(.plain)
+                .disabled(requesting)
+            }
+        }
     }
 }
