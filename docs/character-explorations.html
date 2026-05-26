@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ToothBuddy — Character + UI Explorations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --page-bg: #FAFAF9;
+    --fg: #18181B;
+    --muted: #71717A;
+    --border: #E4E4E7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--page-bg); color: var(--fg); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1320px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  h1.page-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 42px; letter-spacing: -0.02em; margin: 0 0 16px; line-height: 1.1; }
+  .lede { max-width: 760px; font-size: 16px; color: #3F3F46; margin: 0 0 8px; line-height: 1.6; }
+
+  /* ----- Section card ----- */
+  .set { margin-top: 56px; border-radius: 24px; padding: 36px; border: 1px solid var(--border); }
+  .set-head { margin-bottom: 28px; }
+  .set-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .set-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 30px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .set-rule { font-size: 14px; color: #3F3F46; max-width: 720px; }
+  .set-rule strong { color: var(--fg); }
+
+  .panel-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 32px 0 14px; }
+
+  /* Cast row */
+  .cast { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+  @media (max-width: 1024px) { .cast { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .cast { grid-template-columns: repeat(2, 1fr); } }
+  .char { border-radius: 16px; padding: 22px 14px 16px; text-align: center; }
+  .char svg { display: block; margin: 0 auto 12px; max-width: 100%; height: auto; }
+  .char-name { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
+  .char-role { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+
+  /* UI strip */
+  .ui-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .ui-strip { grid-template-columns: 1fr; } }
+  .ui-tile { padding: 18px; border-radius: 16px; }
+  .ui-tile-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-bottom: 10px; }
+
+  /* Phone mockup */
+  .mock-wrap { display: flex; justify-content: center; }
+  .phone { width: 300px; height: 630px; border-radius: 48px; background: #000; padding: 8px; box-shadow: 0 28px 60px -20px rgba(15, 23, 42, 0.22); }
+  .phone-screen { width: 100%; height: 100%; border-radius: 40px; overflow: hidden; position: relative; }
+  .island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 96px; height: 24px; background: #000; border-radius: 14px; z-index: 10; }
+  .sb { position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 9; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px 0; font-weight: 600; font-size: 13px; }
+  .sb svg { display: block; }
+  .stage { position: absolute; top: 54px; left: 0; right: 0; bottom: 0; padding: 6px 20px 18px; overflow: hidden; }
+  .tab-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 78px; display: flex; align-items: center; justify-content: space-around; padding: 10px 16px 22px; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 600; opacity: 0.55; }
+  .tab.active { opacity: 1; }
+  .tab svg { width: 22px; height: 22px; }
+
+  /* =================================================== */
+  /* ============ SET 02 — DUOLINGO ===================== */
+  /* =================================================== */
+  .duo { background: linear-gradient(180deg, #F7F8F0 0%, #ECF7E8 100%); border-color: #DDE9D4; }
+  .duo .char { background: #FFFFFF; border: 2px solid #2B2535; box-shadow: 0 4px 0 #2B2535; }
+  .duo .char-name { color: #2B2535; font-family: 'Nunito', sans-serif; font-weight: 800; }
+  .duo .ui-tile { background: #FFFFFF; border: 2px solid #2B2535; box-shadow: 0 4px 0 #2B2535; font-family: 'Nunito', sans-serif; }
+  .duo .ui-tile-label { color: #2B2535; }
+  .duo-btn { padding: 14px 22px; background: #58CC02; color: #FFFFFF; border-radius: 14px; border: 2px solid #2B2535; box-shadow: 0 4px 0 #3F8F00; font-weight: 800; font-size: 15px; text-align: center; letter-spacing: 0.02em; }
+  .duo-btn.secondary { background: #1CB0F6; box-shadow: 0 4px 0 #1083B6; }
+  .duo-card-mini { padding: 12px; background: #FFFFFF; border-radius: 12px; border: 2px solid #2B2535; }
+  .duo-progress-row { display: flex; gap: 4px; margin-top: 8px; }
+  .duo-progress-row .pip { flex: 1; height: 10px; border-radius: 5px; background: #E5E5E5; border: 1.5px solid #2B2535; }
+  .duo-progress-row .pip.on { background: #58CC02; }
+  .duo .phone-screen { background: #FAFAF5; font-family: 'Nunito', sans-serif; color: #2B2535; }
+
+  /* =================================================== */
+  /* ============ SET 01 — HEADSPACE ==================== */
+  /* =================================================== */
+  .head { background: linear-gradient(180deg, #FFF6E8 0%, #FFE8D4 100%); border-color: #F4D8B8; }
+  .head .char { background: rgba(255,255,255,0.5); }
+  .head .char-name { color: #5C3A1D; font-family: 'Fraunces', serif; font-weight: 600; font-style: italic; }
+  .head .ui-tile { background: rgba(255,255,255,0.62); }
+  .head .ui-tile-label { color: #8B5A2B; }
+  .head-btn { padding: 16px 22px; background: #F47D42; color: #FFFFFF; border-radius: 28px; font-weight: 600; font-size: 15px; text-align: center; box-shadow: 0 4px 12px -2px rgba(244, 125, 66, 0.5); }
+  .head-card-mini { padding: 16px; background: #FFFFFF; border-radius: 18px; font-family: 'Fraunces', serif; font-style: italic; font-size: 15px; color: #5C3A1D; }
+  .head .phone-screen { background: linear-gradient(180deg, #FFF6E8 0%, #FFEBC6 100%); font-family: 'Inter', sans-serif; color: #5C3A1D; }
+
+  /* =================================================== */
+  /* ============ SET 03 — FINCH ======================== */
+  /* =================================================== */
+  .fin { background: linear-gradient(180deg, #FFF1F3 0%, #F1E8FA 100%); border-color: #E8D8F0; }
+  .fin .char { background: #FFFFFF; border-radius: 22px; box-shadow: 0 6px 18px -8px rgba(123, 93, 155, 0.25); }
+  .fin .char-name { color: #7B5D9B; font-family: 'Poppins', sans-serif; font-weight: 700; }
+  .fin .ui-tile { background: #FFFFFF; border-radius: 22px; box-shadow: 0 6px 18px -8px rgba(123, 93, 155, 0.2); font-family: 'Poppins', sans-serif; }
+  .fin .ui-tile-label { color: #7B5D9B; }
+  .fin-btn { padding: 16px 22px; background: #7B5D9B; color: #FFFFFF; border-radius: 999px; font-weight: 600; font-size: 14px; text-align: center; box-shadow: 0 6px 16px -4px rgba(123, 93, 155, 0.5); letter-spacing: 0.02em; }
+  .fin-card-mini { padding: 14px 16px; background: #FFF; border-radius: 18px; font-family: 'Poppins', sans-serif; font-size: 13px; color: #4A3568; box-shadow: 0 4px 12px -4px rgba(123, 93, 155, 0.15); }
+  .fin .phone-screen { background: linear-gradient(180deg, #FFF1F3 0%, #F0E5FB 70%, #DDE9F8 100%); font-family: 'Poppins', sans-serif; color: #4A3568; }
+
+  /* Mockup-specific small text styles */
+  .mock-title { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+  .mock-meta { font-size: 11px; opacity: 0.7; font-weight: 600; }
+
+  footer { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border); font-size: 14px; color: #3F3F46; line-height: 1.6; }
+  footer h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px; margin: 0 0 8px; }
+  code { background: #F4F4F5; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <p class="eyebrow">ToothBuddy · Characters + UI · v2.1</p>
+  <h1 class="page-title">Three character casts for ToothBuddy, one per reference style.</h1>
+  <p class="lede">Same five-character lineup adapted to each design language: <strong>Buddy</strong> (lead tooth), <strong>Plaque</strong> (antagonist), <strong>Brush</strong> (sidekick), <strong>Wisdom</strong> (adult-mode molar), <strong>Foam</strong> (celebration / completion). Plus UI elements (button, card, tab bar) and a Brush-home mockup for each set. Pick the lane that feels right and I'll commit it to <code>Theme.swift</code>.</p>
+</header>
+
+<!-- =================================================== -->
+<!-- ============== SET 02 · DUOLINGO ==================== -->
+<!-- =================================================== -->
+<section class="set duo">
+  <div class="set-head">
+    <span class="set-tag">Set 02 · Lane: Geometric character system (Duolingo)</span>
+    <h2 class="set-name">Duolingo-inspired — disciplined cartoon cast</h2>
+    <p class="set-rule"><strong>Rules applied:</strong> 1–2 basic shapes per character, 5-style eye system (round / glasses / almond / linear / dots — no ovals), asymmetric mouth, flat saturated fills, 2px outline + 4px drop-shadow ("chunky outlined" — same trick Duolingo uses on every button). Cap height letterforms in Nunito ExtraBold (closest free fit to Duolingo's Feather Bold).</p>
+  </div>
+
+  <p class="panel-tag">Cast</p>
+  <div class="cast">
+
+    <!-- ===== BUDDY (Duolingo) ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Buddy">
+        <!-- Body shadow -->
+        <path d="M28 38 Q28 18 50 16 L90 16 Q112 18 112 38 L112 98 Q112 130 96 152 Q90 158 80 152 Q72 138 72 118 Q72 138 64 152 Q54 158 48 152 Q28 130 28 98 Z" fill="#2B2535" transform="translate(0,4)"/>
+        <!-- Body -->
+        <path d="M28 38 Q28 18 50 16 L90 16 Q112 18 112 38 L112 98 Q112 130 96 152 Q90 158 80 152 Q72 138 72 118 Q72 138 64 152 Q54 158 48 152 Q28 130 28 98 Z" fill="#FAFAF5" stroke="#2B2535" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Cheek blush -->
+        <ellipse cx="42" cy="78" rx="9" ry="6" fill="#FFB3C1"/>
+        <ellipse cx="98" cy="78" rx="9" ry="6" fill="#FFB3C1"/>
+        <!-- Dot eyes -->
+        <circle cx="55" cy="62" r="5.5" fill="#2B2535"/>
+        <circle cx="85" cy="62" r="5.5" fill="#2B2535"/>
+        <!-- Eye sparkle -->
+        <circle cx="57" cy="60" r="1.5" fill="#FFFFFF"/>
+        <circle cx="87" cy="60" r="1.5" fill="#FFFFFF"/>
+        <!-- Asymmetric smile -->
+        <path d="M55 84 Q72 96 86 86" stroke="#2B2535" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Highlight on top -->
+        <path d="M44 30 Q44 24 52 24 L62 24" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+      </svg>
+      <div class="char-name">Buddy</div>
+      <div class="char-role">Main incisor.<br/>Default mood: encouraging.</div>
+    </div>
+
+    <!-- ===== PLAQUE (Duolingo) — refined as a cute germ creature ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Plaque">
+        <!-- Ground shadow -->
+        <ellipse cx="70" cy="146" rx="34" ry="5" fill="#2B2535" opacity="0.18"/>
+        <!-- Antennae -->
+        <path d="M58 36 Q54 24 60 18" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="60" cy="16" r="4" fill="#FF4B4B" stroke="#2B2535" stroke-width="2.5"/>
+        <path d="M82 36 Q86 24 80 18" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="80" cy="16" r="4" fill="#FF4B4B" stroke="#2B2535" stroke-width="2.5"/>
+        <!-- Stubby arms -->
+        <path d="M28 86 L18 78" stroke="#2B2535" stroke-width="6" stroke-linecap="round"/>
+        <path d="M112 86 L122 78" stroke="#2B2535" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="18" cy="78" r="5" fill="#6FB85E" stroke="#2B2535" stroke-width="2.5"/>
+        <circle cx="122" cy="78" r="5" fill="#6FB85E" stroke="#2B2535" stroke-width="2.5"/>
+        <!-- Stubby legs -->
+        <path d="M50 130 L46 142" stroke="#2B2535" stroke-width="7" stroke-linecap="round"/>
+        <path d="M90 130 L94 142" stroke="#2B2535" stroke-width="7" stroke-linecap="round"/>
+        <!-- Body shadow -->
+        <ellipse cx="70" cy="86" rx="42" ry="40" fill="#2B2535" transform="translate(0,4)"/>
+        <!-- Body — rounded squishy blob -->
+        <path d="M28 86 Q28 46 70 42 Q112 46 112 86 Q112 124 70 128 Q28 124 28 86 Z" fill="#6FB85E" stroke="#2B2535" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Texture spots -->
+        <ellipse cx="44" cy="64" rx="6" ry="5" fill="#5A9B4D"/>
+        <ellipse cx="98" cy="76" rx="7" ry="5" fill="#5A9B4D"/>
+        <ellipse cx="56" cy="108" rx="5" ry="4" fill="#5A9B4D"/>
+        <ellipse cx="92" cy="112" rx="6" ry="4" fill="#5A9B4D"/>
+        <!-- Round eyes (white with pupil) -->
+        <circle cx="56" cy="78" r="10" fill="#FFFFFF" stroke="#2B2535" stroke-width="3"/>
+        <circle cx="84" cy="78" r="10" fill="#FFFFFF" stroke="#2B2535" stroke-width="3"/>
+        <!-- Looking sideways (mischief) -->
+        <circle cx="60" cy="80" r="4" fill="#2B2535"/>
+        <circle cx="88" cy="80" r="4" fill="#2B2535"/>
+        <circle cx="61.5" cy="78.5" r="1.5" fill="#FFFFFF"/>
+        <circle cx="89.5" cy="78.5" r="1.5" fill="#FFFFFF"/>
+        <!-- Sneaky asymmetric grin with single fang -->
+        <path d="M56 100 Q70 110 84 102" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M64 104 L66 110 L70 105 Z" fill="#FFFFFF" stroke="#2B2535" stroke-width="1.5"/>
+      </svg>
+      <div class="char-name">Plaque</div>
+      <div class="char-role">Antagonist.<br/>Brushed away = celebration.</div>
+    </div>
+
+    <!-- ===== BRUSH (Duolingo) — refined with toothpaste blob & wider stance ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Brush">
+        <!-- Toothpaste blob on bristles -->
+        <path d="M56 20 Q70 6 84 20 Q86 26 82 30 L58 30 Q54 26 56 20 Z" fill="#FF4B4B" stroke="#2B2535" stroke-width="2.5" stroke-linejoin="round"/>
+        <ellipse cx="66" cy="20" rx="3" ry="2" fill="#FFFFFF" opacity="0.8"/>
+        <!-- Bristles shadow (trapezoid head, wider) -->
+        <path d="M28 30 L112 30 L100 56 L40 56 Z" fill="#2B2535" transform="translate(0,4)"/>
+        <!-- Bristles trapezoid -->
+        <path d="M28 30 L112 30 L100 56 L40 56 Z" fill="#FFFFFF" stroke="#2B2535" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Bristle vertical lines -->
+        <line x1="40" y1="32" x2="44" y2="54" stroke="#2B2535" stroke-width="2"/>
+        <line x1="54" y1="31" x2="56" y2="54" stroke="#2B2535" stroke-width="2"/>
+        <line x1="70" y1="31" x2="70" y2="54" stroke="#2B2535" stroke-width="2"/>
+        <line x1="86" y1="31" x2="84" y2="54" stroke="#2B2535" stroke-width="2"/>
+        <line x1="100" y1="32" x2="96" y2="54" stroke="#2B2535" stroke-width="2"/>
+        <!-- Handle shadow -->
+        <path d="M48 56 L92 56 L88 140 Q88 150 70 150 Q52 150 52 140 Z" fill="#2B2535" transform="translate(0,4)"/>
+        <!-- Handle -->
+        <path d="M48 56 L92 56 L88 140 Q88 150 70 150 Q52 150 52 140 Z" fill="#1CB0F6" stroke="#2B2535" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Round eyes (well spaced) -->
+        <circle cx="58" cy="84" r="9" fill="#FFFFFF" stroke="#2B2535" stroke-width="3"/>
+        <circle cx="82" cy="84" r="9" fill="#FFFFFF" stroke="#2B2535" stroke-width="3"/>
+        <circle cx="60" cy="86" r="4" fill="#2B2535"/>
+        <circle cx="84" cy="86" r="4" fill="#2B2535"/>
+        <circle cx="61" cy="84.5" r="1.5" fill="#FFFFFF"/>
+        <circle cx="85" cy="84.5" r="1.5" fill="#FFFFFF"/>
+        <!-- Cheerful smile -->
+        <path d="M58 108 Q70 116 82 108" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Handle highlight stripe -->
+        <path d="M58 66 L58 128" stroke="#FFFFFF" stroke-width="3" opacity="0.45" stroke-linecap="round"/>
+      </svg>
+      <div class="char-name">Brush</div>
+      <div class="char-role">Sidekick.<br/>Appears during the 2 min.</div>
+    </div>
+
+    <!-- ===== WISDOM (Duolingo) — proper molar, no ghost prongs ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Wisdom">
+        <!-- Molar shadow (wide, flat bottom with gentle cusps on top) -->
+        <path d="M18 56 Q18 40 28 32 Q40 22 52 30 Q62 24 70 28 Q78 24 88 30 Q100 22 112 32 Q122 40 122 56 L122 116 Q122 132 110 138 L30 138 Q18 132 18 116 Z" fill="#2B2535" transform="translate(0,4)"/>
+        <!-- Body -->
+        <path d="M18 56 Q18 40 28 32 Q40 22 52 30 Q62 24 70 28 Q78 24 88 30 Q100 22 112 32 Q122 40 122 56 L122 116 Q122 132 110 138 L30 138 Q18 132 18 116 Z" fill="#FAFAF5" stroke="#2B2535" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Subtle cusp shading on top -->
+        <path d="M30 38 Q40 30 50 36 M58 32 Q66 30 72 34 M82 32 Q92 30 102 38" stroke="#E0E0DA" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Reading glasses -->
+        <circle cx="48" cy="82" r="14" fill="rgba(244,244,240,0.5)" stroke="#2B2535" stroke-width="3"/>
+        <circle cx="92" cy="82" r="14" fill="rgba(244,244,240,0.5)" stroke="#2B2535" stroke-width="3"/>
+        <line x1="62" y1="82" x2="78" y2="82" stroke="#2B2535" stroke-width="3"/>
+        <!-- Glasses arm -->
+        <path d="M34 82 L24 78" stroke="#2B2535" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M106 82 L116 78" stroke="#2B2535" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Almond closed-content eyes (peaceful) -->
+        <path d="M42 82 Q48 78 54 82" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M86 82 Q92 78 98 82" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Cheek blush (warmer than Buddy's) -->
+        <ellipse cx="28" cy="104" rx="7" ry="4" fill="#FFC0AB" opacity="0.85"/>
+        <ellipse cx="112" cy="104" rx="7" ry="4" fill="#FFC0AB" opacity="0.85"/>
+        <!-- Calm small smile -->
+        <path d="M60 110 Q70 116 80 110" stroke="#2B2535" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="char-name">Wisdom</div>
+      <div class="char-role">Adult-mode molar.<br/>Calm, quietly proud.</div>
+    </div>
+
+    <!-- ===== FOAM (Duolingo) — one coherent bubble character ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Foam">
+        <!-- Small companion bubbles (background, no shadow) -->
+        <circle cx="22" cy="46" r="9" fill="#E6F4FF" stroke="#2B2535" stroke-width="2.5"/>
+        <circle cx="20" cy="48" r="2" fill="#2B2535"/>
+        <circle cx="120" cy="42" r="11" fill="#E6F4FF" stroke="#2B2535" stroke-width="2.5"/>
+        <circle cx="123" cy="44" r="2.5" fill="#2B2535"/>
+        <circle cx="120" cy="124" r="10" fill="#E6F4FF" stroke="#2B2535" stroke-width="2.5"/>
+        <circle cx="123" cy="125" r="2" fill="#2B2535"/>
+        <circle cx="18" cy="126" r="11" fill="#E6F4FF" stroke="#2B2535" stroke-width="2.5"/>
+        <circle cx="15" cy="127" r="2.5" fill="#2B2535"/>
+        <!-- Main bubble shadow -->
+        <circle cx="72" cy="84" r="44" fill="#2B2535" transform="translate(0,4)"/>
+        <!-- Main bubble -->
+        <circle cx="72" cy="84" r="44" fill="#E6F4FF" stroke="#2B2535" stroke-width="3.5"/>
+        <!-- Main highlight -->
+        <ellipse cx="54" cy="62" rx="11" ry="7" fill="#FFFFFF" opacity="0.9"/>
+        <ellipse cx="64" cy="56" rx="3" ry="2" fill="#FFFFFF"/>
+        <!-- Closed happy eyes -->
+        <path d="M52 80 Q58 74 64 80" stroke="#2B2535" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M80 80 Q86 74 92 80" stroke="#2B2535" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Big open joy smile -->
+        <path d="M54 96 Q72 116 90 96" stroke="#2B2535" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Tongue/pink inside -->
+        <path d="M60 100 Q72 112 84 100 Q72 108 60 100 Z" fill="#FFB3C1" stroke="#2B2535" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Tiny pink cheeks -->
+        <ellipse cx="48" cy="92" rx="5" ry="3" fill="#FFB3C1" opacity="0.7"/>
+        <ellipse cx="96" cy="92" rx="5" ry="3" fill="#FFB3C1" opacity="0.7"/>
+      </svg>
+      <div class="char-name">Foam</div>
+      <div class="char-role">Celebration.<br/>Spawns on 2-min finish.</div>
+    </div>
+  </div>
+
+  <p class="panel-tag">UI elements</p>
+  <div class="ui-strip">
+    <div class="ui-tile">
+      <div class="ui-tile-label">Primary button (with depth)</div>
+      <div class="duo-btn">START BRUSHING!</div>
+      <div style="height:14px"></div>
+      <div class="duo-btn secondary">LOG SESSION</div>
+    </div>
+    <div class="ui-tile">
+      <div class="ui-tile-label">Goal card</div>
+      <div class="duo-card-mini">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:800;font-size:12px;color:#2B2535;letter-spacing:0.08em;">TODAY'S GOAL</span>
+          <span style="font-weight:800;font-size:12px;color:#58CC02;">🌱 LV 0</span>
+        </div>
+        <div class="duo-progress-row">
+          <div class="pip"></div><div class="pip"></div>
+        </div>
+        <div style="margin-top:6px;font-size:11px;color:#71717A;font-weight:600;">A.M. · P.M.</div>
+      </div>
+    </div>
+    <div class="ui-tile">
+      <div class="ui-tile-label">Tab bar (custom — already shipped)</div>
+      <div style="display:flex;justify-content:space-around;padding:14px 6px;background:#FFFFFF;border-radius:14px;border:2px solid #2B2535;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#71717A;">📊<span>History</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#58CC02;">🦷<span>Brush</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#71717A;">👨‍👩‍👧<span>Family</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#71717A;">💡<span>Tips</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="panel-tag">Brush-home mockup</p>
+  <div class="mock-wrap">
+    <div class="phone"><div class="phone-screen">
+      <div class="island"></div>
+      <div class="sb" style="color:#2B2535;">
+        <span>9:41</span>
+        <span style="display:flex;gap:6px;">
+          <svg width="14" height="10" viewBox="0 0 14 10"><path d="M1 9h2V5H1v4zm4 0h2V3H5v6zm4 0h2V1H9v8z" fill="currentColor"/></svg>
+          <svg width="22" height="10" viewBox="0 0 22 10"><rect x="0.5" y="0.5" width="18" height="9" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2" width="14" height="6" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="stage">
+        <!-- App header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 16px;">
+          <div class="mock-title" style="color:#2B2535;">ToothBuddy</div>
+          <div style="background:#58CC02;border:2px solid #2B2535;border-radius:999px;padding:4px 12px;font-weight:800;font-size:11px;color:#FFFFFF;box-shadow:0 3px 0 #3F8F00;">🌱 LV 0</div>
+        </div>
+        <!-- Goal card -->
+        <div class="duo-card-mini" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:800;font-size:11px;color:#2B2535;letter-spacing:0.08em;">TODAY'S GOAL</span>
+            <span style="font-weight:800;font-size:11px;color:#71717A;">0 / 2</span>
+          </div>
+          <div class="duo-progress-row">
+            <div class="pip"></div><div class="pip"></div>
+          </div>
+        </div>
+        <!-- Tip card with Buddy -->
+        <div style="margin-top:12px;background:#FFFFFF;border:2px solid #2B2535;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 0 #2B2535;">
+          <svg width="48" height="56" viewBox="0 0 140 160">
+            <path d="M28 38 Q28 18 50 16 L90 16 Q112 18 112 38 L112 98 Q112 130 96 152 Q90 158 80 152 Q72 138 72 118 Q72 138 64 152 Q54 158 48 152 Q28 130 28 98 Z" fill="#FAFAF5" stroke="#2B2535" stroke-width="4" stroke-linejoin="round"/>
+            <circle cx="55" cy="62" r="6" fill="#2B2535"/><circle cx="85" cy="62" r="6" fill="#2B2535"/>
+            <path d="M55 86 Q72 98 88 88" stroke="#2B2535" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div style="font-size:12px;color:#2B2535;line-height:1.4;font-weight:600;">Ice cream headaches hit the roof of your mouth!</div>
+        </div>
+        <!-- Canvas -->
+        <div style="margin-top:12px;height:170px;background:#FFF7C2;border:2px solid #2B2535;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 0 #2B2535;position:relative;overflow:hidden;">
+          <svg width="84" height="100" viewBox="0 0 140 160">
+            <path d="M28 38 Q28 18 50 16 L90 16 Q112 18 112 38 L112 98 Q112 130 96 152 Q90 158 80 152 Q72 138 72 118 Q72 138 64 152 Q54 158 48 152 Q28 130 28 98 Z" fill="#FAFAF5" stroke="#2B2535" stroke-width="4" stroke-linejoin="round"/>
+            <ellipse cx="42" cy="78" rx="9" ry="6" fill="#FFB3C1"/>
+            <ellipse cx="98" cy="78" rx="9" ry="6" fill="#FFB3C1"/>
+            <circle cx="55" cy="62" r="5.5" fill="#2B2535"/><circle cx="85" cy="62" r="5.5" fill="#2B2535"/>
+            <path d="M55 84 Q72 96 86 86" stroke="#2B2535" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div style="font-weight:800;font-size:12px;color:#2B2535;letter-spacing:0.06em;">READY TO BRUSH?</div>
+        </div>
+        <!-- CTA -->
+        <div style="margin-top:14px;" class="duo-btn">START BRUSHING!</div>
+      </div>
+      <div class="tab-bar" style="background:#FFFFFF;border-top:2px solid #2B2535;">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="9" width="3" height="11"/><rect x="10.5" y="4" width="3" height="16"/><rect x="17" y="13" width="3" height="7"/></svg>History</div>
+        <div class="tab active" style="color:#58CC02;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-3 0-5 1.5-5 4 0 1.4.4 2.3.4 3.7 0 1.8-.4 3-.4 5 0 2 .6 5.3 1.8 5.3.9 0 1-1.5 1.5-3 .3-.9.7-1.5 1.7-1.5s1.4.6 1.7 1.5c.5 1.5.6 3 1.5 3 1.2 0 1.8-3.3 1.8-5.3 0-2-.4-3.2-.4-5C16 9.3 16.4 8.4 16.4 7c0-2.5-2-4-4.4-4z"/></svg>Brush</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5"/></svg>Family</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 016 6c0 2.5-1.5 4-2.5 5.2-.8 1-1 1.7-1 2.8H9.5c0-1.1-.2-1.8-1-2.8C7.5 13 6 11.5 6 9a6 6 0 016-6z"/></svg>Tips</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- =================================================== -->
+<!-- ============== SET 01 · HEADSPACE =================== -->
+<!-- =================================================== -->
+<section class="set head">
+  <div class="set-head">
+    <span class="set-tag">Set 01 · Lane: Editorial hand-drawn (Headspace)</span>
+    <h2 class="set-name">Headspace-inspired — single-metaphor scenes</h2>
+    <p class="set-rule"><strong>Rules applied:</strong> organic blob shapes, no outlines (or very thin), warm saturated fills, intentionally "imperfect" curves, faces simplified to two dots and a curve. Each illustration carries one metaphor (jog / sleep / hug). UI recedes; illustrations occupy ~40% of any key screen. Headline font is Fraunces italic for warmth.</p>
+  </div>
+
+  <p class="panel-tag">Cast / scenes</p>
+  <div class="cast">
+
+    <!-- ===== BUDDY (Headspace) ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Buddy">
+        <!-- Soft warm background blob -->
+        <ellipse cx="70" cy="100" rx="60" ry="20" fill="#FFCB47" opacity="0.4"/>
+        <!-- Buddy body — soft tooth shape, no outline -->
+        <path d="M32 40 Q32 22 50 22 L90 22 Q108 22 108 40 L108 100 Q108 128 92 144 Q86 150 80 142 Q74 124 72 110 Q70 124 64 142 Q56 150 50 144 Q32 128 32 100 Z" fill="#FFE6B0"/>
+        <!-- Subtle shading -->
+        <path d="M32 40 Q32 22 50 22 L90 22 Q108 22 108 40 L108 60 Q90 56 70 60 Q50 56 32 60 Z" fill="#FFD699" opacity="0.7"/>
+        <!-- Cozy eyes (closed-content) -->
+        <path d="M52 64 Q55 68 58 64" stroke="#5C3A1D" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M82 64 Q85 68 88 64" stroke="#5C3A1D" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Soft smile -->
+        <path d="M62 80 Q70 86 78 80" stroke="#5C3A1D" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Tiny floating sparkles -->
+        <circle cx="20" cy="40" r="2.5" fill="#F47D42"/>
+        <circle cx="120" cy="56" r="3" fill="#F47D42"/>
+      </svg>
+      <div class="char-name">Buddy at rest</div>
+      <div class="char-role">Empty-state idle.<br/>Eyes closed = peace.</div>
+    </div>
+
+    <!-- ===== PLAQUE → "Sleepless tooth" scene (Headspace reframes negatives gently) ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Sleepless plaque">
+        <!-- Moon -->
+        <circle cx="110" cy="32" r="14" fill="#FFF6E8"/>
+        <circle cx="115" cy="28" r="12" fill="#FFE8D4"/>
+        <!-- Stars -->
+        <path d="M22 38 L24 42 L28 44 L24 46 L22 50 L20 46 L16 44 L20 42 Z" fill="#F47D42"/>
+        <path d="M40 22 L41 25 L44 26 L41 27 L40 30 L39 27 L36 26 L39 25 Z" fill="#F47D42"/>
+        <!-- Tooth lying down with worry blob next to it -->
+        <ellipse cx="70" cy="110" rx="55" ry="14" fill="#1B3A4B" opacity="0.15"/>
+        <path d="M30 78 Q30 64 46 64 L92 64 Q110 64 110 78 L110 100 Q110 116 100 118 Q90 116 80 118 Q70 116 60 118 Q50 116 40 118 Q30 116 30 100 Z" fill="#FFE6B0"/>
+        <!-- Eyes — wide, anxious -->
+        <circle cx="56" cy="82" r="4" fill="#5C3A1D"/>
+        <circle cx="82" cy="82" r="4" fill="#5C3A1D"/>
+        <!-- Small worry line mouth -->
+        <path d="M62 96 L78 96" stroke="#5C3A1D" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Worry plaque-spot floating -->
+        <ellipse cx="46" cy="42" rx="14" ry="10" fill="#6FB85E" opacity="0.85"/>
+        <circle cx="42" cy="40" r="2" fill="#3F8F00"/>
+        <circle cx="50" cy="44" r="2" fill="#3F8F00"/>
+      </svg>
+      <div class="char-name">Trouble at night</div>
+      <div class="char-role">Streak-at-risk evening<br/>scene, gentle.</div>
+    </div>
+
+    <!-- ===== BRUSH → morning scene ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Morning Brush">
+        <!-- Sunrise arc -->
+        <path d="M0 100 A70 70 0 0 1 140 100" fill="#FFCB47"/>
+        <path d="M0 110 A60 60 0 0 1 140 110" fill="#F47D42"/>
+        <!-- Brush running -->
+        <rect x="40" y="64" width="30" height="14" rx="4" fill="#FFFFFF"/>
+        <line x1="46" y1="65" x2="46" y2="77" stroke="#5C3A1D" stroke-width="1.5"/>
+        <line x1="54" y1="65" x2="54" y2="77" stroke="#5C3A1D" stroke-width="1.5"/>
+        <line x1="62" y1="65" x2="62" y2="77" stroke="#5C3A1D" stroke-width="1.5"/>
+        <path d="M70 70 L110 60 L114 72 L74 82 Z" fill="#1B3A4B"/>
+        <!-- Eye on handle -->
+        <circle cx="90" cy="68" r="2.5" fill="#FFFFFF"/>
+        <!-- Motion line -->
+        <path d="M28 84 L42 84 M22 90 L34 90" stroke="#5C3A1D" stroke-width="2" stroke-linecap="round"/>
+        <!-- Ground -->
+        <line x1="0" y1="118" x2="140" y2="118" stroke="#5C3A1D" stroke-width="2"/>
+      </svg>
+      <div class="char-name">Morning run</div>
+      <div class="char-role">A.M. slot illustration.<br/>Used in widget too.</div>
+    </div>
+
+    <!-- ===== WISDOM → "tea & journal" adult scene ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Wisdom tea">
+        <!-- Soft armchair shape -->
+        <path d="M22 110 Q22 78 50 78 L90 78 Q118 78 118 110 L118 140 L22 140 Z" fill="#1B3A4B" opacity="0.75"/>
+        <!-- Tooth sitting (wisdom) -->
+        <path d="M50 50 Q50 36 64 36 L80 36 Q94 36 94 50 L94 90 Q94 104 88 110 Q82 114 78 108 Q74 100 72 92 Q70 100 66 108 Q62 114 56 110 Q50 104 50 90 Z" fill="#FFE6B0"/>
+        <!-- Almond eyes with reading glasses -->
+        <circle cx="62" cy="62" r="5" fill="none" stroke="#5C3A1D" stroke-width="1.5"/>
+        <circle cx="82" cy="62" r="5" fill="none" stroke="#5C3A1D" stroke-width="1.5"/>
+        <line x1="67" y1="62" x2="77" y2="62" stroke="#5C3A1D" stroke-width="1.5"/>
+        <path d="M60 62 L64 62" stroke="#5C3A1D" stroke-width="2"/>
+        <path d="M80 62 L84 62" stroke="#5C3A1D" stroke-width="2"/>
+        <path d="M66 74 Q72 78 78 74" stroke="#5C3A1D" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Steam -->
+        <path d="M104 60 Q108 50 104 42 Q100 36 104 26" stroke="#5C3A1D" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/>
+        <path d="M114 64 Q118 54 114 46 Q110 40 114 32" stroke="#5C3A1D" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <!-- Mug -->
+        <rect x="100" y="70" width="22" height="22" rx="3" fill="#F47D42"/>
+        <ellipse cx="111" cy="70" rx="11" ry="3" fill="#FFE7B0"/>
+      </svg>
+      <div class="char-name">Tea, evening</div>
+      <div class="char-role">Adult-mode hero<br/>illustration.</div>
+    </div>
+
+    <!-- ===== FOAM → "exhale" scene ===== -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="140" height="160" aria-label="Exhale">
+        <!-- Centre tooth -->
+        <path d="M50 64 Q50 50 64 50 L80 50 Q94 50 94 64 L94 100 Q94 118 84 124 Q78 128 76 120 Q72 110 72 102 Q70 110 66 120 Q62 128 56 124 Q50 118 50 100 Z" fill="#FFE6B0"/>
+        <!-- Eyes (smile lines, eyes closed in joy) -->
+        <path d="M58 74 Q62 70 66 74" stroke="#5C3A1D" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M78 74 Q82 70 86 74" stroke="#5C3A1D" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Open mouth O -->
+        <ellipse cx="72" cy="92" rx="5" ry="6" fill="#5C3A1D"/>
+        <!-- Breath wisps -->
+        <path d="M72 110 Q66 122 80 130 Q90 138 80 144" stroke="#F47D42" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <path d="M72 110 Q72 120 60 128" stroke="#F47D42" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <!-- Sparkles around -->
+        <circle cx="32" cy="80" r="2" fill="#F47D42"/>
+        <circle cx="116" cy="60" r="2.5" fill="#F47D42"/>
+        <circle cx="108" cy="116" r="2" fill="#F47D42"/>
+      </svg>
+      <div class="char-name">Finished. Exhale.</div>
+      <div class="char-role">2-min complete<br/>moment.</div>
+    </div>
+  </div>
+
+  <p class="panel-tag">UI elements</p>
+  <div class="ui-strip">
+    <div class="ui-tile">
+      <div class="ui-tile-label">Primary button — soft pill</div>
+      <div class="head-btn">Begin</div>
+      <div style="height:14px"></div>
+      <div class="head-btn" style="background:transparent;color:#F47D42;border:1.5px solid #F47D42;box-shadow:none;">Skip tonight</div>
+    </div>
+    <div class="ui-tile">
+      <div class="ui-tile-label">Editorial card (italic copy)</div>
+      <div class="head-card-mini">
+        <div style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.16em;color:#8B5A2B;font-style:normal;margin-bottom:6px;">TODAY'S NOTE</div>
+        Two minutes is enough — one side at a time.
+      </div>
+    </div>
+    <div class="ui-tile">
+      <div class="ui-tile-label">Tab bar (line icons, label below)</div>
+      <div style="display:flex;justify-content:space-around;padding:14px 6px;background:rgba(255,255,255,0.6);border-radius:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#8B5A2B;">▭<span>History</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#F47D42;font-weight:700;">○<span>Brush</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#8B5A2B;">∞<span>Family</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#8B5A2B;">✺<span>Tips</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="panel-tag">Brush-home mockup</p>
+  <div class="mock-wrap">
+    <div class="phone"><div class="phone-screen">
+      <div class="island"></div>
+      <div class="sb" style="color:#5C3A1D;">
+        <span>9:41</span>
+        <span style="display:flex;gap:6px;">
+          <svg width="14" height="10" viewBox="0 0 14 10"><path d="M1 9h2V5H1v4zm4 0h2V3H5v6zm4 0h2V1H9v8z" fill="currentColor"/></svg>
+          <svg width="22" height="10" viewBox="0 0 22 10"><rect x="0.5" y="0.5" width="18" height="9" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2" width="14" height="6" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="stage">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:12px 0 22px;">
+          <div style="font-family:'Fraunces',serif;font-weight:500;font-size:23px;color:#5C3A1D;letter-spacing:-0.01em;">Tooth<span style="font-style:italic;color:#F47D42;">buddy</span></div>
+          <div style="font-family:'Fraunces',serif;font-size:12px;color:#8B5A2B;font-style:italic;">Day 0</div>
+        </div>
+        <!-- Editorial label -->
+        <div style="font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:14px;color:#8B5A2B;margin-bottom:10px;">Today, twice — morning and night.</div>
+        <!-- Two pills -->
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;height:46px;border-radius:14px;background:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B5A2B;font-weight:600;letter-spacing:0.06em;">A.M.</div>
+          <div style="flex:1;height:46px;border-radius:14px;background:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B5A2B;font-weight:600;letter-spacing:0.06em;">P.M.</div>
+        </div>
+        <!-- Today's note -->
+        <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(92,58,29,0.15);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.18em;color:#8B5A2B;margin-bottom:6px;">TODAY'S NOTE</div>
+          <div style="font-family:'Fraunces',serif;font-weight:400;font-size:17px;color:#5C3A1D;line-height:1.35;">Ice cream headaches hit the roof of your mouth.</div>
+        </div>
+        <!-- Buddy at rest illustration -->
+        <div style="margin-top:18px;display:flex;justify-content:center;">
+          <svg width="160" height="170" viewBox="0 0 140 160">
+            <ellipse cx="70" cy="100" rx="60" ry="20" fill="#FFCB47" opacity="0.4"/>
+            <path d="M32 40 Q32 22 50 22 L90 22 Q108 22 108 40 L108 100 Q108 128 92 144 Q86 150 80 142 Q74 124 72 110 Q70 124 64 142 Q56 150 50 144 Q32 128 32 100 Z" fill="#FFE6B0"/>
+            <path d="M52 64 Q55 68 58 64" stroke="#5C3A1D" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M82 64 Q85 68 88 64" stroke="#5C3A1D" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M62 80 Q70 86 78 80" stroke="#5C3A1D" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <!-- CTA -->
+        <div class="head-btn" style="margin-top:6px;">Begin</div>
+      </div>
+      <div class="tab-bar" style="background:rgba(255,255,255,0.55);">
+        <div class="tab" style="color:#8B5A2B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 18V8l8-4 8 4v10"/></svg>History</div>
+        <div class="tab active" style="color:#F47D42;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/></svg>Brush</div>
+        <div class="tab" style="color:#8B5A2B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/></svg>Family</div>
+        <div class="tab" style="color:#8B5A2B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5"/></svg>Tips</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- =================================================== -->
+<!-- ============== SET 03 · FINCH ====================== -->
+<!-- =================================================== -->
+<section class="set fin">
+  <div class="set-head">
+    <span class="set-tag">Set 03 · Lane: Companion + room (Finch)</span>
+    <h2 class="set-name">Finch-inspired — Buddy lives in a mouth-shaped room</h2>
+    <p class="set-rule"><strong>Rules applied:</strong> single companion that grows and dresses up, pastel-on-pastel palette, room-as-screen metaphor (the home tab is literally Buddy's pink-tiled bathroom), <strong>affirmation language</strong> ("send a high-five" not "tap like"). Poppins rounded for UI. This is the biggest commit — it changes the information architecture, not just the visuals.</p>
+  </div>
+
+  <p class="panel-tag">Companion stages (the same Buddy at different growth tiers)</p>
+  <div class="cast">
+
+    <!-- Stage 1: Sprout -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="130" height="150" aria-label="Buddy stage 1">
+        <ellipse cx="70" cy="135" rx="38" ry="8" fill="#D5C9E8" opacity="0.5"/>
+        <!-- Small tooth -->
+        <path d="M48 78 Q48 64 62 64 L78 64 Q92 64 92 78 L92 110 Q92 120 86 124 Q82 128 80 122 Q76 116 74 112 Q72 116 68 122 Q64 128 60 124 Q48 120 48 110 Z" fill="#FFFAF5" stroke="#7B5D9B" stroke-width="2"/>
+        <ellipse cx="58" cy="92" rx="4" ry="3" fill="#FFB3C1"/>
+        <ellipse cx="82" cy="92" rx="4" ry="3" fill="#FFB3C1"/>
+        <circle cx="62" cy="84" r="2.5" fill="#4A3568"/>
+        <circle cx="78" cy="84" r="2.5" fill="#4A3568"/>
+        <path d="M66 100 Q70 104 74 100" stroke="#4A3568" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Sprout on top -->
+        <path d="M70 64 Q66 56 70 50 Q74 56 70 64" fill="#CDE9D6" stroke="#7B5D9B" stroke-width="1.5"/>
+      </svg>
+      <div class="char-name">Sprout</div>
+      <div class="char-role">Stage 1 · day 1–7.<br/>"Just hatched."</div>
+    </div>
+
+    <!-- Stage 2: Toddler -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="130" height="150" aria-label="Buddy stage 2">
+        <ellipse cx="70" cy="138" rx="44" ry="9" fill="#D5C9E8" opacity="0.5"/>
+        <path d="M40 60 Q40 44 56 44 L84 44 Q100 44 100 60 L100 116 Q100 128 92 132 Q86 138 84 128 Q80 120 76 112 Q72 120 68 128 Q66 138 58 132 Q40 128 40 116 Z" fill="#FFFAF5" stroke="#7B5D9B" stroke-width="2"/>
+        <ellipse cx="50" cy="80" rx="6" ry="4" fill="#FFB3C1"/>
+        <ellipse cx="90" cy="80" rx="6" ry="4" fill="#FFB3C1"/>
+        <circle cx="58" cy="72" r="3" fill="#4A3568"/>
+        <circle cx="82" cy="72" r="3" fill="#4A3568"/>
+        <circle cx="59" cy="71" r="1" fill="#FFFFFF"/>
+        <circle cx="83" cy="71" r="1" fill="#FFFFFF"/>
+        <path d="M62 90 Q70 96 78 90" stroke="#4A3568" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Tiny hat -->
+        <path d="M58 44 Q58 32 70 32 Q82 32 82 44 Z" fill="#FFB3C1" stroke="#7B5D9B" stroke-width="1.5"/>
+        <circle cx="70" cy="32" r="3" fill="#FFE9B8"/>
+      </svg>
+      <div class="char-name">Toddler</div>
+      <div class="char-role">Stage 2 · day 8–30.<br/>Got a tiny hat.</div>
+    </div>
+
+    <!-- Stage 3: Buddy (default) -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="130" height="150" aria-label="Buddy default">
+        <ellipse cx="70" cy="142" rx="50" ry="10" fill="#D5C9E8" opacity="0.5"/>
+        <path d="M30 34 Q30 18 50 18 L90 18 Q110 18 110 34 L110 110 Q110 130 96 138 Q88 144 84 134 Q78 122 74 110 Q70 122 64 134 Q60 144 50 138 Q30 130 30 110 Z" fill="#FFFAF5" stroke="#7B5D9B" stroke-width="2"/>
+        <ellipse cx="44" cy="82" rx="8" ry="5" fill="#FFB3C1"/>
+        <ellipse cx="96" cy="82" rx="8" ry="5" fill="#FFB3C1"/>
+        <circle cx="54" cy="70" r="4" fill="#4A3568"/>
+        <circle cx="86" cy="70" r="4" fill="#4A3568"/>
+        <circle cx="55.5" cy="68.5" r="1.3" fill="#FFFFFF"/>
+        <circle cx="87.5" cy="68.5" r="1.3" fill="#FFFFFF"/>
+        <path d="M58 92 Q70 100 82 92" stroke="#4A3568" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Scarf -->
+        <path d="M40 110 Q70 116 100 110 L96 124 Q70 128 44 124 Z" fill="#7B5D9B"/>
+        <path d="M40 110 L36 130 L44 130 Z" fill="#7B5D9B"/>
+      </svg>
+      <div class="char-name">Buddy</div>
+      <div class="char-role">Stage 3 · day 31+.<br/>Default companion.</div>
+    </div>
+
+    <!-- Stage 4: Wise -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="130" height="150" aria-label="Buddy wise">
+        <ellipse cx="70" cy="142" rx="50" ry="10" fill="#D5C9E8" opacity="0.5"/>
+        <path d="M28 38 Q28 22 50 22 L90 22 Q112 22 112 38 L112 110 Q112 132 96 140 Q88 144 84 134 Q78 122 74 110 Q70 122 64 134 Q60 144 50 140 Q28 132 28 110 Z" fill="#FFFAF5" stroke="#7B5D9B" stroke-width="2"/>
+        <ellipse cx="44" cy="88" rx="9" ry="5" fill="#FFB3C1"/>
+        <ellipse cx="96" cy="88" rx="9" ry="5" fill="#FFB3C1"/>
+        <!-- Almond closed-content eyes -->
+        <path d="M48 72 Q54 68 62 72" stroke="#4A3568" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M78 72 Q84 68 92 72" stroke="#4A3568" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Cheek dimple smile -->
+        <path d="M56 96 Q70 104 84 96" stroke="#4A3568" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Crown / glow -->
+        <path d="M52 22 L56 14 L60 22 M68 22 L70 12 L72 22 M82 22 L86 14 L88 22" stroke="#7B5D9B" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <circle cx="56" cy="14" r="2" fill="#FFE9B8"/>
+        <circle cx="70" cy="12" r="2" fill="#FFE9B8"/>
+        <circle cx="86" cy="14" r="2" fill="#FFE9B8"/>
+      </svg>
+      <div class="char-name">Sage</div>
+      <div class="char-role">Stage 4 · 100-day streak.<br/>Earned crown.</div>
+    </div>
+
+    <!-- Plaque (still exists but as friend not foe in Finch lane) -->
+    <div class="char">
+      <svg viewBox="0 0 140 160" width="130" height="150" aria-label="Bug friend">
+        <ellipse cx="70" cy="138" rx="36" ry="7" fill="#D5C9E8" opacity="0.5"/>
+        <!-- Soft pastel green blob -->
+        <ellipse cx="70" cy="100" rx="38" ry="32" fill="#CDE9D6" stroke="#7B5D9B" stroke-width="2"/>
+        <ellipse cx="50" cy="86" rx="6" ry="4" fill="#A5D5B0" opacity="0.7"/>
+        <ellipse cx="92" cy="92" rx="7" ry="5" fill="#A5D5B0" opacity="0.7"/>
+        <ellipse cx="58" cy="110" rx="5" ry="3" fill="#A5D5B0" opacity="0.7"/>
+        <circle cx="62" cy="98" r="3.5" fill="#4A3568"/>
+        <circle cx="80" cy="98" r="3.5" fill="#4A3568"/>
+        <circle cx="63.5" cy="96.5" r="1.2" fill="#FFFFFF"/>
+        <circle cx="81.5" cy="96.5" r="1.2" fill="#FFFFFF"/>
+        <path d="M64 112 Q71 118 78 112" stroke="#4A3568" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Tiny antennae -->
+        <path d="M58 68 Q56 60 60 56" stroke="#7B5D9B" stroke-width="1.5" fill="none"/>
+        <circle cx="60" cy="55" r="2" fill="#FFB3C1"/>
+        <path d="M82 68 Q84 60 80 56" stroke="#7B5D9B" stroke-width="1.5" fill="none"/>
+        <circle cx="80" cy="55" r="2" fill="#FFB3C1"/>
+      </svg>
+      <div class="char-name">Buggy</div>
+      <div class="char-role">Lives in the gum line.<br/>Brushed away gently.</div>
+    </div>
+  </div>
+
+  <p class="panel-tag">UI elements</p>
+  <div class="ui-strip">
+    <div class="ui-tile">
+      <div class="ui-tile-label">Primary button — pill, affirmation</div>
+      <div class="fin-btn">Give Buddy a brush</div>
+      <div style="height:14px"></div>
+      <div class="fin-btn" style="background:#FFB3C1;color:#4A3568;">Send a hug to family</div>
+    </div>
+    <div class="ui-tile">
+      <div class="ui-tile-label">Daily card — pastel + companion</div>
+      <div class="fin-card-mini">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;color:#7B5D9B;margin-bottom:4px;">TODAY · LV 0 · DAY 0</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="36" height="40" viewBox="0 0 140 160">
+            <path d="M30 34 Q30 18 50 18 L90 18 Q110 18 110 34 L110 110 Q110 130 96 138 Q88 144 84 134 Q78 122 74 110 Q70 122 64 134 Q60 144 50 138 Q30 130 30 110 Z" fill="#FFFAF5" stroke="#7B5D9B" stroke-width="3"/>
+            <circle cx="54" cy="70" r="6" fill="#4A3568"/><circle cx="86" cy="70" r="6" fill="#4A3568"/>
+            <path d="M58 92 Q70 102 82 92" stroke="#4A3568" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span>Buddy is sleepy. <strong>0 of 2</strong> brushes today.</span>
+        </div>
+      </div>
+    </div>
+    <div class="ui-tile">
+      <div class="ui-tile-label">Tab bar — soft pill row</div>
+      <div style="display:flex;justify-content:space-around;padding:14px 8px;background:#FFFFFF;border-radius:22px;box-shadow:0 4px 12px -4px rgba(123,93,155,0.2);">
+        <div style="font-size:10px;color:#7B5D9B;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600;">🌸<span>Garden</span></div>
+        <div style="font-size:10px;color:#7B5D9B;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:700;background:#F4E8FB;padding:6px 10px;border-radius:12px;">🦷<span>Buddy</span></div>
+        <div style="font-size:10px;color:#7B5D9B;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600;">🌳<span>Tree Town</span></div>
+        <div style="font-size:10px;color:#7B5D9B;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600;">💌<span>Notes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="panel-tag">Brush-home mockup ("Buddy's bathroom")</p>
+  <div class="mock-wrap">
+    <div class="phone"><div class="phone-screen">
+      <div class="island"></div>
+      <div class="sb" style="color:#4A3568;">
+        <span>9:41</span>
+        <span style="display:flex;gap:6px;">
+          <svg width="14" height="10" viewBox="0 0 14 10"><path d="M1 9h2V5H1v4zm4 0h2V3H5v6zm4 0h2V1H9v8z" fill="currentColor"/></svg>
+          <svg width="22" height="10" viewBox="0 0 22 10"><rect x="0.5" y="0.5" width="18" height="9" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2" width="14" height="6" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="stage">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 12px;">
+          <div style="font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;color:#4A3568;">Buddy's bathroom</div>
+          <div style="background:#FFFFFF;border-radius:999px;padding:5px 12px;font-size:10px;color:#7B5D9B;font-weight:700;letter-spacing:0.08em;box-shadow:0 2px 6px -1px rgba(123,93,155,0.18);">LV 0 · DAY 0</div>
+        </div>
+        <!-- The room -->
+        <div style="position:relative;height:330px;background:linear-gradient(180deg,#FFF1F3 0%,#F0E5FB 65%,#DDE9F8 100%);border-radius:24px;border:1px solid rgba(123,93,155,0.15);overflow:hidden;box-shadow:0 6px 18px -8px rgba(123,93,155,0.25);">
+          <!-- Window -->
+          <rect x="22" y="22" width="58" height="44" rx="10" fill="#FFE9B8"/>
+          <rect x="22" y="22" width="58" height="44" rx="10" fill="none" stroke="#7B5D9B" stroke-width="1.5"/>
+          <line x1="51" y1="22" x2="51" y2="66" stroke="#7B5D9B" stroke-width="1.5"/>
+          <line x1="22" y1="44" x2="80" y2="44" stroke="#7B5D9B" stroke-width="1.5"/>
+          <!-- Sun -->
+          <circle cx="68" cy="40" r="6" fill="#F47D42"/>
+          <!-- Shelf -->
+          <rect x="170" y="80" width="70" height="6" fill="#D5C9E8"/>
+          <rect x="180" y="58" width="14" height="22" rx="2" fill="#FFB3C1"/>
+          <rect x="200" y="62" width="14" height="18" rx="2" fill="#CDE9D6"/>
+          <rect x="220" y="56" width="14" height="24" rx="2" fill="#FFE9B8"/>
+          <!-- Tile floor -->
+          <path d="M0 220 L260 220 L260 330 L0 330 Z" fill="#FFD7E0"/>
+          <line x1="0" y1="245" x2="260" y2="245" stroke="#FFFFFF" stroke-width="1" opacity="0.6"/>
+          <line x1="0" y1="275" x2="260" y2="275" stroke="#FFFFFF" stroke-width="1" opacity="0.6"/>
+          <line x1="0" y1="305" x2="260" y2="305" stroke="#FFFFFF" stroke-width="1" opacity="0.6"/>
+          <!-- Buddy standing on floor -->
+          <g transform="translate(85,135)">
+            <ellipse cx="35" cy="100" rx="32" ry="6" fill="#D5C9E8" opacity="0.5"/>
+            <path d="M3 8 Q3 -7 17 -7 L53 -7 Q67 -7 67 8 L67 70 Q67 88 56 95 Q48 102 44 90 Q40 78 38 70 Q34 78 30 90 Q26 102 14 95 Q3 88 3 70 Z" fill="#FFFAF5" stroke="#7B5D9B" stroke-width="2.5"/>
+            <ellipse cx="13" cy="50" rx="7" ry="4" fill="#FFB3C1"/>
+            <ellipse cx="57" cy="50" rx="7" ry="4" fill="#FFB3C1"/>
+            <circle cx="23" cy="38" r="4" fill="#4A3568"/>
+            <circle cx="47" cy="38" r="4" fill="#4A3568"/>
+            <circle cx="24.5" cy="36.5" r="1.3" fill="#FFFFFF"/>
+            <circle cx="48.5" cy="36.5" r="1.3" fill="#FFFFFF"/>
+            <path d="M26 60 Q35 68 44 60" stroke="#4A3568" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <!-- Scarf -->
+            <path d="M10 78 Q35 84 60 78 L57 90 Q35 94 14 90 Z" fill="#7B5D9B"/>
+          </g>
+          <!-- Speech bubble -->
+          <g transform="translate(165,110)">
+            <rect x="0" y="0" width="80" height="36" rx="14" fill="#FFFFFF" stroke="#7B5D9B" stroke-width="1.5"/>
+            <path d="M14 34 L20 42 L26 34 Z" fill="#FFFFFF" stroke="#7B5D9B" stroke-width="1.5"/>
+            <text x="40" y="22" font-family="Poppins" font-size="11" font-weight="600" fill="#4A3568" text-anchor="middle">Time?</text>
+          </g>
+        </div>
+        <!-- CTA / affirmation -->
+        <div class="fin-btn" style="margin-top:14px;">Give Buddy a brush · 2 min</div>
+      </div>
+      <div class="tab-bar" style="background:#FFFFFF;">
+        <div class="tab" style="color:#7B5D9B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18V8l8-4 8 4v10"/></svg>Garden</div>
+        <div class="tab active" style="color:#4A3568;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>Buddy</div>
+        <div class="tab" style="color:#7B5D9B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/></svg>Tree</div>
+        <div class="tab" style="color:#7B5D9B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/></svg>Notes</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <h2>How to pick</h2>
+  <p>Reply with one of:</p>
+  <ul>
+    <li><strong>02</strong> — Duolingo geometric cast. Smallest IA change (just visuals + new mascots). Safest port to current SwiftUI.</li>
+    <li><strong>01</strong> — Headspace editorial scenes. Adult-leaning. Requires commissioning ~6 hero scenes (or I draw them). Pairs well with the adult-mode work shipped in P5.</li>
+    <li><strong>03</strong> — Finch room + companion. Biggest commit — IA changes (Brush tab becomes "Buddy's bathroom"), gamification recentered on Buddy growth instead of stars/achievements. Highest emotional pull, longest implementation.</li>
+    <li><strong>02 + 01</strong> — Use Duolingo cast for kid mode + Headspace scenes for adult mode. Two visual systems, one cast.</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>
