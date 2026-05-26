@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  ToothBuddy is fully offline / local-first: no networking, no analytics SDKs,
+	  no tracking, no third-party SDKs that collect data. The only first-party data
+	  ever leaving the local store is the optional, write-only HealthKit
+	  `toothbrushingEvent` export (Spec 05 §6.6) — and that goes to Apple Health
+	  on-device, not to any server. Therefore:
+	    NSPrivacyTracking         = false
+	    NSPrivacyTrackingDomains  = empty
+	    NSPrivacyCollectedDataTypes = empty
+	  Apple's "required reason" API declarations below cover the only two such
+	  APIs we actually call.
+	-->
+
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<!-- UserDefaults: profile selection, voice mute, content tone, exported
+		     HealthKit ids, shown-content ids, Core Data migration flag. All reads
+		     and writes stay within the app and its App Group. -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+
+		<!-- System boot time via CACurrentMediaTime(): used by BrushingZoneMonitor
+		     and VisionFrameProcessor to throttle Vision frames and measure intervals
+		     between brushing-zone events during a session. Never reported off-device. -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>35F9.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

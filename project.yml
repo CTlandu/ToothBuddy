@@ -61,6 +61,10 @@ targets:
       - Nunito-SemiBold.ttf
       - Nunito-Bold.ttf
       - Nunito-ExtraBold.ttf
+      # Apple "required reason" API + tracking disclosure (App Store gate, since
+      # 2024-05). Declares UserDefaults (CA92.1) + system boot time (35F9.1).
+      - path: Support/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: ToothBuddyCore
         product: ToothBuddyCore
@@ -95,6 +99,9 @@ targets:
       - Widget/BrushingLiveActivityWidget.swift
       - Shared/AppGroupBridge.swift
       - Shared/BrushingActivityAttributes.swift
+      # Widget-extension privacy manifest (same App Store gate; UserDefaults only).
+      - path: Support/Widget/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: ToothBuddyCore
         product: ToothBuddyCore
