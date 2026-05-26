@@ -128,33 +128,35 @@ struct HistoryView: View {
     }
 
     private var levelCard: some View {
-        HStack(spacing: 12) {
-            Image(systemName: gamification.levelSystemImage)
-                .font(.system(size: 34, weight: .bold))
-                .foregroundColor(symbolColor(for: gamification.levelSystemImage))
-                .symbolRenderingMode(.hierarchical)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("LEVEL \(gamification.level)")
-                    .font(.system(size: 11, weight: .heavy))
-                    .tracking(1)
-                    .foregroundColor(Theme.textMuted)
-                Text(gamification.levelTitle)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(Theme.textPrimary)
+        DuoCard(padding: 16) {
+            HStack(spacing: 14) {
+                // Buddy as the level avatar
+                BuddyView()
+                    .frame(width: 44, height: 50)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text("LEVEL \(gamification.level)")
+                            .font(Duo.Fnt.ebd(11))
+                            .tracking(1)
+                            .foregroundColor(Duo.muted)
+                        DuoBadge(text: "+ XP",
+                                 leadingEmoji: "✨",
+                                 role: .warning)
+                    }
+                    Text(gamification.levelTitle)
+                        .font(Duo.Fnt.ebd(18))
+                        .foregroundColor(Duo.ink)
+                }
+                Spacer()
             }
-            Spacer()
         }
-        .padding(16)
-        .background(Theme.surfaceFrost)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.surfaceFrostBorder, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 
     private var achievementsHeader: some View {
         Text("ACHIEVEMENTS")
-            .font(.system(size: 12, weight: .heavy))
-            .tracking(1.5)
-            .foregroundColor(Theme.textMuted)
+            .font(Duo.Fnt.ebd(12))
+            .tracking(1.2)
+            .foregroundColor(Duo.muted)
     }
 
     private var achievementsRow: some View {
@@ -167,49 +169,52 @@ struct HistoryView: View {
                     } label: {
                         VStack(spacing: 8) {
                             ZStack {
+                                // Inner chunky circle medal
                                 Circle()
-                                    .fill(unlocked
-                                          ? Theme.startButtonStart.opacity(0.25)
-                                          : Color.black.opacity(0.05))
+                                    .fill(unlocked ? Duo.yellowShadow : Duo.stoneLight.opacity(0.5))
+                                    .frame(width: 54, height: 54)
+                                    .offset(y: 3)
+                                Circle()
+                                    .fill(unlocked ? Duo.yellow : Duo.stoneLight)
+                                    .overlay(Circle().stroke(Duo.ink, lineWidth: 2))
                                     .frame(width: 54, height: 54)
                                 Image(systemName: achievement.systemImage)
-                                    .font(.system(size: 24, weight: .semibold))
-                                    .foregroundColor(unlocked
-                                                     ? symbolColor(for: achievement.systemImage)
-                                                     : .gray.opacity(0.3))
-                                    .symbolRenderingMode(.hierarchical)
+                                    .font(.system(size: 24, weight: .heavy))
+                                    .foregroundColor(unlocked ? Duo.ink : Duo.muted.opacity(0.5))
                                 if unlocked {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(Theme.startButtonEnd)
+                                        .font(.system(size: 14, weight: .heavy))
+                                        .foregroundColor(Duo.green)
+                                        .background(Circle().fill(.white))
                                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                                         .padding(2)
                                 }
                             }
-                            .frame(width: 54, height: 54)
+                            .frame(width: 54, height: 60)
 
                             Text(achievement.title)
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(unlocked ? Theme.textPrimary : Theme.textMuted)
+                                .font(Duo.Fnt.ebd(11))
+                                .foregroundColor(unlocked ? Duo.ink : Duo.muted)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2)
                                 .frame(height: 30, alignment: .top)
                         }
-                        .frame(width: 84)
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 8)
+                        .frame(width: 88)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 6)
                         .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(Theme.surfaceFrost)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(
-                                            unlocked ? Theme.startButtonEnd.opacity(0.35) : Theme.surfaceFrostBorder,
-                                            lineWidth: unlocked ? 1.5 : 1
-                                        )
-                                )
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(Duo.ink)
+                                    .offset(y: 4)
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .stroke(Duo.ink, lineWidth: 2)
+                                    )
+                            }
                         )
-                        .shadow(color: unlocked ? Theme.startButtonEnd.opacity(0.12) : .clear, radius: 6, y: 3)
                     }
                     .buttonStyle(BounceButtonStyle())
                 }
@@ -221,22 +226,22 @@ struct HistoryView: View {
 
     private var recentSessionsHeader: some View {
         Text("RECENT SESSIONS")
-            .font(.system(size: 12, weight: .heavy))
-            .tracking(1.5)
-            .foregroundColor(Theme.textMuted)
+            .font(Duo.Fnt.ebd(12))
+            .tracking(1.2)
+            .foregroundColor(Duo.muted)
     }
 
     private var emptyRecordsPlaceholder: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "clock.badge.questionmark")
-                .font(.system(size: 48))
-                .foregroundStyle(Theme.textMuted)
-            Text("No Records Yet")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(Theme.textPrimary)
-            Text("Start brushing from the Brush tab to see your history here.")
-                .font(.subheadline)
-                .foregroundColor(Theme.textMuted)
+        VStack(spacing: 14) {
+            BuddyView()
+                .frame(width: 96, height: 110)
+                .opacity(0.55)
+            Text("No records yet")
+                .font(Duo.Fnt.ebd(18))
+                .foregroundColor(Duo.ink)
+            Text("Tap Brush below to start your first session.")
+                .font(Duo.Fnt.sbd(13))
+                .foregroundColor(Duo.muted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
@@ -246,35 +251,35 @@ struct HistoryView: View {
 
     private var streakCard: some View {
         let streak = store.consecutiveDaysCount
-        return HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 5) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 12, weight: .heavy))
-                        .foregroundColor(.orange)
-                    Text("CURRENT STREAK")
-                        .font(.system(size: 12, weight: .heavy))
-                        .tracking(1)
-                        .foregroundColor(Theme.textMutedStrong)
+        // Duolingo's streak card is bright orange-yellow chunky — face = Duo.yellow
+        return DuoCard(face: Duo.yellow, padding: 18) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("🔥")
+                            .font(.system(size: 16))
+                        Text("CURRENT STREAK")
+                            .font(Duo.Fnt.ebd(11))
+                            .tracking(1)
+                            .foregroundColor(Duo.ink.opacity(0.7))
+                    }
+                    Text("\(streak)")
+                        .font(Duo.Fnt.ebd(48))
+                        .foregroundColor(Duo.ink)
+                    Text(streak == 1 ? "day" : "days")
+                        .font(Duo.Fnt.ebd(14))
+                        .foregroundColor(Duo.ink.opacity(0.75))
                 }
-                Text("\(streak) Day\(streak == 1 ? "" : "s")")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-            }
-            Spacer()
-            VStack(spacing: 4) {
-                Image(systemName: "trophy.fill")
-                    .font(.system(size: 38, weight: .bold))
-                    .foregroundColor(Color(red: 251/255, green: 191/255, blue: 36/255))
-                    .symbolRenderingMode(.hierarchical)
-                Text("Keep it up!")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(Theme.textMutedStrong)
+                Spacer()
+                VStack(spacing: 4) {
+                    Text("🏆")
+                        .font(.system(size: 40))
+                    Text("Keep it up!")
+                        .font(Duo.Fnt.ebd(11))
+                        .foregroundColor(Duo.ink.opacity(0.7))
+                }
             }
         }
-        .padding(16)
-        .background(Theme.streakGradient)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
     private var statsRow: some View {
@@ -287,63 +292,63 @@ struct HistoryView: View {
     }
 
     private func statCard(systemImage: String, value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Image(systemName: systemImage)
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(Theme.startButtonEnd)
-                .symbolRenderingMode(.hierarchical)
-            Text(value)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(Theme.textPrimary)
-            Text(label)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundColor(Theme.textMuted)
+        DuoCard(padding: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 22, weight: .heavy))
+                    .foregroundColor(Duo.green)
+                Text(value)
+                    .font(Duo.Fnt.ebd(20))
+                    .foregroundColor(Duo.ink)
+                Text(label.uppercased())
+                    .font(Duo.Fnt.ebd(10))
+                    .tracking(0.6)
+                    .foregroundColor(Duo.muted)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Theme.surfaceFrost)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.surfaceFrostBorder, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 
     private func recordRow(_ record: BrushingRecord) -> some View {
-        HStack {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(
-                        LinearGradient(
-                            colors: [Theme.startButtonStart, Theme.startButtonEnd],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 44, height: 44)
-                    .overlay(
+        DuoCard(padding: 14) {
+            HStack {
+                HStack(spacing: 12) {
+                    // Duolingo-style chunky outlined icon tile
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Duo.greenShadow)
+                            .frame(width: 44, height: 44)
+                            .offset(y: 3)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Duo.green)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(Duo.ink, lineWidth: 2)
+                            )
+                            .frame(width: 44, height: 44)
                         Image(systemName: "mouth.fill")
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 18, weight: .heavy))
                             .foregroundColor(.white)
-                    )
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(record.startDate, style: .time)
-                        .font(.system(size: 15, weight: .heavy))
-                        .foregroundColor(Theme.textPrimary)
-                    Text(relativeDate(record.startDate))
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textMuted)
+                    }
+                    .frame(width: 44, height: 47)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(record.startDate, style: .time)
+                            .font(Duo.Fnt.ebd(15))
+                            .foregroundColor(Duo.ink)
+                        Text(relativeDate(record.startDate))
+                            .font(Duo.Fnt.sbd(12))
+                            .foregroundColor(Duo.muted)
+                    }
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(formattedDuration(record.durationSeconds))
+                        .font(Duo.Fnt.ebd(18))
+                        .foregroundColor(Duo.green)
+                    StarRatingView(count: record.starCount, size: 14)
                 }
             }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(formattedDuration(record.durationSeconds))
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(Theme.accentBlue)
-                StarRatingView(count: record.starCount, size: 14)
-            }
         }
-        .padding(14)
-        .background(Theme.surfaceFrost)
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.borderLight, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
     private func formattedDuration(_ totalSeconds: Int) -> String {
@@ -485,12 +490,17 @@ private struct HealthConnectRow: View {
             if !HealthExporter.shared.isAvailable {
                 EmptyView()
             } else if authorized {
-                Label("Saving brushing to Apple Health", systemImage: "heart.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.pink)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(RoundedRectangle(cornerRadius: 20).fill(Theme.surfaceFrost))
+                DuoCard(face: Duo.blush.opacity(0.4), padding: 14) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 16, weight: .heavy))
+                            .foregroundColor(Duo.red)
+                        Text("Saving brushing to Apple Health")
+                            .font(Duo.Fnt.ebd(14))
+                            .foregroundColor(Duo.ink)
+                        Spacer()
+                    }
+                }
             } else {
                 Button {
                     requesting = true
@@ -499,15 +509,20 @@ private struct HealthConnectRow: View {
                         requesting = false
                     }
                 } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "heart.text.square")
-                        Text(requesting ? "Connecting…" : "Save brushing to Apple Health")
-                            .font(.system(size: 15, weight: .semibold))
-                        Spacer()
+                    DuoCard(padding: 14) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "heart.text.square")
+                                .font(.system(size: 16, weight: .heavy))
+                                .foregroundColor(Duo.red)
+                            Text(requesting ? "Connecting…" : "Save brushing to Apple Health")
+                                .font(Duo.Fnt.ebd(14))
+                                .foregroundColor(Duo.ink)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .heavy))
+                                .foregroundColor(Duo.muted)
+                        }
                     }
-                    .foregroundColor(Theme.textPrimary)
-                    .padding(16)
-                    .background(RoundedRectangle(cornerRadius: 20).fill(Theme.surfaceFrost))
                 }
                 .buttonStyle(.plain)
                 .disabled(requesting)
