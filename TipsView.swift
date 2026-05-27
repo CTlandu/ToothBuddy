@@ -181,7 +181,7 @@ private let brushingTips: [BrushingTip] = [
 
 /// Renders a tip icon: tooth PNG for "_tooth", SF Symbol otherwise.
 @ViewBuilder
-private func tipEmojiView(_ systemImage: String, size: CGFloat, accent: Color = Theme.startButtonEnd) -> some View {
+private func tipEmojiView(_ systemImage: String, size: CGFloat, accent: Color = Duo.green) -> some View {
     if systemImage == "_tooth" {
         ToothImageView(size: size)
     } else {
@@ -217,9 +217,9 @@ struct TipsView: View {
                     .padding(.horizontal, 18)
 
                 Text("BRUSHING TIPS")
-                    .font(.system(size: 12, weight: .heavy))
+                    .font(Duo.Fnt.ebd(12))
                     .tracking(1.5)
-                    .foregroundColor(Theme.textMuted)
+                    .foregroundColor(Duo.muted)
                     .padding(.horizontal, 18)
                     .padding(.top, 6)
 
@@ -260,7 +260,7 @@ struct TipsView: View {
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                         Text(lesson.body)
                             .font(.system(size: 16))
-                            .foregroundColor(Theme.textPrimary)
+                            .foregroundColor(Duo.ink)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)
@@ -276,12 +276,12 @@ struct TipsView: View {
     private var courseSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("ORAL-HEALTH COURSE")
-                .font(.system(size: 12, weight: .heavy))
+                .font(Duo.Fnt.ebd(12))
                 .tracking(1.5)
-                .foregroundColor(Theme.textMuted)
+                .foregroundColor(Duo.muted)
             Text("\(unlockedLessons) of \(CourseLibrary.all.count) lessons unlocked — keep brushing to unlock more")
-                .font(.system(size: 12))
-                .foregroundColor(Theme.textMuted)
+                .font(Duo.Fnt.sbd(12))
+                .foregroundColor(Duo.muted)
             ForEach(CourseLibrary.all) { lesson in
                 courseRow(lesson, locked: lesson.id > unlockedLessons)
             }
@@ -290,31 +290,30 @@ struct TipsView: View {
 
     private func courseRow(_ lesson: Lesson, locked: Bool) -> some View {
         Button { if !locked { selectedLesson = lesson } } label: {
-            HStack(spacing: 12) {
-                Image(systemName: locked ? "lock.fill" : "checkmark.seal.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(locked ? Theme.textMuted : Theme.accentBlue)
-                    .frame(width: 24)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(lesson.title)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(locked ? Theme.textMuted : Theme.textPrimary)
-                    if locked {
-                        Text("Unlocks after \((lesson.id - 1) * CourseProgression.lessonEvery) active days")
-                            .font(.system(size: 11))
-                            .foregroundColor(Theme.textMuted)
+            DuoCard(face: locked ? Duo.stoneLight.opacity(0.5) : .white, padding: 12) {
+                HStack(spacing: 12) {
+                    Image(systemName: locked ? "lock.fill" : "checkmark.seal.fill")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(locked ? Duo.muted : Duo.green)
+                        .frame(width: 24)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(lesson.title)
+                            .font(Duo.Fnt.ebd(15))
+                            .foregroundColor(locked ? Duo.muted : Duo.ink)
+                        if locked {
+                            Text("Unlocks after \((lesson.id - 1) * CourseProgression.lessonEvery) active days")
+                                .font(Duo.Fnt.sbd(11))
+                                .foregroundColor(Duo.muted)
+                        }
+                    }
+                    Spacer()
+                    if !locked {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Duo.muted)
                     }
                 }
-                Spacer()
-                if !locked {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Theme.textMuted)
-                }
             }
-            .padding(12)
-            .background(Color.gray.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
         .disabled(locked)
@@ -324,113 +323,101 @@ struct TipsView: View {
 
     private func heroCard(_ tip: BrushingTip) -> some View {
         Button { selectedTip = tip } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    categoryTag(tip.category)
-                    Spacer()
-                    Label("\(tip.readTime) min read", systemImage: "clock")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(tip.category.accentColor)
-                }
-
-                tipEmojiView(tip.systemImage, size: 72, accent: tip.category.accentColor)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 14)
-
-                Text(tip.title)
-                    .font(.system(size: 26, weight: .heavy, design: .rounded))
-                    .foregroundColor(Theme.textPrimary)
-                    .padding(.bottom, 6)
-
-                Text(tip.summary)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Theme.textMutedStrong)
-                    .lineLimit(2)
-                    .padding(.bottom, 16)
-
-                HStack {
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Text("Read more")
-                            .font(.system(size: 13, weight: .bold))
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 12, weight: .bold))
+            DuoCard(face: tip.category.cardBackground, padding: 22) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        categoryTag(tip.category)
+                        Spacer()
+                        Label("\(tip.readTime) min read", systemImage: "clock")
+                            .font(Duo.Fnt.ebd(11))
+                            .foregroundColor(tip.category.accentColor)
                     }
-                    .foregroundColor(tip.category.accentColor)
+
+                    tipEmojiView(tip.systemImage, size: 72, accent: tip.category.accentColor)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 14)
+
+                    Text(tip.title)
+                        .font(Duo.Fnt.ebd(24))
+                        .foregroundColor(Duo.ink)
+                        .padding(.bottom, 6)
+
+                    Text(tip.summary)
+                        .font(Duo.Fnt.sbd(14))
+                        .foregroundColor(Duo.muted)
+                        .lineLimit(2)
+                        .padding(.bottom, 16)
+
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Text("Read more")
+                                .font(Duo.Fnt.ebd(13))
+                                .tracking(0.3)
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(tip.category.accentColor)
+                    }
                 }
             }
-            .padding(22)
-            .background(
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(tip.category.cardBackground)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 28)
-                            .stroke(tip.category.accentColor.opacity(0.25), lineWidth: 1.5)
-                    )
-            )
-            .shadow(color: tip.category.accentColor.opacity(0.15), radius: 14, y: 5)
         }
-        .buttonStyle(BounceButtonStyle())
+        .buttonStyle(.plain)
     }
 
     // MARK: Regular card
 
     private func tipCard(_ tip: BrushingTip) -> some View {
         Button { selectedTip = tip } label: {
-            HStack(spacing: 14) {
-                tipEmojiView(tip.systemImage, size: 30, accent: tip.category.accentColor)
-                    .frame(width: 52, height: 52)
-                    .background(tip.category.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(tip.category.accentColor.opacity(0.2), lineWidth: 1)
-                    )
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        categoryTag(tip.category)
-                        Spacer()
-                        Text("\(tip.readTime) min")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Theme.textMuted)
+            DuoCard(face: .white, padding: 12) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Duo.ink).offset(y: 2)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(tip.category.cardBackground)
+                            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Duo.ink, lineWidth: 2))
+                        tipEmojiView(tip.systemImage, size: 26, accent: tip.category.accentColor)
                     }
-                    Text(tip.title)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.textPrimary)
-                    Text(tip.summary)
-                        .font(.system(size: 13))
-                        .foregroundColor(Theme.textMutedStrong)
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(width: 52, height: 54)
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(tip.category.accentColor.opacity(0.7))
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            categoryTag(tip.category)
+                            Spacer()
+                            Text("\(tip.readTime) min")
+                                .font(Duo.Fnt.sbd(11))
+                                .foregroundColor(Duo.muted)
+                        }
+                        Text(tip.title)
+                            .font(Duo.Fnt.ebd(15))
+                            .foregroundColor(Duo.ink)
+                        Text(tip.summary)
+                            .font(Duo.Fnt.sbd(12))
+                            .foregroundColor(Duo.muted)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(tip.category.accentColor.opacity(0.7))
+                }
             }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white.opacity(0.75))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(tip.category.accentColor.opacity(0.18), lineWidth: 1)
-                    )
-            )
-            .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
         }
-        .buttonStyle(BounceButtonStyle())
+        .buttonStyle(.plain)
     }
 
     private func categoryTag(_ category: TipCategory) -> some View {
         Text(category.rawValue)
-            .font(.system(size: 10, weight: .heavy))
-            .tracking(0.5)
+            .font(Duo.Fnt.ebd(10))
+            .tracking(0.6)
             .foregroundColor(category.accentColor)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 9)
             .padding(.vertical, 4)
             .background(Capsule().fill(category.tagBackground))
+            .overlay(Capsule().stroke(category.accentColor.opacity(0.5), lineWidth: 1))
     }
 }
 
@@ -456,14 +443,14 @@ struct TipDetailView: View {
                                 categoryTag(tip.category)
                                 Text(tip.title)
                                     .font(.system(size: 24, weight: .heavy, design: .rounded))
-                                    .foregroundColor(Theme.textPrimary)
+                                    .foregroundColor(Duo.ink)
                             }
                             Spacer()
                         }
 
                         Text(tip.summary)
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.textMutedStrong)
+                            .foregroundColor(Duo.muted)
                             .italic()
 
                         Rectangle()
@@ -479,7 +466,7 @@ struct TipDetailView: View {
                         .padding(.bottom, 48)
                 }
             }
-            .background(Theme.appBackground.ignoresSafeArea())
+            .background(Duo.pageBackground.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -516,13 +503,13 @@ struct TipDetailView: View {
                 if let attributed = try? AttributedString(markdown: text) {
                     Text(attributed)
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(Theme.textPrimary)
+                        .foregroundColor(Duo.ink)
                         .lineSpacing(6)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text(text)
                         .font(.system(size: 16))
-                        .foregroundColor(Theme.textPrimary)
+                        .foregroundColor(Duo.ink)
                         .lineSpacing(6)
                 }
             }
@@ -549,7 +536,7 @@ struct TipDetailView: View {
                             }
                         }
                         .font(.system(size: 16))
-                        .foregroundColor(Theme.textPrimary)
+                        .foregroundColor(Duo.ink)
                         .lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)
                     }
@@ -562,7 +549,7 @@ struct TipDetailView: View {
                         }
                     }
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(Theme.textPrimary)
+                    .foregroundColor(Duo.ink)
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -592,7 +579,7 @@ struct TipDetailView: View {
                 }
             }
             .font(.system(size: 15, weight: .medium))
-            .foregroundColor(Theme.textPrimary)
+            .foregroundColor(Duo.ink)
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -620,5 +607,5 @@ struct TipDetailView: View {
 
 #Preview {
     TipsView()
-        .background(Theme.appBackground.ignoresSafeArea())
+        .background(Duo.pageBackground.ignoresSafeArea())
 }
