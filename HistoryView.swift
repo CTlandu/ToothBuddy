@@ -377,86 +377,82 @@ private struct AchievementDetailSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // SF Symbol hero
+            // Chunky hero — ink-bordered circle with offset shadow
             ZStack {
+                Circle().fill(Duo.ink).offset(y: 4)
                 Circle()
-                    .fill(unlocked
-                          ? LinearGradient(colors: [Theme.startButtonStart.opacity(0.35),
-                                                    Theme.startButtonEnd.opacity(0.2)],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing)
-                          : LinearGradient(colors: [Color.black.opacity(0.06),
-                                                    Color.black.opacity(0.04)],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 88, height: 88)
+                    .fill(unlocked ? Duo.yellow.opacity(0.5) : Duo.stoneLight)
+                    .overlay(Circle().stroke(Duo.ink, lineWidth: 2))
                 Image(systemName: achievement.systemImage)
-                    .font(.system(size: 40, weight: .bold))
+                    .font(.system(size: 40, weight: .heavy))
                     .foregroundColor(iconColor)
-                    .symbolRenderingMode(.hierarchical)
             }
+            .frame(width: 96, height: 96)
             .padding(.top, 28)
             .padding(.bottom, 16)
 
-            // Status badge
-            HStack(spacing: 5) {
-                Image(systemName: unlocked ? "checkmark.seal.fill" : "lock.fill")
-                    .font(.system(size: 11, weight: .bold))
-                Text(unlocked ? "Unlocked!" : "Locked")
-                    .font(.system(size: 12, weight: .heavy))
-                    .tracking(0.5)
+            // Status badge — chunky capsule
+            ZStack {
+                Capsule().fill(unlocked ? Duo.greenShadow : Duo.ink.opacity(0.5))
+                    .offset(y: 2)
+                HStack(spacing: 5) {
+                    Image(systemName: unlocked ? "checkmark.seal.fill" : "lock.fill")
+                        .font(.system(size: 11, weight: .bold))
+                    Text(unlocked ? "Unlocked!" : "Locked")
+                        .font(Duo.Fnt.ebd(12))
+                        .tracking(0.5)
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .background(Capsule().fill(unlocked ? Duo.green : Duo.muted))
+                .overlay(Capsule().stroke(Duo.ink, lineWidth: 1.5))
             }
-            .foregroundColor(unlocked ? Theme.startButtonEnd : Theme.textMuted)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(unlocked
-                          ? Theme.startButtonStart.opacity(0.2)
-                          : Color.black.opacity(0.06))
-            )
+            .fixedSize()
             .padding(.bottom, 14)
 
             // Title
             Text(achievement.title)
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
-                .foregroundColor(Theme.textPrimary)
+                .font(Duo.Fnt.ebd(22))
+                .foregroundColor(Duo.ink)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
 
             // Description
             Text(achievement.description)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Theme.textMuted)
+                .font(Duo.Fnt.sbd(14))
+                .foregroundColor(Duo.muted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 28)
                 .padding(.top, 6)
+                .fixedSize(horizontal: false, vertical: true)
 
-            // Progress bar
+            // Progress bar — chunky outlined
             VStack(spacing: 6) {
                 HStack {
                     Text("PROGRESS")
-                        .font(.system(size: 10, weight: .heavy))
+                        .font(Duo.Fnt.ebd(10))
                         .tracking(1)
-                        .foregroundColor(Theme.textMuted)
+                        .foregroundColor(Duo.muted)
                     Spacer()
                     Text(progress)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(unlocked ? Theme.startButtonEnd : Theme.textMuted)
+                        .font(Duo.Fnt.ebd(12))
+                        .foregroundColor(unlocked ? Duo.green : Duo.muted)
                 }
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.black.opacity(0.07))
+                            .fill(Duo.stoneLight)
+                            .overlay(RoundedRectangle(cornerRadius: 6)
+                                .stroke(Duo.ink, lineWidth: 1.5))
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(unlocked
-                                  ? LinearGradient(colors: [Theme.startButtonStart, Theme.startButtonEnd],
-                                                   startPoint: .leading, endPoint: .trailing)
-                                  : LinearGradient(colors: [Theme.textMuted.opacity(0.4),
-                                                            Theme.textMuted.opacity(0.25)],
-                                                   startPoint: .leading, endPoint: .trailing))
-                            .frame(width: geo.size.width * progressFraction)
+                            .fill(unlocked ? Duo.green : Duo.muted.opacity(0.4))
+                            .overlay(RoundedRectangle(cornerRadius: 6)
+                                .stroke(Duo.ink, lineWidth: 1.5))
+                            .frame(width: max(8, geo.size.width * progressFraction))
                     }
                 }
-                .frame(height: 8)
+                .frame(height: 12)
             }
             .padding(.horizontal, 28)
             .padding(.top, 18)
