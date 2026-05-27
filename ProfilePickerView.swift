@@ -27,12 +27,20 @@ struct ProfilePickerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(isGate ? "Who's brushing?" : "Switch profile")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .padding(.top, 28)
+            // Hero: Buddy logo + title
+            VStack(spacing: 8) {
+                BuddyView()
+                    .frame(width: 72, height: 82)
+                Text(isGate ? "Who's brushing?" : "Switch profile")
+                    .font(Duo.Fnt.ebd(26))
+                    .tracking(0.3)
+                    .foregroundColor(Duo.ink)
+            }
+            .padding(.top, 28)
+            .padding(.bottom, 8)
 
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: 14) {
                     ForEach(store.profiles) { p in
                         HStack(spacing: 10) {
                             Button {
@@ -51,35 +59,50 @@ struct ProfilePickerView: View {
                                     Text("Adult").tag(ProfileMode.adult)
                                 }
                             } label: {
-                                Image(systemName: p.mode == .adult
-                                      ? "person.fill" : "figure.child")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.secondary)
-                                    .frame(width: 40, height: 40)
-                                    .background(Color.gray.opacity(0.10))
-                                    .clipShape(Circle())
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Duo.ink)
+                                        .offset(y: 3)
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color.white)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .stroke(Duo.ink, lineWidth: 2)
+                                        )
+                                    Image(systemName: p.mode == .adult
+                                          ? "person.fill" : "figure.child")
+                                        .font(.system(size: 17, weight: .bold))
+                                        .foregroundColor(Duo.ink)
+                                }
+                                .frame(width: 44, height: 44)
                             }
                         }
                     }
                     Button { creating = true } label: {
-                        Label("Add profile", systemImage: "plus.circle.fill")
-                            .font(.system(size: 17, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color.gray.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Add profile")
+                                .font(Duo.Fnt.ebd(15))
+                                .tracking(0.5)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(DuoButtonStyle(role: .primary))
+                    .padding(.top, 6)
                 }
                 .padding(20)
             }
 
             if !isGate {
-                Button("Done", action: onDone)
-                    .font(.system(size: 17, weight: .semibold))
-                    .padding(.bottom, 20)
+                DuoButton("DONE", role: .secondary) { onDone() }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
             }
         }
+        .background(Duo.pageBackground.ignoresSafeArea())
         .sheet(isPresented: $creating) {
             CreateProfileView(store: store) { created in
                 creating = false
@@ -94,21 +117,27 @@ private struct ProfileRow: View {
     let selected: Bool
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: profile.symbol.systemImage)
-                .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 46, height: 46)
-                .background(profile.colorTag.color)
-                .clipShape(Circle())
-            Text(profile.name).font(.system(size: 18, weight: .semibold))
+            ZStack {
+                Circle().fill(Duo.ink).offset(y: 2)
+                Image(systemName: profile.symbol.systemImage)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 46, height: 46)
+                    .background(Circle().fill(profile.colorTag.color))
+                    .overlay(Circle().stroke(Duo.ink, lineWidth: 2))
+            }
+            .frame(width: 46, height: 48)
+            Text(profile.name)
+                .font(Duo.Fnt.ebd(18))
+                .foregroundColor(Duo.ink)
             Spacer()
             if selected {
-                Image(systemName: "checkmark.circle.fill").foregroundColor(profile.colorTag.color)
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Duo.green)
             }
         }
-        .padding(14)
-        .background(Color.gray.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .duoCard(face: .white, padding: 14)
     }
 }
 
