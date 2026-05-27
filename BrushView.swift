@@ -272,18 +272,22 @@ struct BrushView: View {
 
     private var cameraSection: some View {
         ZStack(alignment: .bottom) {
-            // Gradient background (shows behind/around camera)
+            // Chunky Duo-style depth shadow (replaces the prior soft black blur)
+            RoundedRectangle(cornerRadius: 32)
+                .fill(Duo.ink)
+                .offset(y: 6)
+
+            // Gradient background (cream when idle, soft rose when brushing)
             RoundedRectangle(cornerRadius: 32)
                 .fill(Theme.cameraGradient(brushing: isBrushing))
                 .overlay(
                     RoundedRectangle(cornerRadius: 32)
-                        .stroke(isBrushing ? Theme.accentBlue : Color.clear, lineWidth: isBrushing ? 4 : 0)
+                        .stroke(Duo.ink, lineWidth: 2)
                 )
-                .shadow(color: isBrushing ? Theme.accentBlue.opacity(0.5) : .black.opacity(0.4),
-                        radius: isBrushing ? 20 : 16, y: isBrushing ? 6 : 8)
 
-            // Live camera preview only when authorized; fill space so the host view gets real bounds
-            if cameraAuthorized {
+            // Live camera preview ONLY while brushing — idle state shows BuddyView
+            // (no point pointing the camera at a not-yet-brushing user).
+            if cameraAuthorized, isBrushing {
                 CameraPreviewView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
@@ -331,23 +335,23 @@ struct BrushView: View {
                 .padding(.top, 14)
                 .frame(maxHeight: .infinity, alignment: .top)
             } else {
-                // Placeholder when not brushing
-                HStack(spacing: 6) {
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(Theme.textMuted)
-                    Text("Camera Preview")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(2)
-                        .foregroundColor(Theme.textMuted)
-                        .textCase(.uppercase)
+                // Idle hero — BuddyView mascot centered, camera-off message below.
+                VStack(spacing: 16) {
+                    BuddyView()
+                        .frame(width: 140, height: 160)
+                    Text("Ready to brush?")
+                        .font(Duo.Fnt.ebd(22))
+                        .tracking(0.3)
+                        .foregroundColor(Duo.ink)
+                    Text("Tap START to begin a 2-min session.")
+                        .font(Duo.Fnt.sbd(13))
+                        .foregroundColor(Duo.muted)
+                        .multilineTextAlignment(.center)
                 }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 16)
-                    .frame(maxHeight: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
-            // Bottom of camera: zone instruction + mute toggle when brushing, "Ready?" when idle
+            // Bottom of camera: zone instruction + mute toggle when brushing only.
             VStack(spacing: 8) {
                 if isBrushing, let zone = zoneMonitor.currentZone {
                     HStack(spacing: 8) {
@@ -377,11 +381,6 @@ struct BrushView: View {
                                 .shadow(color: Color.black.opacity(0.08), radius: 4, y: 1)
                         }
                     }
-                }
-                if !isBrushing {
-                    Text("Ready to brush?")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(Theme.textMutedStrong)
                 }
             }
             .padding(.bottom, 20)
