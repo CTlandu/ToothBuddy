@@ -93,9 +93,7 @@ struct BrushView: View {
         .sheet(isPresented: $showDoneSheet) {
             if let record = doneSheetRecord {
                 ZStack {
-                    Theme.appBackground
-                        .opacity(0.95)
-                        .ignoresSafeArea()
+                    Duo.pageBackground.ignoresSafeArea()
                     DoneResultSheet(record: record, isAdult: isAdult,
                                     slotSummary: adultSlotSummary,
                                     onDismiss: { showDoneSheet = false }, onDelete: {
@@ -104,7 +102,7 @@ struct BrushView: View {
                     })
                     .padding(.top, 8)
                 }
-                .presentationDetents([.height(380)])
+                .presentationDetents([.height(560)])
                 .presentationDragIndicator(.visible)
             }
         }
@@ -582,7 +580,7 @@ struct BrushView: View {
     }
 }
 
-// MARK: - Done result popup: compact card, star-based feedback, delete option
+// MARK: - Done result popup: Duo-style chunky card with Foam celebration
 private struct DoneResultSheet: View {
     let record: BrushingRecord
     /// Spec 05 §6.1 — adult ⇒ no stars/confetti, calm copy, quiet slot summary.
@@ -605,11 +603,11 @@ private struct DoneResultSheet: View {
     }
 
     private var titleColor: Color {
-        if isAdult { return Theme.textPrimary }
+        if isAdult { return Duo.ink }
         switch stars {
-        case 3: return Color(red: 232/255, green: 152/255, blue: 152/255)  // coral pink, matches theme
-        case 2: return Theme.accentBlue
-        default: return Color(red: 1, green: 0.75, blue: 0.4)
+        case 3: return Duo.green
+        case 2: return Duo.blue
+        default: return Duo.yellowShadow
         }
     }
 
@@ -636,68 +634,69 @@ private struct DoneResultSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
+            // Hero — Foam celebration for kid (3 stars = biggest), calm Buddy for adult.
+            if isAdult {
+                BuddyView()
+                    .frame(width: 70, height: 80)
+            } else {
+                FoamView()
+                    .frame(width: stars >= 3 ? 110 : 90,
+                           height: stars >= 3 ? 110 : 90)
+            }
+
             Text(title)
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .font(Duo.Fnt.ebd(26))
+                .tracking(0.3)
                 .foregroundColor(titleColor)
 
             Text(formattedTime)
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundColor(Theme.textPrimary)
+                .font(Duo.Fnt.ebd(40).monospacedDigit())
+                .tracking(2)
+                .foregroundColor(Duo.ink)
 
             if !isAdult {
-                StarRatingView(count: stars, size: 24)
+                StarRatingView(count: stars, size: 26)
             }
 
             VStack(spacing: 6) {
                 Text(message)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Theme.textPrimary)
+                    .font(Duo.Fnt.sbd(14))
+                    .foregroundColor(Duo.ink)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(funFact)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Theme.textMutedStrong)
+                    .font(Duo.Fnt.reg(12))
+                    .foregroundColor(Duo.muted)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 8)
 
-            Button(action: { SoundManager.sheetDismissed(); onDismiss() }) {
-                Text("Done")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        LinearGradient(
-                            colors: isAdult
-                                ? [Theme.accentBlue, Theme.accentBlue]
-                                : [
-                                    Color(red: 255/255, green: 138/255, blue: 128/255),
-                                    Color(red: 235/255, green: 100/255, blue: 90/255)
-                                ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .shadow(color: (isAdult ? Theme.accentBlue
-                                            : Color(red: 235/255, green: 100/255, blue: 90/255))
-                            .opacity(isAdult ? 0.25 : 0.45), radius: 8, y: 4)
+            DuoButton("DONE", role: isAdult ? .secondary : .primary) {
+                SoundManager.sheetDismissed()
+                onDismiss()
             }
+            .padding(.top, 4)
 
             Button("Delete this record", action: onDelete)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(red: 220/255, green: 60/255, blue: 60/255))
+                .font(Duo.Fnt.sbd(12))
+                .foregroundColor(Duo.red)
         }
-        .padding(24)
+        .padding(22)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Theme.surfaceFrost)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Theme.surfaceFrostBorder, lineWidth: 1)
-                )
+            ZStack {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Duo.ink)
+                    .offset(y: Duo.depthOffset)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .stroke(Duo.ink, lineWidth: Duo.outlineWidth)
+                    )
+            }
         )
         .padding(.horizontal, 20)
         .scaleEffect(cardAppeared ? 1 : 0.9)
