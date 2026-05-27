@@ -117,16 +117,11 @@ struct WelcomeOnboardingSlide: View {
 
             Spacer().frame(height: 36)
 
-            VStack(spacing: 12) {
-                VStack(spacing: 0) {
-                    Text("Meet")
-                        .font(Duo.Fnt.ebd(44))
-                        .foregroundColor(Duo.ink)
-                    Text("ToothBuddy!")
-                        .font(Duo.Fnt.ebd(44))
-                        .foregroundColor(Duo.green)
-                }
-                .multilineTextAlignment(.center)
+            VStack(spacing: 8) {
+                Text("Meet")
+                    .font(Duo.Fnt.ebd(44))
+                    .foregroundColor(Duo.ink)
+                DuoWordmark(text: "ToothBuddy!", size: 44, face: Duo.green, tracking: 0.5)
 
                 Text("Your super fun brushing companion!\nLet's build a healthy habit together!")
                     .font(Duo.Fnt.sbd(15))

@@ -86,10 +86,7 @@ struct ContentView: View {
             Spacer()
             BuddyView()
                 .frame(width: 32, height: 36)
-            Text("ToothBuddy")
-                .font(Duo.Fnt.ebd(26))
-                .tracking(0.5)
-                .foregroundColor(Duo.ink)
+            DuoWordmark(text: "ToothBuddy", size: 24, face: .white, tracking: 0.5)
             Spacer()
             profileButton
         }

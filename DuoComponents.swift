@@ -194,6 +194,46 @@ struct DuoProgressPips: View {
 }
 
 // =====================================================================
+// MARK: - DuoWordmark — chunky logo text (Duolingo-Feather-Bold flavor)
+// =====================================================================
+
+/// Logo-style display text — Nunito ExtraBold with crisp 1pt ink outline
+/// (simulated via 4 axis-aligned 0-radius shadows) plus 4pt ink drop shadow.
+/// Use this for the app wordmark, big celebratory labels, anywhere the text
+/// needs to read as a chunky brand element rather than body copy.
+struct DuoWordmark: View {
+    let text: String
+    let size: CGFloat
+    var face: Color = .white
+    var ink: Color = Duo.ink
+    var tracking: CGFloat = 0.5
+    var dropOffset: CGFloat = 4
+
+    var body: some View {
+        ZStack {
+            // Chunky drop shadow — same word offset down, ink-colored.
+            Text(text)
+                .font(Duo.Fnt.ebd(size))
+                .tracking(tracking)
+                .foregroundColor(ink)
+                .offset(y: dropOffset)
+
+            // Foreground word with simulated 1pt outline via 4 axis-aligned
+            // 0-radius shadows. (SwiftUI Text has no native stroke modifier.)
+            Text(text)
+                .font(Duo.Fnt.ebd(size))
+                .tracking(tracking)
+                .foregroundColor(face)
+                .shadow(color: ink, radius: 0, x:  1, y:  0)
+                .shadow(color: ink, radius: 0, x: -1, y:  0)
+                .shadow(color: ink, radius: 0, x:  0, y:  1)
+                .shadow(color: ink, radius: 0, x:  0, y: -1)
+        }
+        .fixedSize()
+    }
+}
+
+// =====================================================================
 // MARK: - DuoSectionHeader — small uppercase label above sections
 // =====================================================================
 
