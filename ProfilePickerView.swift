@@ -152,56 +152,138 @@ private struct CreateProfileView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let cols = Array(repeating: GridItem(.flexible()), count: 4)
+    private var canCreate: Bool { Profile.validatedName(name) != nil }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Name") { TextField("e.g. Mia", text: $name) }
-                Section("Mode") {
-                    Picker("Experience", selection: $mode) {
-                        Text("Kid").tag(ProfileMode.kid)
-                        Text("Adult").tag(ProfileMode.adult)
-                    }
-                    .pickerStyle(.segmented)
-                    Text(mode == .adult
-                         ? "Calm, no games or stars — just a quiet streak."
-                         : "Playful — Sugar Bugs, stars and a cheery voice.")
-                        .font(.caption).foregroundColor(.secondary)
+            ScrollView {
+                VStack(spacing: 18) {
+                    nameCard
+                    modeCard
+                    colorCard
+                    avatarCard
                 }
-                Section("Color") { colorGrid }
-                Section("Avatar") { avatarGrid }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 18)
             }
+            .background(Duo.pageBackground.ignoresSafeArea())
             .navigationTitle("New profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
         }
     }
 
-    private var colorGrid: some View {
-        LazyVGrid(columns: cols) {
-            ForEach(ProfileColor.allCases, id: \.self) { c in
-                Circle()
-                    .fill(c.color)
-                    .frame(width: 36, height: 36)
-                    .overlay(Circle().strokeBorder(.primary, lineWidth: c == color ? 3 : 0))
-                    .onTapGesture { color = c }
+    private var nameCard: some View {
+        DuoCard(face: .white, padding: 14) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("NAME")
+                    .font(Duo.Fnt.ebd(11))
+                    .tracking(0.8)
+                    .foregroundColor(Duo.muted)
+                TextField("e.g. Mia", text: $name)
+                    .font(Duo.Fnt.ebd(18))
+                    .foregroundColor(Duo.ink)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Duo.stoneLight.opacity(0.5))
+                    .overlay(RoundedRectangle(cornerRadius: 10)
+                        .stroke(Duo.ink.opacity(0.4), lineWidth: 1.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
             }
         }
-        .padding(.vertical, 4)
     }
 
-    private var avatarGrid: some View {
-        LazyVGrid(columns: cols) {
-            ForEach(ProfileSymbol.allCases, id: \.self) { s in
-                Image(systemName: s.systemImage)
-                    .font(.system(size: 22))
-                    .frame(width: 40, height: 40)
-                    .background(s == symbol ? color.color.opacity(0.25) : Color.clear)
-                    .clipShape(Circle())
-                    .onTapGesture { symbol = s }
+    private var modeCard: some View {
+        DuoCard(face: .white, padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("EXPERIENCE")
+                    .font(Duo.Fnt.ebd(11))
+                    .tracking(0.8)
+                    .foregroundColor(Duo.muted)
+                HStack(spacing: 10) {
+                    modeButton(.kid, label: "KID 🌱")
+                    modeButton(.adult, label: "ADULT")
+                }
+                Text(mode == .adult
+                     ? "Calm — no games or stars, just a quiet streak."
+                     : "Playful — Sugar Bugs, stars and a cheery voice.")
+                    .font(Duo.Fnt.sbd(12))
+                    .foregroundColor(Duo.muted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(.vertical, 4)
+    }
+
+    private func modeButton(_ m: ProfileMode, label: String) -> some View {
+        let selected = mode == m
+        return Button { mode = m } label: {
+            Text(label)
+                .font(Duo.Fnt.ebd(13))
+                .tracking(0.4)
+                .foregroundColor(selected ? .white : Duo.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(DuoModePickerStyle(selected: selected))
+    }
+
+    private var colorCard: some View {
+        DuoCard(face: .white, padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("COLOR")
+                    .font(Duo.Fnt.ebd(11))
+                    .tracking(0.8)
+                    .foregroundColor(Duo.muted)
+                LazyVGrid(columns: cols, spacing: 12) {
+                    ForEach(ProfileColor.allCases, id: \.self) { c in
+                        Button { color = c } label: {
+                            ZStack {
+                                if c == color {
+                                    Circle().fill(Duo.ink).offset(y: 2)
+                                }
+                                Circle()
+                                    .fill(c.color)
+                                    .overlay(Circle().stroke(Duo.ink,
+                                        lineWidth: c == color ? 2.5 : 1.5))
+                            }
+                            .frame(width: 40, height: 42)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private var avatarCard: some View {
+        DuoCard(face: .white, padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("AVATAR")
+                    .font(Duo.Fnt.ebd(11))
+                    .tracking(0.8)
+                    .foregroundColor(Duo.muted)
+                LazyVGrid(columns: cols, spacing: 12) {
+                    ForEach(ProfileSymbol.allCases, id: \.self) { s in
+                        Button { symbol = s } label: {
+                            ZStack {
+                                if s == symbol {
+                                    Circle().fill(Duo.ink).offset(y: 2)
+                                }
+                                Circle()
+                                    .fill(s == symbol ? color.color : Color.white)
+                                    .overlay(Circle().stroke(Duo.ink,
+                                        lineWidth: s == symbol ? 2.5 : 1.5))
+                                Image(systemName: s.systemImage)
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(s == symbol ? .white : Duo.ink)
+                            }
+                            .frame(width: 44, height: 46)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
     }
 
     @ToolbarContentBuilder
@@ -214,10 +296,41 @@ private struct CreateProfileView: View {
                     dismiss()
                 }
             }
-            .disabled(Profile.validatedName(name) == nil)
+            .font(Duo.Fnt.ebd(15))
+            .foregroundColor(canCreate ? Duo.green : Duo.muted)
+            .disabled(!canCreate)
         }
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") { onFinish(false); dismiss() }
+                .font(Duo.Fnt.sbd(15))
+                .foregroundColor(Duo.muted)
         }
+    }
+}
+
+/// Button style for the kid/adult mode picker — selected = green chunky face,
+/// unselected = white chunky face. Both share the press-to-flatten animation.
+private struct DuoModePickerStyle: ButtonStyle {
+    let selected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(selected ? Duo.greenShadow : Duo.ink)
+                .offset(y: configuration.isPressed ? 0 : 3)
+
+            configuration.label
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(selected ? Duo.green : Color.white)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Duo.ink, lineWidth: 2)
+                )
+                .offset(y: configuration.isPressed ? 3 : 0)
+        }
+        .animation(.spring(response: 0.18, dampingFraction: 0.7),
+                   value: configuration.isPressed)
     }
 }
