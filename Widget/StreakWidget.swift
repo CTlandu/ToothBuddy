@@ -44,11 +44,14 @@ struct StreakWidgetView: View {
 
     var body: some View {
         if !hasData {
-            VStack(spacing: 6) {
-                Image(systemName: "mouth.fill").font(.title2)
+            VStack(spacing: 8) {
+                Image(systemName: "mouth.fill")
+                    .font(.system(size: 28, weight: .heavy))
+                    .foregroundColor(Duo.green)
                 Text("Open ToothBuddy to get started")
-                    .font(.caption2).multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(Duo.muted)
             }
             .padding()
         } else if family == .systemSmall {
@@ -58,23 +61,40 @@ struct StreakWidgetView: View {
         }
     }
 
+    /// Chunky streak block — yellow flame badge + big rounded digit.
     private var streakBlock: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
-                Image(systemName: "flame.fill").foregroundColor(.orange)
-                Text("\(snapshot.currentStreak)")
-                    .font(.system(size: 30, weight: .heavy, design: .rounded))
+            HStack(spacing: 6) {
+                ZStack {
+                    Capsule().fill(Duo.yellowShadow).offset(y: 2)
+                    HStack(spacing: 3) {
+                        Text("🔥").font(.system(size: 14))
+                        Text("\(snapshot.currentStreak)")
+                            .font(.system(size: 16, weight: .heavy, design: .rounded))
+                            .foregroundColor(Duo.ink)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Duo.yellow))
+                    .overlay(Capsule().stroke(Duo.ink, lineWidth: 1.5))
+                }
+                .fixedSize()
             }
-            Text(snapshot.currentStreak == 1 ? "day streak" : "day streak")
-                .font(.caption2).foregroundColor(.secondary)
+            Text("day streak")
+                .font(.system(size: 10, weight: .heavy, design: .rounded))
+                .tracking(0.4)
+                .foregroundColor(Duo.muted)
         }
     }
 
     private func slot(_ label: String, _ done: Bool) -> some View {
         HStack(spacing: 5) {
             Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(done ? .green : .secondary)
-            Text(label).font(.caption).foregroundColor(.secondary)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(done ? Duo.green : Duo.muted)
+            Text(label)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(Duo.ink)
         }
     }
 
@@ -93,7 +113,8 @@ struct StreakWidgetView: View {
         HStack {
             VStack(alignment: .leading, spacing: 6) {
                 Text(snapshot.profileName)
-                    .font(.headline)
+                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .foregroundColor(Duo.ink)
                 streakBlock
             }
             Spacer()
@@ -102,7 +123,8 @@ struct StreakWidgetView: View {
                 slot("Evening", snapshot.pmDone)
                 if snapshot.atRisk {
                     Text("Streak at risk tonight")
-                        .font(.caption2).foregroundColor(.orange)
+                        .font(.system(size: 10, weight: .heavy, design: .rounded))
+                        .foregroundColor(Duo.red)
                 }
             }
         }

@@ -13,40 +13,55 @@ struct BrushingLiveActivityWidget: Widget {
             // Lock Screen / banner.
             HStack(spacing: 14) {
                 Image(systemName: "mouth.fill")
-                    .font(.title2).foregroundColor(.cyan)
+                    .font(.system(size: 22, weight: .heavy))
+                    .foregroundColor(Duo.green)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Brushing — \(context.attributes.profileName)")
-                        .font(.headline)
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .foregroundColor(Duo.ink)
                     Text(context.state.zoneHint)
-                        .font(.caption).foregroundColor(.secondary)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(Duo.muted)
                 }
                 Spacer()
                 Text(timeText(context.state.secondsRemaining))
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
                     .monospacedDigit()
+                    .foregroundColor(Duo.ink)
             }
-            .padding()
-            .activityBackgroundTint(Color.black.opacity(0.25))
+            .padding(14)
+            .activityBackgroundTint(Color.white)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image(systemName: "mouth.fill").foregroundColor(.cyan)
+                    Image(systemName: "mouth.fill")
+                        .font(.system(size: 18, weight: .heavy))
+                        .foregroundColor(Duo.green)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     Text(timeText(context.state.secondsRemaining))
-                        .font(.system(.title3, design: .rounded))
+                        .font(.system(size: 18, weight: .heavy, design: .rounded))
                         .monospacedDigit()
+                        .foregroundColor(Duo.ink)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.zoneHint).font(.caption)
+                    Text(context.state.zoneHint)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(Duo.muted)
                 }
             } compactLeading: {
-                Image(systemName: "mouth.fill").foregroundColor(.cyan)
+                Image(systemName: "mouth.fill")
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundColor(Duo.green)
             } compactTrailing: {
                 Text(timeText(context.state.secondsRemaining))
+                    .font(.system(size: 13, weight: .heavy, design: .rounded))
                     .monospacedDigit()
+                    .foregroundColor(Duo.ink)
             } minimal: {
-                Image(systemName: "mouth.fill").foregroundColor(.cyan)
+                Image(systemName: "mouth.fill")
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundColor(Duo.green)
             }
         }
     }

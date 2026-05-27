@@ -102,6 +102,10 @@ targets:
       - Widget/BrushingLiveActivityWidget.swift
       - Shared/AppGroupBridge.swift
       - Shared/BrushingActivityAttributes.swift
+      # Duo palette shared with the main app. Colors only — Nunito TTFs are not
+      # registered in the widget process; widget code uses system fonts (Duo.Fnt
+      # helpers fall back to system at runtime if the family isn't found).
+      - DuoTheme.swift
       # Widget-extension privacy manifest (same App Store gate; UserDefaults only).
       - path: Support/Widget/PrivacyInfo.xcprivacy
         buildPhase: resources
