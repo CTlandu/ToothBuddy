@@ -5,6 +5,11 @@ import CoreText
 struct MyApp: App {
     init() {
         registerNunito()
+        // Quality audit 2026-05-28 / Plan U3 — subscribe to MetricKit once at launch.
+        // Apple delivers a daily payload on TestFlight / App Store builds (debug
+        // builds never deliver). See MetricsSubscriber.swift for the never-remove
+        // safety rule.
+        MetricsSubscriber.shared.start()
     }
 
     var body: some Scene {

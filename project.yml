@@ -60,6 +60,7 @@ targets:
       - WidgetBridge.swift
       - VisionFrameProcessor.swift
       - VoiceCoach.swift
+      - Support/MetricsSubscriber.swift
       - Assets.xcassets
       - Nunito-Regular.ttf
       - Nunito-SemiBold.ttf
