@@ -61,6 +61,11 @@ targets:
       - VoiceCoach.swift
       - Support/MetricsSubscriber.swift
       - Assets.xcassets
+      # Plan U5 (2026-05-28): String Catalog for app-wide UI localization.
+      - Localizable.xcstrings
+      # NOTE: AppShortcuts.xcstrings is iOS 17+ only and we target iOS 16.
+      # See plan U7 — Siri-phrase zh-Hans is deferred until deployment target
+      # bumps to iOS 17 (likely in a follow-up release).
       - Nunito-Regular.ttf
       - Nunito-SemiBold.ttf
       - Nunito-Bold.ttf

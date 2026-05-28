@@ -4,6 +4,15 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<!-- Plan U5 (2026-05-28): app ships in English + Simplified Chinese.
+	     CFBundleLocalizations is the explicit list iOS uses to pick the active
+	     locale at launch when the user's preferred language matches one of these.
+	     en remains the development region (source of truth for string keys). -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>ToothBuddy</string>
 	<key>CFBundleExecutable</key>
