@@ -22,14 +22,23 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- Plan U3 (2026-05-28): downgraded from public.app-category.medical to
+	     healthcare-fitness. Medical triggers Apple's stricter review path +
+	     2026-03 Regulated Medical Device declaration. ToothBuddy is engagement-
+	     grade brushing guidance, not a regulated medical device — see
+	     docs/app-store-review-notes.md "Regulated Medical Device declaration"
+	     section for the reviewer-facing answer. -->
 	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.medical</string>
+	<string>public.app-category.healthcare-fitness</string>
+	<!-- Plan U3: usage description strengthened to 2026 reviewer standard
+	     (specific what / when / where data goes, not generic). -->
 	<key>NSCameraUsageDescription</key>
-	<string>ToothBuddy uses the front camera so you can see yourself while brushing.</string>
+	<string>ToothBuddy uses the front camera during a brushing session to help you see which tooth zones you've covered. Camera frames stay on-device and are never recorded, saved, or sent anywhere.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<!-- Plan U3: HealthKit write-only emphasized + revocable + opt-in framing. -->
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>ToothBuddy can save your completed brushing sessions to Apple Health. It only writes tooth-brushing events and never reads any of your health data.</string>
+	<string>ToothBuddy can save your completed brushing sessions to Apple Health as tooth-brushing events. This is write-only and optional — ToothBuddy never reads any of your health data. You can turn this off any time in Settings.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<!-- Plan U2 (2026-05-28): UILaunchScreen dict replaces black-flash launch

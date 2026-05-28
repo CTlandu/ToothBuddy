@@ -12,6 +12,16 @@ Update this file when you change any of: HealthKit usage, camera usage, permissi
 
 ---
 
+## Regulated Medical Device declaration
+
+**Answer: No.**
+
+`LSApplicationCategoryType` is `public.app-category.healthcare-fitness`. ToothBuddy is a **habit-and-engagement app**, not a regulated medical device. It does not diagnose, treat, cure, mitigate, or prevent any disease. Camera-based zone hints are explicitly **guidance-grade only** (Vision face/hand landmark coarse 4–6 zone classification) — there is no clinical, per-tooth, pressure, angle, or plaque-removal measurement.
+
+This matches Apple's 2026-03 Regulated Medical Device Status declaration requirement for Health & Fitness category apps.
+
+---
+
 ## Demo account & sign-in
 
 - **Sign-in required:** No.
