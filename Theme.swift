@@ -11,7 +11,17 @@ enum NunitoFont {
     static let body: Font = .custom("Nunito-Regular", size: 16)
 }
 
-/// Theme tokens — now backed by Duolingo palette (see DuoTheme.swift).
+// AUDIT 2026-05-28 (Plan U6): `Theme` is NOT legacy — every constant now carries
+// the same Duolingo color values that `DuoTheme.swift` exposes via `Duo.*`. It's a
+// second namespace, kept stable because BrushView / ContentView / BrushGameOverlay
+// import these names verbatim and migrating to `Duo.*` is a visual change, not a
+// cleanup. The audit considered `@available(deprecated)` and decided against it:
+// the warning would fire on every existing call site under U1's warnings-as-errors
+// lock and force a stylistic refactor we already deferred. If the migration ever
+// happens, do it in one commit (touch BrushView/ContentView/BrushGameOverlay) and
+// delete this namespace then.
+
+/// Theme tokens — backed by the Duolingo palette (mirror of `Duo.*`).
 /// Existing call sites stay untouched; values just shifted hue/saturation.
 enum Theme {
     // Background gradient — paper-white → pale Duolingo green
@@ -117,19 +127,6 @@ struct BounceButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.65), value: configuration.isPressed)
-    }
-}
-
-/// Renders the custom tooth PNG asset at the given size.
-/// Use this everywhere 🦷 would have been shown as a standalone icon.
-struct ToothImageView: View {
-    var size: CGFloat
-
-    var body: some View {
-        Image("tooth")
-            .resizable()
-            .scaledToFit()
-            .frame(width: size, height: size)
     }
 }
 

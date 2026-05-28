@@ -143,7 +143,7 @@ private let brushingTips: [BrushingTip] = [
     ),
     BrushingTip(
         id: "baby-teeth",
-        systemImage: "_tooth",
+        systemImage: "mouth.fill",
         title: "Tooth Fairy's Secret",
         summary: "Why baby teeth matter more than you think.",
         content: """
@@ -179,17 +179,13 @@ private let brushingTips: [BrushingTip] = [
 
 // MARK: - Shared icon view helper
 
-/// Renders a tip icon: tooth PNG for "_tooth", SF Symbol otherwise.
+/// Renders a tip icon as an SF Symbol.
 @ViewBuilder
 private func tipEmojiView(_ systemImage: String, size: CGFloat, accent: Color = Duo.green) -> some View {
-    if systemImage == "_tooth" {
-        ToothImageView(size: size)
-    } else {
-        Image(systemName: systemImage)
-            .font(.system(size: size, weight: .semibold))
-            .foregroundColor(accent)
-            .symbolRenderingMode(.hierarchical)
-    }
+    Image(systemName: systemImage)
+        .font(.system(size: size, weight: .semibold))
+        .foregroundColor(accent)
+        .symbolRenderingMode(.hierarchical)
 }
 
 // MARK: - Tips main view

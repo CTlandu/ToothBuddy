@@ -39,7 +39,6 @@ targets:
       - DuoTheme.swift
       - DuoComponents.swift
       - DuoCharacters.swift
-      - FloatingToothBubblesView.swift
       - GamificationStore.swift
       - GroupStore.swift
       - GroupDashboardView.swift
