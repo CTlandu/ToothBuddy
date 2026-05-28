@@ -1,10 +1,31 @@
 ---
 title: "feat: ToothBuddy 1.0 App Store 上架准备 — 资产 / 合规 / 双语 / TestFlight"
 type: feat
-status: active
+status: completed
+completed: 2026-05-28
 created: 2026-05-28
 plan_depth: deep
 origin: solo (no upstream brainstorm — operational launch plan, not a new product feature)
+commits:
+  - 0f7d0fc  # U1 first pass (plain tooth)
+  - fdd6a2c  # U1 final (cap + brush + face)
+  - 9204494  # U2 Launch Screen
+  - ec8c814  # U3 Category + permission copy
+  - 1ff55ba  # U4 Privacy + Support markdown
+  - 0ba8a5d  # U5 String Catalog infra
+  - b74f10f  # iOS 17 bump (unblocks U7)
+  - 91a673d  # U6 (1/2) Onboarding + ContentView + BrushView
+  - b24900f  # U6 (2/2) History + Group + Tips + Profile + HabitCurve + GameOverlay
+  - dc66529  # U7 AppShortcuts zh-Hans
+  - 754650f  # U8 Notification + Widget + Achievement titles
+  - 223cd38  # U9 + U10 + U11-13 docs (listing + screenshots + testflight)
+remaining_user_actions:
+  - Replace [VERCEL] placeholder URLs in app-store-listing.md once Vercel pages live
+  - Capture 20 screenshots (5 × 2 locales × 2 devices) per docs/app-store-screenshots/README.md
+  - Optional 30s App Preview video
+  - Archive + upload via Xcode Organizer
+  - TestFlight Internal + smoke checklist
+  - Submit for App Store review
 ---
 
 # feat: ToothBuddy 1.0 App Store Launch
