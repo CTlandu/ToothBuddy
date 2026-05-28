@@ -61,6 +61,12 @@ final class CDAchievementUnlock: NSManagedObject {
 
 enum ToothBuddyModel {
     // Built once at launch, then read-only; Core Data types predate Sendable.
+    // AUDIT 2026-05-28 (Plan U1): `nonisolated(unsafe)` is endorsed by SE-0412 for
+    // "developer-managed isolation" — here the developer-managed part is "built
+    // exactly once at first access, then never mutated again". `NSManagedObjectModel`
+    // is documented thread-safe after configuration. The cleaner alternatives
+    // (`@MainActor`, wrapping in an actor) would force every Core Data context
+    // initializer to become async, which would cascade through all 11 stores.
     nonisolated(unsafe) static let shared: NSManagedObjectModel = build()
 
     private static func attr(_ name: String, _ type: NSAttributeType,
@@ -184,6 +190,12 @@ enum ToothBuddyModel {
 /// CloudKit-compatible). For now it is local-only.
 final class PersistenceController {
     // Single shared stack, accessed from @MainActor stores; viewContext is main-queue.
+    // AUDIT 2026-05-28 (Plan U1): `nonisolated(unsafe)` is the right choice here per
+    // SE-0412 — the safety invariant is that `viewContext` is touched only from the
+    // main queue (every store is `@MainActor`-isolated). Static-let creates the
+    // controller lazily and exactly once; `container` is configured before any
+    // `viewContext` access. Wrapping in `@MainActor` would force the static to be
+    // async-accessed, which breaks the singleton pattern used by all `*.shared` stores.
     nonisolated(unsafe) static let shared = PersistenceController()
 
     let container: NSPersistentCloudKitContainer

@@ -1,4 +1,8 @@
 import Foundation
+// AUDIT 2026-05-28 (Plan U1): same rationale as CameraService.swift — AVFoundation
+// ships un-audited Sendable annotations; @preconcurrency is the supported escape
+// hatch until Apple finishes the audit. We only consume one symbol from this import
+// (`AVCaptureSession.Preset`-equivalent via CameraService), so the surface is small.
 @preconcurrency import AVFoundation
 import QuartzCore
 import ToothBuddyCore

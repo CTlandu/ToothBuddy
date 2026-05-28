@@ -81,6 +81,12 @@ targets:
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
+        # Quality audit 2026-05-28 / Plan U1: lock the regression door. Swift 6 mode
+        # already implies SWIFT_STRICT_CONCURRENCY=complete; this flag makes any
+        # remaining warning (concurrency or general) hard-fail the build, so a future
+        # Xcode bump or dependency change can never silently re-introduce a warning
+        # we chose not to fix. Current baseline is 0 warnings.
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: "YES"
         GENERATE_INFOPLIST_FILE: "NO"
         INFOPLIST_FILE: Support/Info.plist
         # Spec 05 — App Group so the widget can read the snapshot. Provisioned by
@@ -120,6 +126,8 @@ targets:
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
+        # Quality audit 2026-05-28 / Plan U1 — same warning-as-error lock as the app target.
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: "YES"
         GENERATE_INFOPLIST_FILE: "NO"
         INFOPLIST_FILE: Support/WidgetInfo.plist
         CODE_SIGN_ENTITLEMENTS: Support/ToothBuddyWidget.entitlements
@@ -136,6 +144,8 @@ targets:
     settings:
       base:
         SWIFT_VERSION: "6.0"
+        # Quality audit 2026-05-28 / Plan U1 — same warning-as-error lock for tests.
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: "YES"
 
 schemes:
   ToothBuddy:

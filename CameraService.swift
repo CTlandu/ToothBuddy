@@ -1,3 +1,7 @@
+// AUDIT 2026-05-28 (Plan U1): @preconcurrency on AVFoundation is still the right choice.
+// AVFoundation pre-dates Swift Concurrency and ships a mix of un-audited Sendable
+// annotations; @preconcurrency suppresses the noisy warnings without weakening our own
+// isolation. The supported alternative is "wait for Apple to finish auditing the SDK".
 @preconcurrency import AVFoundation
 import QuartzCore
 import ToothBuddyCore
@@ -7,6 +11,14 @@ import ToothBuddyCore
 /// claimed exactly once. All session/IO mutation is confined to `sessionQueue`; the
 /// preview layer is only touched on the main queue. `@unchecked Sendable` with those
 /// confinement invariants documented and upheld.
+//
+// AUDIT 2026-05-28 (Plan U1): @unchecked Sendable is still the right choice. The
+// Sendable safety here is enforced by `sessionQueue` (all mutating ops) and the
+// main queue (only `previewLayer.frame`) — boundaries the compiler can't see. The
+// supported alternatives are (a) wrap state in an actor — but then every SwiftUI
+// caller becomes async and the AVCaptureSession.startRunning() blocking call still
+// has to live somewhere off-main, (b) split into multiple actors — adds surface area
+// for the same safety guarantee. Confinement is simpler and equally safe.
 final class CameraService: @unchecked Sendable {
     static let shared = CameraService()   // type is @unchecked Sendable
 
