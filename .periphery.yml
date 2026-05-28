@@ -1,0 +1,43 @@
+# Periphery config for ToothBuddy quality audit.
+# Plan U7 (docs/plans/2026-05-28-001-refactor-quality-audit-plan.md).
+#
+# Periphery scans for dead code: classes / structs / enums / functions /
+# properties that are defined but never referenced. We point it at both the
+# Xcode project (app + widget + test targets) AND the local Swift package
+# (ToothBuddyCore) so cross-module references are tracked.
+#
+# Install: brew install peripheryapp/periphery/periphery
+# Run:     scripts/audit.sh   (or:  periphery scan)
+
+# Xcode project + schemes
+project: ToothBuddy.xcodeproj
+schemes:
+  - ToothBuddy
+targets:
+  - ToothBuddy
+  - ToothBuddyWidget
+  - ToothBuddyTests
+
+# SwiftUI views, AppIntents, @MainActor singletons, etc. are referenced by
+# the framework via reflection / KVC / @main entry points — Periphery can't
+# see those references statically. The retain rules below silence the
+# expected false positives without hiding real dead code.
+retain_public: true
+retain_objc_accessible: true
+retain_files:
+  # All @main / app entry points are referenced by the OS, not the codebase.
+  - "MyApp.swift"
+  # Widget bundle is referenced by the system at install time.
+  - "Widget/ToothBuddyWidgetBundle.swift"
+
+# Exclude generated and external build artifacts.
+exclude_targets: []
+report_exclude:
+  - "**/.build/**"
+  - "**/DerivedData/**"
+
+# Keep output terse. The first run produces a baseline; subsequent runs flag
+# only NEW dead code.
+verbose: false
+quiet: false
+format: xcode

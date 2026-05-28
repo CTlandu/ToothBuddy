@@ -91,6 +91,20 @@ xcodebuild -project ToothBuddy.xcodeproj -scheme ToothBuddy \
 
 Per-feature manual smoke checklists are in each `specs/NN-*.md` §12.
 
+### Quality audit (one-shot)
+
+```bash
+bash scripts/audit.sh   # xcodegen + build + swift test + xcodebuild test + periphery
+```
+
+Periphery is an optional dev tool that flags dead code; install it once with:
+
+```bash
+brew install peripheryapp/periphery/periphery
+```
+
+`scripts/audit.sh` skips Periphery if it isn't installed. See [`docs/plans/2026-05-28-001-refactor-quality-audit-plan.md`](docs/plans/2026-05-28-001-refactor-quality-audit-plan.md) for what the audit covers.
+
 ---
 
 ## Project Layout
