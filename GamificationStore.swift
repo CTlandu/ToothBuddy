@@ -19,13 +19,20 @@ final class GamificationStore: ObservableObject {
 
     @Published private(set) var unlockedAchievementIds: Set<String> = []
 
-    private let store = BrushingStore.shared
-    private let profiles = ProfileStore.shared
+    private let store: BrushingStore
+    private let profiles: ProfileStore
     private let ctx: NSManagedObjectContext
     private var cancellables: Set<AnyCancellable> = []
 
-    private init(controller: PersistenceController = .shared) {
+    // Quality audit 2026-05-28 / Plan U4: `init` is `internal` (not `private`) so
+    // unit tests can inject an isolated PersistenceController + ProfileStore +
+    // BrushingStore triple. Production code still uses `GamificationStore.shared`.
+    init(controller: PersistenceController = .shared,
+         profiles: ProfileStore = .shared,
+         brushing: BrushingStore = .shared) {
         ctx = controller.viewContext
+        self.profiles = profiles
+        self.store = brushing
         loadUnlocked()
         profiles.$activeProfileID
             .dropFirst()

@@ -141,6 +141,11 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - Tests/ToothBuddyAppTests
+    # ↑ Includes every *.swift under Tests/ToothBuddyAppTests automatically. As of
+    # Plan U4 (2026-05-28): AppSmokeTests, BrushingStoreTests, CareStoreTests,
+    # ContentHistoryStoreTests, GamificationStoreTests, GroupStoreTests,
+    # HealthExporterTests, NotificationSchedulerTests, PersistenceTests,
+    # ReportPDFRendererTests, WidgetBridgeTests.
     dependencies:
       - target: ToothBuddy
     settings:
