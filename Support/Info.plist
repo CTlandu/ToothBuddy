@@ -32,8 +32,14 @@
 	<string>ToothBuddy can save your completed brushing sessions to Apple Health. It only writes tooth-brushing events and never reads any of your health data.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Plan U2 (2026-05-28): UILaunchScreen dict replaces black-flash launch
+	     with the brand coral background (matches AppIcon BG). Dark variant
+	     auto-applies in dark mode via the ColorSet's appearance entry. -->
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
