@@ -52,17 +52,22 @@ final class VisionFrameProcessor: NSObject, AVCaptureVideoDataOutputSampleBuffer
         guard let sink = self.sink,
               let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
-                                            orientation: .leftMirrored, options: [:])
-        do {
-            try handler.perform([faceRequest, handRequest])
-        } catch {
-            return   // never crash on a bad frame
-        }
+        // Quality audit 2026-05-28 / Plan U2 — per-frame Vision interval, capped at
+        // 12 fps by the throttle above. Uses overlapping helper (id-per-call) because
+        // adjacent frames can in theory interleave on slow devices.
+        spOverlapping("Vision.frame") {
+            let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
+                                                orientation: .leftMirrored, options: [:])
+            do {
+                try handler.perform([faceRequest, handRequest])
+            } catch {
+                return   // never crash on a bad frame
+            }
 
-        let face = makeFaceSignal()
-        let hand = makeHandSignal()
-        sink(ZoneSample(face: face, hand: hand, atSeconds: now))
+            let face = makeFaceSignal()
+            let hand = makeHandSignal()
+            sink(ZoneSample(face: face, hand: hand, atSeconds: now))
+        }
     }
 
     // MARK: Face

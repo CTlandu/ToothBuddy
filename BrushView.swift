@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import os
 import ToothBuddyCore
 
 struct BrushView: View {
@@ -38,6 +39,10 @@ struct BrushView: View {
     @State private var doneSheetRecord: BrushingRecord?
     /// True once camera permission is granted so the preview view gets a valid session.
     @State private var cameraAuthorized = false
+    /// Quality audit 2026-05-28 / Plan U2 — interval state for the whole brushing
+    /// session (begin in `startBrushing`, end in `stopBrushing`). Visible in
+    /// Instruments → Points of Interest as "BrushingSession".
+    @State private var sessionSignpost: OSSignpostIntervalState?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -502,6 +507,9 @@ struct BrushView: View {
     }
 
     private func startBrushing() {
+        // Quality audit 2026-05-28 / Plan U2 — open a signpost interval covering the
+        // entire session. Paired in stopBrushing().
+        sessionSignpost = appSignposter.beginInterval("BrushingSession")
         SoundManager.startBrushing()
         startDate = Date()
         isBrushing = true
@@ -557,6 +565,11 @@ struct BrushView: View {
     }
 
     private func stopBrushing() {
+        // Quality audit 2026-05-28 / Plan U2 — close the session signpost interval.
+        if let s = sessionSignpost {
+            appSignposter.endInterval("BrushingSession", s)
+            sessionSignpost = nil
+        }
         SoundManager.doneBrushing()
         timer?.invalidate()
         timer = nil

@@ -83,6 +83,11 @@ final class CameraService: @unchecked Sendable {
         guard !configured else { return }
         configured = true
 
+        // Quality audit 2026-05-28 / Plan U2 — measure one-time camera setup.
+        // Visible in Instruments → Points of Interest as "Camera.configure".
+        let setupState = appSignposter.beginInterval("Camera.configure")
+        defer { appSignposter.endInterval("Camera.configure", setupState) }
+
         session.beginConfiguration()
         session.sessionPreset = .high
 

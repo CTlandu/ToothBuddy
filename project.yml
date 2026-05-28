@@ -24,6 +24,7 @@ targets:
     sources:
       - Shared/AppGroupBridge.swift
       - Shared/BrushingActivityAttributes.swift
+      - Shared/Signposts.swift
       - BrushingIntentBridge.swift
       - BrushingLiveActivity.swift
       - BrushingStore.swift
