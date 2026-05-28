@@ -1,10 +1,20 @@
 ---
 title: "refactor: ToothBuddy quality audit — Swift 6 hardening, instrumentation, test coverage, dead code"
 type: refactor
-status: active
+status: completed
+completed: 2026-05-28
 created: 2026-05-28
 plan_depth: deep
 origin: solo (no upstream brainstorm — this is a tech-debt audit pass, not a new product feature)
+commits:
+  - e03e6fd  # U1
+  - f34a510  # U2
+  - cfde023  # U3
+  - 2b06832  # U4 + 部分 U5
+  - 6a68a49  # U5
+  - b0ccabf  # U6
+  - 466577a  # U7
+  - 7dd1274  # U8
 ---
 
 # refactor: Quality Audit Pass — Swift 6 / Performance / Testing / Cleanup
