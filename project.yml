@@ -93,9 +93,10 @@ targets:
         # Spec 05 — App Group so the widget can read the snapshot. Provisioned by
         # automatic signing (no manual portal step / no multi-account, unlike P2.5b).
         CODE_SIGN_ENTITLEMENTS: Support/ToothBuddy.entitlements
-        # No app icon designed yet (the .swiftpm used a placeholder). Empty name
-        # disables the AppIcon requirement; set this to "AppIcon" once one exists.
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        # App icon ships in Assets.xcassets/AppIcon.appiconset (Plan U1, 2026-05-28):
+        # 3-variant 1024×1024 PNGs (light / dark / tinted) per iOS 18 spec.
+        # SVG sources live in design/.
+        ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
         # iCloud/CloudKit entitlements are intentionally NOT here yet — added in the
         # P2 CloudKit stage together with the user's interactive signing step.
 
@@ -132,7 +133,9 @@ targets:
         GENERATE_INFOPLIST_FILE: "NO"
         INFOPLIST_FILE: Support/WidgetInfo.plist
         CODE_SIGN_ENTITLEMENTS: Support/ToothBuddyWidget.entitlements
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        # Widget extension shares the app's AppIcon set (system uses the
+        # containing app's icon for widget gallery; no separate widget icon).
+        ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
 
   ToothBuddyTests:
     type: bundle.unit-test

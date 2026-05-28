@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ToothBuddy App Icon — Tinted variant
+  Plan U1. Single-channel grayscale on transparent background.
+  iOS tints this layer with the user's selected color in tinted mode.
+  Per Apple HIG: tinted icons should be light grayscale on transparent,
+  letting the system apply the user's tint.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+
+  <!-- Background: dark gray for tinted (transparent rendering looks weird;
+       Apple's tinted icons use a near-black fill that picks up user tint).
+       But per Apple HIG iOS 18, tinted uses a dark gradient BG with the
+       glyph in light gray. We use #1A1525 (matches Dark variant BG). -->
+  <rect x="0" y="0" width="1024" height="1024" fill="#1A1525"/>
+
+  <!-- Tooth body: light gray, no outline (iOS tints the body) -->
+  <path d="
+    M 512 200
+    C 660 200, 768 240, 768 360
+    C 768 460, 720 560, 680 640
+    C 660 690, 640 760, 600 810
+    C 580 836, 528 836, 524 776
+    L 524 720
+    L 500 720
+    L 500 776
+    C 496 836, 444 836, 424 810
+    C 384 760, 364 690, 344 640
+    C 304 560, 256 460, 256 360
+    C 256 240, 364 200, 512 200
+    Z"
+    fill="#E8E8E8"/>
+
+</svg>
