@@ -226,12 +226,16 @@ struct ContentView: View {
 }
 
 extension AppTab {
+    // Plan U6: tab labels run through String(localized:) so Localizable.xcstrings
+    // entries pick them up (Text(String) is verbatim; Text(LocalizedStringKey)
+    // localizes, but switch-return Strings don't satisfy LocalizedStringKey
+    // at the call site).
     var label: String {
         switch self {
-        case .brush:   return "Brush"
-        case .history: return "History"
-        case .family:  return "Family"
-        case .tips:    return "Tips"
+        case .brush:   return String(localized: "Brush")
+        case .history: return String(localized: "History")
+        case .family:  return String(localized: "Family")
+        case .tips:    return String(localized: "Tips")
         }
     }
 

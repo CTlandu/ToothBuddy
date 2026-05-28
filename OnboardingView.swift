@@ -155,8 +155,10 @@ struct WelcomeOnboardingSlide: View {
 // MARK: - Feature slide template
 
 struct FeatureOnboardingSlide<I: View>: View {
-    let title: String
-    let subtitle: String
+    // Plan U6: LocalizedStringKey so Text(title)/Text(subtitle) auto-localize
+    // and Xcode picks the call-site literal as the source key.
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     let dotPage: Int
     var isLast: Bool = false
     let onNext: () -> Void
@@ -227,7 +229,9 @@ struct ReadyOnboardingSlide: View {
     let onStart: () -> Void
     @State private var appeared = false
 
-    private let checklist: [(String, String)] = [
+    // Plan U6: tuple's second element is the user-visible string; using
+    // LocalizedStringKey lets Text(item.1) localize via xcstrings.
+    private let checklist: [(String, LocalizedStringKey)] = [
         ("camera.fill", "Camera is ready"),
         ("timer", "2-minute timer set"),
         ("trophy.fill", "Achievements waiting for you"),

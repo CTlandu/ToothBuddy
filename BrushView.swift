@@ -606,11 +606,11 @@ private struct DoneResultSheet: View {
     private var duration: Int { record.durationSeconds }
 
     private var title: String {
-        if isAdult { return "Brushing logged" }
+        if isAdult { return String(localized: "Brushing logged") }
         switch stars {
-        case 3: return "Perfect!"
-        case 2: return "Good job!"
-        default: return "Every brush counts!"
+        case 3: return String(localized: "Perfect!")
+        case 2: return String(localized: "Good job!")
+        default: return String(localized: "Every brush counts!")
         }
     }
 
@@ -626,22 +626,22 @@ private struct DoneResultSheet: View {
     private var message: String {
         if isAdult {
             return duration >= 120
-                ? "Logged a full two-minute session."
-                : "Logged. Aim for two minutes when you can."
+                ? String(localized: "Logged a full two-minute session.")
+                : String(localized: "Logged. Aim for two minutes when you can.")
         }
         switch stars {
-        case 3: return "You brushed for 2 minutes. That's the recommended time."
-        case 2: return "You're building a great habit. Keep it up!"
-        default: return "Try for 2 minutes next time. You've got this!"
+        case 3: return String(localized: "You brushed for 2 minutes. That's the recommended time.")
+        case 2: return String(localized: "You're building a great habit. Keep it up!")
+        default: return String(localized: "Try for 2 minutes next time. You've got this!")
         }
     }
 
     private var funFact: String {
         if isAdult { return slotSummary }
         switch stars {
-        case 3: return "Did you know? Tooth enamel is the hardest part of your body."
-        case 2: return "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth."
-        default: return "Tip: Brushing twice a day helps keep cavities away."
+        case 3: return String(localized: "Did you know? Tooth enamel is the hardest part of your body.")
+        case 2: return String(localized: "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth.")
+        default: return String(localized: "Tip: Brushing twice a day helps keep cavities away.")
         }
     }
 
