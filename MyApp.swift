@@ -72,7 +72,7 @@ private struct RootView: View {
             BrushingLiveActivity.endStaleOnLaunch()
             WidgetBridge.refresh()
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 NotificationScheduler.shared.reschedule(
                     records: BrushingStore.shared.records,

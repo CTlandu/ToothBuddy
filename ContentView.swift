@@ -45,7 +45,7 @@ struct ContentView: View {
         }
         // Spec 05 §6.3 — StartBrushingIntent: jump to the Brush tab; BrushView
         // consumes the request and begins the session.
-        .onChange(of: intentBridge.startRequested) { requested in
+        .onChange(of: intentBridge.startRequested) { _, requested in
             if requested { selectedTab = .brush }
         }
     }

@@ -5,8 +5,8 @@ import SwiftUI
 import ActivityKit
 
 /// Lock Screen + Dynamic Island rendering of the brushing Live Activity (Spec 05 §6.5).
-/// The app owns the lifecycle/state; this only draws. iOS 16.1+.
-@available(iOS 16.1, *)
+/// The app owns the lifecycle/state; this only draws.
+/// (iOS 16.1 guard removed at deployment-target bump to 17.0, Plan U5.)
 struct BrushingLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: BrushingActivityAttributes.self) { context in

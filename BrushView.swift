@@ -64,7 +64,7 @@ struct BrushView: View {
         .padding(.horizontal, 18)
         // Spec 05 §6.3 — StartBrushingIntent: begin a session once, then clear the
         // request. Handles both a warm app (onChange) and a cold launch (onAppear).
-        .onChange(of: intentBridge.startRequested) { _ in handleIntentStart() }
+        .onChange(of: intentBridge.startRequested) { _, _ in handleIntentStart() }
         .onAppear { handleIntentStart() }
         .onAppear {
             tipStartDate = Date()
@@ -89,7 +89,7 @@ struct BrushView: View {
             tipRotationTimer = nil
         }
         .animation(.easeOut(duration: 0.35), value: isBrushing)
-        .onChange(of: zoneMonitor.currentZone) { newZone in
+        .onChange(of: zoneMonitor.currentZone) { _, newZone in
             if let zone = newZone {
                 SoundManager.zoneChanged()
                 voiceCoach.speak(zone.announcement)

@@ -7,7 +7,7 @@ name: ToothBuddy
 options:
   bundleIdPrefix: com.ctlandu
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "17.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -19,7 +19,7 @@ targets:
   ToothBuddy:
     type: application
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "17.0"
     # Explicit file list (deterministic — never pulls in docs / ToothBuddyCore / .build).
     sources:
       - Shared/AppGroupBridge.swift
@@ -62,10 +62,11 @@ targets:
       - Support/MetricsSubscriber.swift
       - Assets.xcassets
       # Plan U5 (2026-05-28): String Catalog for app-wide UI localization.
+      # Plan U7: AppShortcuts.xcstrings for Siri-phrase localization (separate
+      # file per Apple docs — phrases must NOT be mixed into Localizable).
+      # Both require iOS 17+ which is our deployment target since the bump.
       - Localizable.xcstrings
-      # NOTE: AppShortcuts.xcstrings is iOS 17+ only and we target iOS 16.
-      # See plan U7 — Siri-phrase zh-Hans is deferred until deployment target
-      # bumps to iOS 17 (likely in a follow-up release).
+      - AppShortcuts.xcstrings
       - Nunito-Regular.ttf
       - Nunito-SemiBold.ttf
       - Nunito-Bold.ttf
@@ -108,7 +109,7 @@ targets:
   ToothBuddyWidget:
     type: app-extension
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "17.0"
     sources:
       - Widget/ToothBuddyWidgetBundle.swift
       - Widget/StreakWidget.swift
@@ -145,7 +146,7 @@ targets:
   ToothBuddyTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "17.0"
     sources:
       - Tests/ToothBuddyAppTests
     # ↑ Includes every *.swift under Tests/ToothBuddyAppTests automatically. As of

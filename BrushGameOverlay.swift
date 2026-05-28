@@ -340,7 +340,7 @@ struct BrushGameOverlay: View {
 
                 if vm.won { winCelebration }
             }
-            .onChange(of: timeline.date) { newDate in
+            .onChange(of: timeline.date) { _, newDate in
                 vm.step(date: newDate, reduceMotion: reduceMotion)
             }
         }
