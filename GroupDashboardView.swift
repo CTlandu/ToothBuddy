@@ -183,8 +183,8 @@ private struct DashboardRow: View {
                 .frame(height: 36)
 
                 HStack(spacing: 8) {
-                    careChip(.brushHead, "Brush head", "🪥")
-                    careChip(.dentist, "Dentist", "🦷")
+                    careChip(.brushHead, LocalizedStringKey("Brush head"), "🪥")
+                    careChip(.dentist, LocalizedStringKey("Dentist"), "🦷")
                 }
             }
         }
@@ -200,13 +200,13 @@ private struct DashboardRow: View {
     }
 
     @ViewBuilder
-    private func careChip(_ kind: CareKind, _ label: String, _ icon: String) -> some View {
+    private func careChip(_ kind: CareKind, _ label: LocalizedStringKey, _ icon: String) -> some View {
         let s = care.status(profile.id, kind)
         let (text, due): (String, Bool) = {
-            guard let days = s.daysRemaining else { return ("set baseline", false) }
-            if days < 0 { return ("overdue \(-days)d", true) }
-            if s.isDue { return ("due today", true) }
-            return ("in \(days)d", false)
+            guard let days = s.daysRemaining else { return (String(localized: "set baseline"), false) }
+            if days < 0 { return (String(localized: "overdue \(-days)d"), true) }
+            if s.isDue { return (String(localized: "due today"), true) }
+            return (String(localized: "in \(days)d"), false)
         }()
         VStack(spacing: 4) {
             HStack(spacing: 4) {

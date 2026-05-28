@@ -1,549 +1,104 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@" : {
-      "shouldTranslate" : false
-    },
-    "%lld" : {
-      "shouldTranslate" : false
-    },
-    "2-minute timer set" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2 分钟计时已就绪"
-          }
-        }
-      }
-    },
-    "A.M. · P.M." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "早 · 晚"
-          }
-        }
-      }
-    },
-    "Achievements waiting for you" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "成就等你来解锁"
-          }
-        }
-      }
-    },
-    "ALMOST READY!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "马上就好！"
-          }
-        }
-      }
-    },
-    "Brush" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刷牙"
-          }
-        }
-      }
-    },
-    "Brushing logged" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已记录刷牙"
-          }
-        }
-      }
-    },
-    "Camera is ready" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摄像头就绪"
-          }
-        }
-      }
-    },
-    "Check your History tab after each brush. Watch your streak grow day by day!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次刷牙后打开\"历史\"标签，看着你的连续天数一天天涨上去！"
-          }
-        }
-      }
-    },
-    "Delete this record" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除这条记录"
-          }
-        }
-      }
-    },
-    "Did you know? Tooth enamel is the hardest part of your body." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你知道吗？牙釉质是人体最坚硬的部分。"
-          }
-        }
-      }
-    },
-    "Dismiss" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭"
-          }
-        }
-      }
-    },
-    "DONE" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "完成"
-          }
-        }
-      }
-    },
-    "Every brush counts!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次刷牙都很重要！"
-          }
-        }
-      }
-    },
-    "Every session earns progress. Build your streak, earn badges, and level up your rank!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次刷牙都有进度。坚持连击、解锁徽章、升级你的等级！"
-          }
-        }
-      }
-    },
-    "Family" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "家庭"
-          }
-        }
-      }
-    },
-    "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "小知识：小朋友有 20 颗乳牙。现在好好照顾它们，对将来的恒牙有帮助。"
-          }
-        }
-      }
-    },
-    "Good job!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "做得好！"
-          }
-        }
-      }
-    },
-    "Hit the big button and your timer begins. Brush 2 full minutes to earn 3 stars!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按下大按钮，计时就开始啦。刷满 2 分钟就能拿到 3 颗星！"
-          }
-        }
-      }
-    },
-    "History" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "历史"
-          }
-        }
-      }
-    },
-    "LET'S GO!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始吧！"
-          }
-        }
-      }
-    },
-    "LIVE" : {
-      "shouldTranslate" : false
-    },
-    "Logged a full two-minute session." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刷满了 2 分钟。"
-          }
-        }
-      }
-    },
-    "Logged. Aim for two minutes when you can." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已记录。下次试着刷满 2 分钟。"
-          }
-        }
-      }
-    },
-    "Meet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "认识一下"
-          }
-        }
-      }
-    },
-    "NEXT" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
-          }
-        }
-      }
-    },
-    "Open & See Yourself!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开摄像头，看着自己刷牙！"
-          }
-        }
-      }
-    },
-    "out of 2:00" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "/ 共 2:00"
-          }
-        }
-      }
-    },
-    "Perfect!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "完美！"
-          }
-        }
-      }
-    },
-    "Preview only — not saved to cloud or device." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅本地预览——不保存到云端或设备。"
-          }
-        }
-      }
-    },
-    "Ready to brush?" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "准备好刷牙了吗？"
-          }
-        }
-      }
-    },
-    "Record deleted." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "记录已删除。"
-          }
-        }
-      }
-    },
-    "Skip" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "跳过"
-          }
-        }
-      }
-    },
-    "START BRUSHING!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始刷牙！"
-          }
-        }
-      }
-    },
-    "Swipe through to learn how it works" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向左滑动了解功能"
-          }
-        }
-      }
-    },
-    "Tap to Start Brushing!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点击开始刷牙！"
-          }
-        }
-      }
-    },
-    "Tap START to begin a 2-min session." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点击开始进行 2 分钟刷牙。"
-          }
-        }
-      }
-    },
-    "Time to start your first brushing session.\nYour ToothBuddy is cheering for you!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始第一次刷牙吧！\nToothBuddy 为你加油！"
-          }
-        }
-      }
-    },
-    "Tip: Brushing twice a day helps keep cavities away." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "小提示：一天刷两次牙能远离蛀牙。"
-          }
-        }
-      }
-    },
-    "Tips" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提示"
-          }
-        }
-      }
-    },
-    "TODAY'S GOAL" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日目标"
-          }
-        }
-      }
-    },
-    "ToothBuddy" : {
-      "shouldTranslate" : false
-    },
-    "ToothBuddy!" : {
-      "shouldTranslate" : false
-    },
-    "Track Your Progress!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "记录你的进步！"
-          }
-        }
-      }
-    },
-    "Try for 2 minutes next time. You've got this!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下次试着刷满 2 分钟。你可以的！"
-          }
-        }
-      }
-    },
-    "Undo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "撤销"
-          }
-        }
-      }
-    },
-    "Unlock Achievements!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解锁成就！"
-          }
-        }
-      }
-    },
-    "You're all set!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "都准备好啦！"
-          }
-        }
-      }
-    },
-    "You're building a great habit. Keep it up!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你在养成很好的习惯。继续保持！"
-          }
-        }
-      }
-    },
-    "You brushed for 2 minutes. That's the recommended time." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你刷了 2 分钟。这是推荐的时长。"
-          }
-        }
-      }
-    },
-    "Your front camera turns on so you can watch yourself brush — no more missing a spot!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "前置摄像头会打开，让你看着自己刷牙——不再漏刷任何地方！"
-          }
-        }
-      }
-    },
-    "Your super fun brushing companion!\nLet's build a healthy habit together!" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你超级有趣的刷牙伙伴！\n一起养成健康习惯吧！"
-          }
-        }
-      }
-    }
+    "%@" : { "shouldTranslate" : false },
+    "%lld" : { "shouldTranslate" : false },
+    "2-minute timer set" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "2 分钟计时已就绪" } } } },
+    "A.M. · P.M." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "早 · 晚" } } } },
+    "A few more days and your curve appears here." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "再过几天，你的习惯曲线就会出现在这里。" } } } },
+    "ACHIEVEMENTS" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "成就" } } } },
+    "Achievements waiting for you" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "成就等你来解锁" } } } },
+    "Add a profile to start tracking the family." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加一个档案，开始记录家人的刷牙。" } } } },
+    "Add profile" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加档案" } } } },
+    "Adult" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "成人" } } } },
+    "All sparkly clean!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "全都闪闪发亮！" } } } },
+    "ALMOST READY!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "马上就好！" } } } },
+    "AVATAR" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "头像" } } } },
+    "Brush" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷牙" } } } },
+    "Brush head" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷头" } } } },
+    "Brushing logged" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已记录刷牙" } } } },
+    "BRUSHING TIPS" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷牙小贴士" } } } },
+    "Camera is ready" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "摄像头就绪" } } } },
+    "Cancel" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } } } },
+    "Check your History tab after each brush. Watch your streak grow day by day!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每次刷牙后打开\"历史\"标签，看着你的连续天数一天天涨上去！" } } } },
+    "COLOR" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "颜色" } } } },
+    "Consistency" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "坚持度" } } } },
+    "Create" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "创建" } } } },
+    "Create family group" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "创建家庭组" } } } },
+    "CURRENT STREAK" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前连续" } } } },
+    "Delete this record" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除这条记录" } } } },
+    "Dentist" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "牙医" } } } },
+    "Did you know? Tooth enamel is the hardest part of your body." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你知道吗？牙釉质是人体最坚硬的部分。" } } } },
+    "Disband group" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解散家庭组" } } } },
+    "Dismiss" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关闭" } } } },
+    "DONE" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } } } },
+    "Done" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } } } },
+    "due today" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天到期" } } } },
+    "Every brush counts!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每次刷牙都很重要！" } } } },
+    "Every session earns progress. Build your streak, earn badges, and level up your rank!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每次刷牙都有进度。坚持连击、解锁徽章、升级你的等级！" } } } },
+    "EXPERIENCE" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "体验模式" } } } },
+    "Family" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "家庭" } } } },
+    "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "小知识：小朋友有 20 颗乳牙。现在好好照顾它们，对将来的恒牙有帮助。" } } } },
+    "Good job!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "做得好！" } } } },
+    "Hit the big button and your timer begins. Brush 2 full minutes to earn 3 stars!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "按下大按钮，计时就开始啦。刷满 2 分钟就能拿到 3 颗星！" } } } },
+    "History" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "历史" } } } },
+    "in %lldd" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 天后" } } } },
+    "Keep it up!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "继续保持！" } } } },
+    "Kid" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "儿童" } } } },
+    "Last 30 days" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "近 30 天" } } } },
+    "Last 90 days" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "近 90 天" } } } },
+    "Last 365 days" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "近 365 天" } } } },
+    "LET'S GO!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始吧！" } } } },
+    "LEVEL %lld" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "等级 %lld" } } } },
+    "LIVE" : { "shouldTranslate" : false },
+    "Locked" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未解锁" } } } },
+    "Logged a full two-minute session." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷满了 2 分钟。" } } } },
+    "Logged. Aim for two minutes when you can." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已记录。下次试着刷满 2 分钟。" } } } },
+    "Meet" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "认识一下" } } } },
+    "NAME" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "名字" } } } },
+    "New profile" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新档案" } } } },
+    "NEXT" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "下一步" } } } },
+    "No profiles yet" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "还没有档案" } } } },
+    "No records yet" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "还没有记录" } } } },
+    "Open & See Yourself!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开摄像头，看着自己刷牙！" } } } },
+    "ORAL-HEALTH COURSE" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "口腔健康课程" } } } },
+    "out of 2:00" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "/ 共 2:00" } } } },
+    "overdue %lldd" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已逾期 %lld 天" } } } },
+    "Perfect!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完美！" } } } },
+    "Preview only — not saved to cloud or device." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "仅本地预览——不保存到云端或设备。" } } } },
+    "PROGRESS" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "进度" } } } },
+    "Read more" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "查看详情" } } } },
+    "Ready to brush?" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "准备好刷牙了吗？" } } } },
+    "RECENT SESSIONS" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最近刷牙" } } } },
+    "Record deleted." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录已删除。" } } } },
+    "Saving brushing to Apple Health" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将刷牙保存到 Apple 健康" } } } },
+    "Set" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置" } } } },
+    "set baseline" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置起点" } } } },
+    "Skip" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跳过" } } } },
+    "START BRUSHING!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始刷牙！" } } } },
+    "Switch profile" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "切换档案" } } } },
+    "Swipe through to learn how it works" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "向左滑动了解功能" } } } },
+    "Tap to Start Brushing!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "点击开始刷牙！" } } } },
+    "Tap START to begin a 2-min session." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "点击开始进行 2 分钟刷牙。" } } } },
+    "Tap Brush below to start your first session." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "点击下方的刷牙开始第一次刷牙。" } } } },
+    "Time to start your first brushing session.\nYour ToothBuddy is cheering for you!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始第一次刷牙吧！\nToothBuddy 为你加油！" } } } },
+    "Tip: Brushing twice a day helps keep cavities away." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "小提示：一天刷两次牙能远离蛀牙。" } } } },
+    "Tips" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "提示" } } } },
+    "TODAY'S GOAL" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日目标" } } } },
+    "ToothBuddy" : { "shouldTranslate" : false },
+    "ToothBuddy!" : { "shouldTranslate" : false },
+    "Track Your Progress!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录你的进步！" } } } },
+    "Try for 2 minutes next time. You've got this!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "下次试着刷满 2 分钟。你可以的！" } } } },
+    "Undo" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "撤销" } } } },
+    "Unlock Achievements!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解锁成就！" } } } },
+    "Unlocked!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已解锁！" } } } },
+    "Unlocks after %lld active days" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 个有效刷牙日后解锁" } } } },
+    "Who's brushing?" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "谁在刷牙？" } } } },
+    "You're all set!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "都准备好啦！" } } } },
+    "You're building a great habit. Keep it up!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你在养成很好的习惯。继续保持！" } } } },
+    "You brushed for 2 minutes. That's the recommended time." : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你刷了 2 分钟。这是推荐的时长。" } } } },
+    "Your front camera turns on so you can watch yourself brush — no more missing a spot!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "前置摄像头会打开，让你看着自己刷牙——不再漏刷任何地方！" } } } },
+    "Your super fun brushing companion!\nLet's build a healthy habit together!" : { "extractionState" : "manual", "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你超级有趣的刷牙伙伴！\n一起养成健康习惯吧！" } } } }
   },
   "version" : "1.0"
 }
