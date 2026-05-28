@@ -30,8 +30,8 @@ struct StreakWidget: Widget {
         StaticConfiguration(kind: "ToothBuddyStreak", provider: StreakProvider()) { entry in
             StreakWidgetView(snapshot: entry.snapshot)
         }
-        .configurationDisplayName("Brushing Streak")
-        .description("Your streak and whether today's brushing is done.")
+        .configurationDisplayName(Text("Brushing Streak"))
+        .description(Text("Your streak and whether today's brushing is done."))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -87,7 +87,7 @@ struct StreakWidgetView: View {
         }
     }
 
-    private func slot(_ label: String, _ done: Bool) -> some View {
+    private func slot(_ label: LocalizedStringKey, _ done: Bool) -> some View {
         HStack(spacing: 5) {
             Image(systemName: done ? "checkmark.circle.fill" : "circle")
                 .font(.system(size: 13, weight: .bold))
@@ -95,6 +95,7 @@ struct StreakWidgetView: View {
             Text(label)
                 .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(Duo.ink)
+                // LocalizedStringKey routes through Localizable.xcstrings.
         }
     }
 

@@ -73,15 +73,18 @@ final class GamificationStore: ObservableObject {
         }
     }
 
+    // Plan U8: Achievement.title runs through String(localized:) so each badge
+    // shows in the active locale. Achievement.description is content-asset prose
+    // and is deferred to a follow-up content-translation plan.
     static let allAchievements: [Achievement] = [
-        Achievement(id: "first-brush",    systemImage: "drop.fill",      title: "First Brush",     description: "Complete your first brushing session"),
-        Achievement(id: "five-sessions",  systemImage: "5.circle.fill",  title: "Getting Started", description: "Complete 5 brushing sessions"),
-        Achievement(id: "ten-sessions",   systemImage: "10.circle.fill", title: "On a Roll",       description: "Complete 10 brushing sessions"),
-        Achievement(id: "streak-3",       systemImage: "flame.fill",     title: "3-Day Streak",    description: "Brush 3 days in a row"),
-        Achievement(id: "streak-7",       systemImage: "trophy.fill",    title: "Week Warrior",    description: "Brush 7 days in a row"),
-        Achievement(id: "two-min",        systemImage: "timer",          title: "2-Minute Master", description: "Brush for 2 minutes in one session"),
-        Achievement(id: "five-perfect",   systemImage: "star.fill",      title: "Perfect Five",    description: "Get 3 stars in 5 sessions"),
-        Achievement(id: "early-bird",     systemImage: "sunrise.fill",   title: "Early Bird",      description: "Brush before 8 AM"),
+        Achievement(id: "first-brush",    systemImage: "drop.fill",      title: String(localized: "First Brush"),     description: "Complete your first brushing session"),
+        Achievement(id: "five-sessions",  systemImage: "5.circle.fill",  title: String(localized: "Getting Started"), description: "Complete 5 brushing sessions"),
+        Achievement(id: "ten-sessions",   systemImage: "10.circle.fill", title: String(localized: "On a Roll"),       description: "Complete 10 brushing sessions"),
+        Achievement(id: "streak-3",       systemImage: "flame.fill",     title: String(localized: "3-Day Streak"),    description: "Brush 3 days in a row"),
+        Achievement(id: "streak-7",       systemImage: "trophy.fill",    title: String(localized: "Week Warrior"),    description: "Brush 7 days in a row"),
+        Achievement(id: "two-min",        systemImage: "timer",          title: String(localized: "2-Minute Master"), description: "Brush for 2 minutes in one session"),
+        Achievement(id: "five-perfect",   systemImage: "star.fill",      title: String(localized: "Perfect Five"),    description: "Get 3 stars in 5 sessions"),
+        Achievement(id: "early-bird",     systemImage: "sunrise.fill",   title: String(localized: "Early Bird"),      description: "Brush before 8 AM"),
     ]
 
     var unlockedAchievements: [Achievement] {

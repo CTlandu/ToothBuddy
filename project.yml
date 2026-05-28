@@ -123,6 +123,10 @@ targets:
       # Widget-extension privacy manifest (same App Store gate; UserDefaults only).
       - path: Support/Widget/PrivacyInfo.xcprivacy
         buildPhase: resources
+      # Plan U8 (2026-05-28): widget needs its own copy of Localizable.xcstrings
+      # so Live Activity / Streak widget render in the user's preferred locale.
+      # Xcode's resource merger dedupes against the app's copy at install time.
+      - Localizable.xcstrings
     dependencies:
       - package: ToothBuddyCore
         product: ToothBuddyCore

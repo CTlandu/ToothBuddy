@@ -78,11 +78,13 @@ final class NotificationScheduler {
                 let content = UNMutableNotificationContent()
                 switch r.kind {
                 case .brushHead:
-                    content.title = "Time for a new brush head 🪥"
-                    content.body = "\(r.profileName)'s toothbrush head is due for a swap."
+                    content.title = String(localized: "Time for a new brush head 🪥")
+                    let name = r.profileName
+                    content.body = String(localized: "\(name)'s toothbrush head is due for a swap.")
                 case .dentist:
-                    content.title = "Dentist check-up due 🦷"
-                    content.body = "It's time to book \(r.profileName)'s dental visit."
+                    content.title = String(localized: "Dentist check-up due 🦷")
+                    let name = r.profileName
+                    content.body = String(localized: "It's time to book \(name)'s dental visit.")
                 }
                 content.sound = .default
                 let id = "\(Self.carePrefix)\(r.kind.rawValue).\(r.profileID.uuidString)"
@@ -93,22 +95,25 @@ final class NotificationScheduler {
         }
     }
 
+    // Plan U8: notification title + body run through String(localized:) so the
+    // system delivers the user's preferred language.
     private static func title(for kind: ReminderKind) -> String {
         switch kind {
-        case .morningRoutine: return "Good morning! ☀️"
-        case .eveningRoutine: return "Evening brush 🌙"
-        case .streakAtRisk:   return "Keep your streak alive!"
+        case .morningRoutine: return String(localized: "Good morning! ☀️")
+        case .eveningRoutine: return String(localized: "Evening brush 🌙")
+        case .streakAtRisk:   return String(localized: "Keep your streak alive!")
         }
     }
 
     private static func body(for kind: ReminderKind, streak: StreakResult) -> String {
         switch kind {
         case .morningRoutine:
-            return "Time for a 2-minute brush to start the day."
+            return String(localized: "Time for a 2-minute brush to start the day.")
         case .eveningRoutine:
-            return "A quick brush before bed keeps your streak going."
+            return String(localized: "A quick brush before bed keeps your streak going.")
         case .streakAtRisk:
-            return "You haven't brushed today — brush now to protect your \(streak.currentStreak)-day streak."
+            let n = streak.currentStreak
+            return String(localized: "You haven't brushed today — brush now to protect your \(n)-day streak.")
         }
     }
 }
