@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Concept A: "Champion Brusher" — Buddy wearing a tiny gold crown.
+  Background: Sky blue (#3FBFEF) — fresh/clean/morning, not plaque-green.
+  Motif: small gold crown sitting on the tooth crown — celebrates the
+  habit + brand identity (no other tooth app does this).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect x="0" y="0" width="1024" height="1024" fill="#3FBFEF"/>
+
+  <!-- Tooth shadow -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    transform="translate(32, 32)" fill="#2B2535" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- White tooth -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    fill="#FFFFFF" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- Face -->
+  <ellipse cx="350" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <ellipse cx="674" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <circle cx="422" cy="430" r="38" fill="#2B2535"/>
+  <circle cx="602" cy="430" r="38" fill="#2B2535"/>
+  <circle cx="412" cy="420" r="14" fill="#FFFFFF"/>
+  <circle cx="592" cy="420" r="14" fill="#FFFFFF"/>
+  <path d="M 432 565 Q 512 630 592 570" stroke="#2B2535" stroke-width="22" fill="none" stroke-linecap="round"/>
+
+  <!-- Crown sitting on top of the tooth — 3 points + band + jewel -->
+  <!-- Crown band -->
+  <path d="M 372 195 L 652 195 L 652 235 L 372 235 Z"
+        fill="#FFD23F" stroke="#2B2535" stroke-width="20" stroke-linejoin="round"/>
+  <!-- Crown points (3 triangles) -->
+  <path d="M 372 195 L 432 110 L 482 195 Z"
+        fill="#FFD23F" stroke="#2B2535" stroke-width="20" stroke-linejoin="round"/>
+  <path d="M 462 195 L 512 90  L 562 195 Z"
+        fill="#FFD23F" stroke="#2B2535" stroke-width="20" stroke-linejoin="round"/>
+  <path d="M 542 195 L 592 110 L 652 195 Z"
+        fill="#FFD23F" stroke="#2B2535" stroke-width="20" stroke-linejoin="round"/>
+  <!-- Center jewel -->
+  <circle cx="512" cy="158" r="18" fill="#FF6B6B" stroke="#2B2535" stroke-width="10"/>
+</svg>

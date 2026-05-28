@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Concept C: "Buddy + Brush" — Buddy with a toothbrush leaning against it,
+  like a buddy duo. Background: Warm coral (#FF8E72) — wakes-you-up,
+  sunrise/morning routine vibe, distinct from any "medical" feeling.
+  Motif: a chunky toothbrush diagonal behind/beside the tooth, with a
+  small foam blob on the bristles. Most "tooth+brush" icons render both
+  small; here the brush is BG-scale so it reads instantly at 60×60.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect x="0" y="0" width="1024" height="1024" fill="#FF8E72"/>
+
+  <!-- Toothbrush handle + head, diagonal from bottom-left to top-right -->
+  <!-- Handle (long pill) -->
+  <g transform="rotate(-32 512 512)">
+    <!-- Shadow -->
+    <rect x="100" y="540" width="600" height="100" rx="50" fill="#2B2535"
+          transform="translate(20, 20)"/>
+    <!-- Handle main -->
+    <rect x="100" y="540" width="600" height="100" rx="50"
+          fill="#3FBFEF" stroke="#2B2535" stroke-width="32"/>
+    <!-- Head (wider rounded rect at top end) -->
+    <rect x="680" y="510" width="200" height="160" rx="70"
+          fill="#3FBFEF" stroke="#2B2535" stroke-width="32"/>
+    <!-- Bristles — 5 small lines coming off the head top -->
+    <g stroke="#FFFFFF" stroke-width="14" stroke-linecap="round">
+      <line x1="720" y1="510" x2="720" y2="470"/>
+      <line x1="755" y1="505" x2="755" y2="460"/>
+      <line x1="790" y1="500" x2="790" y2="455"/>
+      <line x1="825" y1="505" x2="825" y2="460"/>
+      <line x1="860" y1="510" x2="860" y2="470"/>
+    </g>
+    <!-- Foam blob -->
+    <circle cx="790" cy="430" r="38" fill="#FFFFFF" stroke="#2B2535" stroke-width="20"/>
+    <circle cx="820" cy="410" r="22" fill="#FFFFFF" stroke="#2B2535" stroke-width="18"/>
+  </g>
+
+  <!-- Tooth shadow -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    transform="translate(32, 32)" fill="#2B2535" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- White tooth -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    fill="#FFFFFF" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- Face -->
+  <ellipse cx="350" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <ellipse cx="674" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <circle cx="422" cy="400" r="38" fill="#2B2535"/>
+  <circle cx="602" cy="400" r="38" fill="#2B2535"/>
+  <circle cx="412" cy="390" r="14" fill="#FFFFFF"/>
+  <circle cx="592" cy="390" r="14" fill="#FFFFFF"/>
+  <path d="M 432 535 Q 512 600 592 540" stroke="#2B2535" stroke-width="22" fill="none" stroke-linecap="round"/>
+</svg>

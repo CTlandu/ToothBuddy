@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Concept B: "Sparkly Clean" — Buddy with 4 starburst sparkles around it.
+  Background: Lavender purple (#A78BFA) — distinctive (no other dental app),
+  but in the Duo.blush color family so it stays brand-coherent with the app.
+  Motif: 4 starbursts (different sizes) radiating around the tooth — the
+  "after brushing = sparkles" visual is universal but the lavender BG makes
+  it our own.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect x="0" y="0" width="1024" height="1024" fill="#A78BFA"/>
+
+  <!-- Decorative starbursts (drawn BEHIND the tooth so they read as 'around') -->
+  <!-- 4-point star helper: top-left, top-right, bottom-left, bottom-right -->
+  <g fill="#FFFFFF">
+    <!-- top-left big -->
+    <path d="M 200 280 L 220 350 L 290 370 L 220 390 L 200 460 L 180 390 L 110 370 L 180 350 Z" opacity="0.95"/>
+    <!-- top-right medium -->
+    <path d="M 820 220 L 832 268 L 880 280 L 832 292 L 820 340 L 808 292 L 760 280 L 808 268 Z" opacity="0.9"/>
+    <!-- bottom-left small -->
+    <path d="M 180 740 L 188 770 L 218 778 L 188 786 L 180 816 L 172 786 L 142 778 L 172 770 Z" opacity="0.85"/>
+    <!-- bottom-right medium -->
+    <path d="M 850 700 L 862 748 L 910 760 L 862 772 L 850 820 L 838 772 L 790 760 L 838 748 Z" opacity="0.9"/>
+  </g>
+
+  <!-- Tooth shadow -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    transform="translate(32, 32)" fill="#2B2535" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- White tooth -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    fill="#FFFFFF" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- Face -->
+  <ellipse cx="350" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <ellipse cx="674" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <circle cx="422" cy="400" r="38" fill="#2B2535"/>
+  <circle cx="602" cy="400" r="38" fill="#2B2535"/>
+  <circle cx="412" cy="390" r="14" fill="#FFFFFF"/>
+  <circle cx="592" cy="390" r="14" fill="#FFFFFF"/>
+  <path d="M 432 535 Q 512 600 592 540" stroke="#2B2535" stroke-width="22" fill="none" stroke-linecap="round"/>
+</svg>

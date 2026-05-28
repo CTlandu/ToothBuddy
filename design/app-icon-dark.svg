@@ -1,53 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ToothBuddy App Icon — Dark variant
-  Plan U1. Same shape; ink-near-black BG; Duo.green tooth (inversion of Light).
+  Plan U1. Same composition as Light; ink-near-black BG; brush/cap recolored
+  to keep high contrast in dark mode.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
 
-  <!-- Background: ink-near-black -->
+  <!-- Ink-near-black background -->
   <rect x="0" y="0" width="1024" height="1024" fill="#1A1525"/>
 
-  <!-- Ink offset shadow (32px down-right) — darker than BG for subtle depth -->
-  <path d="
-    M 512 200
-    C 660 200, 768 240, 768 360
-    C 768 460, 720 560, 680 640
-    C 660 690, 640 760, 600 810
-    C 580 836, 528 836, 524 776
-    L 524 720
-    L 500 720
-    L 500 776
-    C 496 836, 444 836, 424 810
-    C 384 760, 364 690, 344 640
-    C 304 560, 256 460, 256 360
-    C 256 240, 364 200, 512 200
-    Z"
-    transform="translate(32, 32)"
-    fill="#000000"
-    opacity="0.5"
-    stroke="#000000"
-    stroke-width="40"
-    stroke-linejoin="round"/>
+  <!-- Toothbrush (behind tooth) -->
+  <g transform="rotate(-26 512 512)">
+    <g transform="translate(24, 24)" fill="#000000" opacity="0.5">
+      <rect x="0" y="540" width="720" height="110" rx="55"/>
+      <rect x="700" y="500" width="220" height="190" rx="80"/>
+    </g>
+    <rect x="0" y="540" width="720" height="110" rx="55"
+          fill="#3FBFEF" stroke="#FFFFFF" stroke-width="32"/>
+    <rect x="700" y="500" width="220" height="190" rx="80"
+          fill="#3FBFEF" stroke="#FFFFFF" stroke-width="32"/>
+    <g stroke="#FFFFFF" stroke-width="20" stroke-linecap="round">
+      <line x1="730" y1="500" x2="730" y2="425"/>
+      <line x1="768" y1="495" x2="768" y2="410"/>
+      <line x1="806" y1="490" x2="806" y2="400"/>
+      <line x1="844" y1="490" x2="844" y2="400"/>
+      <line x1="882" y1="495" x2="882" y2="410"/>
+      <line x1="920" y1="500" x2="920" y2="425"/>
+    </g>
+    <circle cx="868" cy="438" r="54" fill="#FFFFFF" stroke="#1A1525" stroke-width="22"/>
+    <circle cx="918" cy="405" r="30" fill="#FFFFFF" stroke="#1A1525" stroke-width="18"/>
+  </g>
 
-  <!-- Tooth body: white in Dark mode (keeps high contrast) -->
-  <path d="
-    M 512 200
-    C 660 200, 768 240, 768 360
-    C 768 460, 720 560, 680 640
-    C 660 690, 640 760, 600 810
-    C 580 836, 528 836, 524 776
-    L 524 720
-    L 500 720
-    L 500 776
-    C 496 836, 444 836, 424 810
-    C 384 760, 364 690, 344 640
-    C 304 560, 256 460, 256 360
-    C 256 240, 364 200, 512 200
-    Z"
-    fill="#FFFFFF"
-    stroke="#58CC02"
-    stroke-width="40"
-    stroke-linejoin="round"/>
+  <!-- Tooth shadow (subtle in dark mode) -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    transform="translate(32, 32)"
+    fill="#000000" opacity="0.6"
+    stroke="#000000" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- White tooth body (white in dark mode for max contrast) -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    fill="#FFFFFF" stroke="#FFFFFF" stroke-width="32" stroke-linejoin="round"/>
+
+  <!-- Face (ink-on-white still reads clearly) -->
+  <ellipse cx="350" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <ellipse cx="674" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <circle cx="422" cy="420" r="38" fill="#2B2535"/>
+  <circle cx="602" cy="420" r="38" fill="#2B2535"/>
+  <circle cx="412" cy="410" r="14" fill="#FFFFFF"/>
+  <circle cx="592" cy="410" r="14" fill="#FFFFFF"/>
+  <path d="M 432 555 Q 512 620 592 560" stroke="#2B2535" stroke-width="22" fill="none" stroke-linecap="round"/>
+
+  <!-- Cap (still blue; works on dark BG) -->
+  <ellipse cx="412" cy="245" rx="190" ry="36"
+           fill="#2EA8DA" stroke="#FFFFFF" stroke-width="28"/>
+  <path d="M 282 252 Q 282 70, 512 70 Q 742 70, 742 252 Z"
+        fill="#3FBFEF" stroke="#FFFFFF" stroke-width="32" stroke-linejoin="round"/>
+  <path d="M 320 230 Q 512 175, 712 230"
+        stroke="#FFFFFF" stroke-width="10" fill="none" opacity="0.5"
+        stroke-linecap="round"/>
+  <circle cx="512" cy="78" r="22" fill="#3FBFEF" stroke="#FFFFFF" stroke-width="18"/>
 
 </svg>

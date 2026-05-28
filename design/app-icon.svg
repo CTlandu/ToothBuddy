@@ -1,69 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ToothBuddy App Icon — Light variant
+  ToothBuddy App Icon — Light variant (FINAL direction)
   Plan U1 (docs/plans/2026-05-28-002-feat-app-store-launch-plan.md)
 
-  Design: simplified friendly tooth silhouette on Duo.green background,
-  with chunky ink outline + offset darker-green shadow (Duolingo signature).
-  No rounded corners on the background rect — iOS masks the icon to its
-  platform-appropriate squircle automatically.
+  Concept: Buddy (tooth character) wearing a blue baseball cap, with a
+  toothbrush diagonal in the background. Coral background.
+
+  Brand thinking:
+  - Cap is intentionally a "first accessory" — future in-app gamification
+    can let kids unlock variant caps (color / forward-back / themed) by
+    earning points. The dome+visor+button shape is the canonical base.
+  - The brush is the "buddy" double meaning literally rendered: tooth +
+    brush as companions, not as separate entities.
+  - Coral BG distinct from any "medical" or "plaque-green" coding.
+
+  Layer order (back → front):
+    BG → toothbrush → tooth shadow → tooth body → face → cap
 
   Colors:
-    Duo.green        #58CC02
-    Duo.greenShadow  #3F8F00 (Duolingo button-press shadow tone)
-    Ink              #2B2535
-    White            #FFFFFF
+    Coral BG        #FF8E72
+    Cap blue        #3FBFEF (matches Duo.blue / brush color — single accent)
+    Brush handle    #3FBFEF
+    Foam            #FFFFFF
+    Ink             #2B2535
+    Cheek blush     #FFC4B7
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
 
-  <!-- Background: full bleed, Duo.green. iOS masks to platform squircle. -->
-  <rect x="0" y="0" width="1024" height="1024" fill="#58CC02"/>
+  <!-- Coral background -->
+  <rect x="0" y="0" width="1024" height="1024" fill="#FF8E72"/>
 
-  <!--
-    Symmetric tooth shape. Origin (512, 540).
-    Crown wide: x = 220..804 at top. Bottom roots split around x = 512.
-    All control points mirrored across x = 512 so the shape is exactly symmetric.
-  -->
+  <!-- =========== Toothbrush (drawn BEHIND tooth, exposed prominently) =========== -->
+  <!-- Bigger, longer, more visible than previous concept. Handle extends from
+       bottom-left, head + bristles + foam pop out top-right. -->
+  <g transform="rotate(-26 512 512)">
+    <!-- Brush shadow -->
+    <g transform="translate(24, 24)" fill="#2B2535">
+      <rect x="0" y="540" width="720" height="110" rx="55"/>
+      <rect x="700" y="500" width="220" height="190" rx="80"/>
+    </g>
+    <!-- Brush handle (longer, extends well past tooth on the left) -->
+    <rect x="0" y="540" width="720" height="110" rx="55"
+          fill="#3FBFEF" stroke="#2B2535" stroke-width="32"/>
+    <!-- Brush head (wider/taller; pops above and right of the tooth) -->
+    <rect x="700" y="500" width="220" height="190" rx="80"
+          fill="#3FBFEF" stroke="#2B2535" stroke-width="32"/>
+    <!-- Bristles — 6 white strokes, longer so they stick well above the head -->
+    <g stroke="#FFFFFF" stroke-width="20" stroke-linecap="round">
+      <line x1="730" y1="500" x2="730" y2="425"/>
+      <line x1="768" y1="495" x2="768" y2="410"/>
+      <line x1="806" y1="490" x2="806" y2="400"/>
+      <line x1="844" y1="490" x2="844" y2="400"/>
+      <line x1="882" y1="495" x2="882" y2="410"/>
+      <line x1="920" y1="500" x2="920" y2="425"/>
+    </g>
+    <!-- Big foam blob — positioned so post-rotation it lands at top-right
+         of icon, clear of the cap dome (which ends at x=742). -->
+    <circle cx="868" cy="438" r="54" fill="#FFFFFF" stroke="#2B2535" stroke-width="24"/>
+    <circle cx="918" cy="405" r="30" fill="#FFFFFF" stroke="#2B2535" stroke-width="20"/>
+  </g>
 
-  <!-- Ink offset shadow (32px down-right) — visible because it's wider than the white -->
-  <path d="
-    M 512 200
-    C 660 200, 768 240, 768 360
-    C 768 460, 720 560, 680 640
-    C 660 690, 640 760, 600 810
-    C 580 836, 528 836, 524 776
-    L 524 720
-    L 500 720
-    L 500 776
-    C 496 836, 444 836, 424 810
-    C 384 760, 364 690, 344 640
-    C 304 560, 256 460, 256 360
-    C 256 240, 364 200, 512 200
-    Z"
+  <!-- =========== Tooth shadow + body =========== -->
+  <!-- Tooth ink offset shadow -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
     transform="translate(32, 32)"
-    fill="#2B2535"
-    stroke="#2B2535"
-    stroke-width="40"
-    stroke-linejoin="round"/>
+    fill="#2B2535" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
 
-  <!-- White tooth body, same path -->
-  <path d="
-    M 512 200
-    C 660 200, 768 240, 768 360
-    C 768 460, 720 560, 680 640
-    C 660 690, 640 760, 600 810
-    C 580 836, 528 836, 524 776
-    L 524 720
-    L 500 720
-    L 500 776
-    C 496 836, 444 836, 424 810
-    C 384 760, 364 690, 344 640
-    C 304 560, 256 460, 256 360
-    C 256 240, 364 200, 512 200
-    Z"
-    fill="#FFFFFF"
-    stroke="#2B2535"
-    stroke-width="40"
-    stroke-linejoin="round"/>
+  <!-- White tooth body -->
+  <path d="M 512 200 C 660 200, 768 240, 768 360 C 768 460, 720 560, 680 640 C 660 690, 640 760, 600 810 C 580 836, 528 836, 524 776 L 524 720 L 500 720 L 500 776 C 496 836, 444 836, 424 810 C 384 760, 364 690, 344 640 C 304 560, 256 460, 256 360 C 256 240, 364 200, 512 200 Z"
+    fill="#FFFFFF" stroke="#2B2535" stroke-width="40" stroke-linejoin="round"/>
+
+  <!-- =========== Face =========== -->
+  <ellipse cx="350" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <ellipse cx="674" cy="510" rx="62" ry="40" fill="#FFC4B7"/>
+  <circle cx="422" cy="420" r="38" fill="#2B2535"/>
+  <circle cx="602" cy="420" r="38" fill="#2B2535"/>
+  <circle cx="412" cy="410" r="14" fill="#FFFFFF"/>
+  <circle cx="592" cy="410" r="14" fill="#FFFFFF"/>
+  <path d="M 432 555 Q 512 620 592 560" stroke="#2B2535" stroke-width="22" fill="none" stroke-linecap="round"/>
+
+  <!-- =========== Baseball cap (drawn LAST so it sits on top of crown) =========== -->
+  <!-- Cap visor extends to the LEFT so the brush head + foam have clear
+       breathing room on the right side. (Backwards-ish cap reads cool/sporty
+       too, which fits the "champion brusher" vibe.) -->
+  <ellipse cx="412" cy="245" rx="190" ry="36"
+           fill="#2EA8DA" stroke="#2B2535" stroke-width="28"/>
+
+  <!-- Cap dome — half-dome covering tooth crown.
+       Use a slightly darker tone than the brush so the cap and brush
+       read as separate accessories, not the same object. -->
+  <path d="M 282 252 Q 282 70, 512 70 Q 742 70, 742 252 Z"
+        fill="#3FBFEF" stroke="#2B2535" stroke-width="32" stroke-linejoin="round"/>
+
+  <!-- Cap "stitching" curve (subtle detail) -->
+  <path d="M 320 230 Q 512 175, 712 230"
+        stroke="#2B2535" stroke-width="10" fill="none" opacity="0.55"
+        stroke-linecap="round"/>
+
+  <!-- Cap button (top of dome) -->
+  <circle cx="512" cy="78" r="22" fill="#3FBFEF" stroke="#2B2535" stroke-width="18"/>
 
 </svg>
