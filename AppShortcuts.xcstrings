@@ -1,7 +1,72 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-
+    "Brushing streak in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 ${applicationName} 看连续刷牙天数"
+          }
+        }
+      }
+    },
+    "I brushed my teeth in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我用 ${applicationName} 刷过牙了"
+          }
+        }
+      }
+    },
+    "Log brushing in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 ${applicationName} 记录刷牙"
+          }
+        }
+      }
+    },
+    "Start a brush in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 ${applicationName} 开始刷牙"
+          }
+        }
+      }
+    },
+    "Start brushing in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 ${applicationName} 开始刷牙"
+          }
+        }
+      }
+    },
+    "What's my brushing streak in ${applicationName}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 ${applicationName} 查看连续刷牙天数"
+          }
+        }
+      }
+    }
   },
   "version" : "1.0"
 }
