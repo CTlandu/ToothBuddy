@@ -8,8 +8,7 @@ import Foundation
 /// record can prove "brushed every zone for long enough" rather than just "ran a timer".
 public struct BrushingRecord: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID
-    /// Owning profile (Spec 02). Non-optional — legacy records without it are decoded via
-    /// `LegacyBrushingRecord` and assigned a profile by `MigrationTransform`.
+    /// Owning profile — always the single device owner (single-user model, U9).
     public var profileID: UUID
     public var startDate: Date
     public var endDate: Date

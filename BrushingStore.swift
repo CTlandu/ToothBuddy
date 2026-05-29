@@ -31,13 +31,10 @@ final class BrushingStore: ObservableObject {
     private let ctx: NSManagedObjectContext
     private let profiles: ProfileStore
     private var cancellables: Set<AnyCancellable> = []
-    private let migratedKey = "ToothBuddy.didMigrateToCoreData_v1"
-    private let legacyAchievementsKey = "ToothBuddy.unlockedAchievements"
 
     init(controller: PersistenceController = .shared, profiles: ProfileStore = .shared) {
         ctx = controller.viewContext
         self.profiles = profiles
-        runMigrationIfNeeded()
         reload()
         profiles.$activeProfileID
             .dropFirst()
@@ -172,38 +169,4 @@ final class BrushingStore: ObservableObject {
         reload()
     }
 
-    // MARK: Zero-loss migration (Spec 02 §7.2 / AC1) — idempotent.
-
-    private func runMigrationIfNeeded() {
-        let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: migratedKey) else { return }
-        defer { defaults.set(true, forKey: migratedKey) }
-
-        guard let support = FileManager.default.urls(for: .applicationSupportDirectory,
-                                                     in: .userDomainMask).first else { return }
-        let legacyURL = support.appendingPathComponent("ToothBuddy/brushing_records.json")
-        guard let data = try? Data(contentsOf: legacyURL),
-              let legacy = try? MigrationTransform.decodeLegacy(data),
-              !legacy.isEmpty else { return }   // fresh install → nothing to migrate
-
-        // Create the default profile and own all legacy records.
-        guard let def = profiles.createProfile(name: "Me", color: .sky, symbol: .star,
-                                               makeActive: true),
-              let cdp = profiles.managedProfile(def.id) else { return }
-        for rec in MigrationTransform.migrate(legacy: legacy, defaultProfileID: def.id) {
-            let r = CDBrushingRecord(context: ctx)
-            r.id = rec.id; r.startDate = rec.startDate; r.endDate = rec.endDate
-            r.modifiedAt = Date(); r.profile = cdp
-        }
-        // Migrate legacy global achievements → this profile.
-        if let aData = defaults.data(forKey: legacyAchievementsKey),
-           let ids = try? JSONDecoder().decode([String].self, from: aData) {
-            for aid in ids {
-                let a = CDAchievementUnlock(context: ctx)
-                a.achievementID = aid; a.unlockedAt = Date(); a.profile = cdp
-            }
-        }
-        if ctx.hasChanges { try? ctx.save() }
-        // Legacy JSON is intentionally left on disk as a one-release backup.
-    }
 }

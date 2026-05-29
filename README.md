@@ -1,109 +1,93 @@
 # ToothBuddy
 
-An iOS app that helps kids and adults build a real twice-a-day brushing habit — without hardware, without a subscription, without losing a single record.
+An iPhone app that helps one person **brush better** — cover every area, brush long enough — and turns it into a **verifiable oral-health record** they can show a dentist.
 
 ---
 
 ## Overview
 
-**ToothBuddy** is iPhone software-only. It uses the front camera for coarse-zone brushing guidance (engagement-grade, never clinical), gives the streak room to breathe when life happens, has a peer-shared family layer, and integrates with the rest of Apple's ecosystem (Widgets, Live Activities, Siri, HealthKit).
+ToothBuddy isn't a habit-tracker; most people already brush twice a day. The point is **the quality of each brush**: a guided, zone-by-zone session that makes sure every area gets enough time, logged into a record that's honest enough to be evidence.
 
-- **Target users:** Kids, parents managing kids, and adults who want a calm minimal mode.
-- **Platform:** iOS 16.0+ (iPhone & iPad), SwiftUI, Swift 6.0.
-- **Status:** Long-term real product. P1–P5 of the roadmap shipped; on-device smoke and CloudKit sync still in progress.
+- **Guided route, audio-first.** The app talks you through a structured 6-zone routine — "now upper-left… switch to upper-right" — so you can brush eyes-free with the phone set down. A "smart mirror" mode (front camera + zone highlight + progress + Sugar Bugs game) is there for people who prop the phone.
+- **Honest quality.** A phone camera can't judge clinical cleaning, so we don't pretend to. We measure **coverage** (did each area get its time), **duration** (did you hit the 2-minute target), and mark each record **camera-verified** vs **guided-only** — the un-fakeable flag for a dentist.
+- **Single user.** One device = one person. No multi-profile family layer. Sharing (dentist / family / friends) over the network is Phase 2.
+- **Apple ecosystem.** Live Activity + Dynamic Island show per-zone progress; the Home-Screen widget shows today's brushing quality; Siri reports your week; HealthKit gets your thorough brushes.
+- **Offline, no account, no tracking.**
 
-The full direction is in [`ROADMAP.md`](ROADMAP.md); execution state and per-feature specs are in [`PLAN.md`](PLAN.md) and [`specs/`](specs/).
+**Platform:** iOS 17.0+ (iPhone & iPad), SwiftUI, Swift 6.0.
+**Status:** Phase-1 quality-pivot rebuild on branch `feat/quality-pivot-rebuild`. Phase 2 (networked identity + sharing) is planned.
+
+Current product definition: [`docs/product-north-star.md`](docs/product-north-star.md).
+Rebuild plan: [`docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md`](docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md).
 
 ---
 
-## Features (shipped)
+## Features
 
-### Habit & streaks (P1)
-- Forgiving rolling-grace streak (≈1 forgiven day per 7-day run) + longest-streak tracking — one bad day doesn't erase weeks.
-- Morning + evening dual-slot daily goal (ADA 2×/day); "perfect day" vs partial.
-- Adaptive local notifications that learn your typical brushing times, plus a gentle "streak at risk" evening nudge. No account, no network.
+### Quality brushing session
+- Prescribed-route engine (`GuidedSessionEngine`, pure logic): walks all 6 coarse zones, each with a per-zone time target; the session auto-completes when every area is covered for long enough.
+- **Audio-first** eyes-free coaching by default; optional **smart-mirror** visual mode (camera + zone highlight + progress + Sugar Bugs game). Settings switch between them; audio mode never opens the camera.
+- Configurable target (2 or 3 minutes).
+- End-of-session summary: which areas were covered, whether the target was met, and a **camera-verified vs guided-only** badge.
 
-### Family / peer group (P2.1–P2.4, local)
-- Multiple profiles with fully isolated records (Core Data + per-profile aggregation).
-- Peer Group (no admin/parent role) — everyone sees everyone, including weekly completion, streak, and trend.
-- Care reminders (brush head replacement, dentist visits) with one-tap "mark done".
-- Dentist-shareable PDF report (30 / 90 / 365-day windows).
-- CloudKit sync is specced (P2.5) and the merge resolver is implemented, but device wiring is **parked** pending Apple Developer Portal setup.
+### Verifiable record + dentist proof
+- Each `BrushingRecord` stores per-zone coverage, active time, target, met-minimum, camera-verified flag, and guidance mode.
+- Shareable PDF "dentist report" (90-day default) with thorough-session count, camera-verified count, average active time, and a coverage calendar — clearly distinguishing verified from guided sessions.
 
-### Content engine (P3)
-- 2-minute TTS sessions that never repeat the same line twice in a row (deterministic, seasonal-aware, no-repeat selector).
-- Encouragement / mini-lesson cues mid-session.
-- Gamified oral-health course in Tips, unlocked by active-day count.
-- Seasonal content (spring / summer / autumn) with neutral fallback.
+### Settings (no kid/adult split)
+- Every feature defaults on; the user turns off what they don't want: brushing game, celebrations/stars, content tone, levels & achievements, habit curve, voice guidance, session mode, target length, Apple Health.
 
-### Camera guidance + Sugar Bugs game (P4)
-- Single shared `CameraService` (preview + Vision in one camera claim).
-- 4–6 coarse zones via Vision face/hand landmarks, debounced + timed fallback.
-- "Sugar Bugs" mini-game overlay (Canvas + TimelineView jelly bugs and bubble pops), playful tone only. Reduce-Motion aware; ≤8 bugs and ≤60 confetti cap.
+### Retention (demoted streak)
+- Forgiving streak (`StreakEngine`) is kept as a light consistency badge, no longer the hero metric.
+- Adaptive local notifications that learn your typical brushing times + a gentle "brush before bed" nudge. No account, no network.
 
-### Adult mode + Apple integrations (P5)
-- Per-profile `mode` (kid | adult). Adult mode hides Sugar Bugs / stars / confetti, replaces achievements with a calm habit curve, and shows a calm "Brushing logged" summary on completion.
-- App Intents / Siri Shortcuts: "Log my brushing", "Start brushing", "What's my streak?" — per-slot idempotent.
-- Home Screen widget (small + medium) reading an App Group snapshot — never blank.
-- Live Activity on Lock Screen + Dynamic Island during a session (iOS 16.1+, stale-dismiss).
-- HealthKit `toothbrushingEvent` write-only export — share-only authorization, idempotent (ExternalUUID + per-device id set), revocable, opt-in via a contextual row in adult History. Never reads any health data.
+### Rewards bound to quality
+- Achievements and levels track **thorough** (target-met) and **camera-verified** sessions, not raw counts.
+
+### Content engine
+- 2-minute TTS coaching with a no-repeat, seasonal-aware content selector (facts / jokes / tips).
+
+### Apple integrations
+- Home-Screen widget: today's brushing quality (thorough count + last coverage + verified), streak demoted to a small badge.
+- Live Activity / Dynamic Island: countdown + per-zone progress during a session.
+- App Intents / Siri: "Log brushing", "Start brushing", and a weekly quality summary.
+- HealthKit `toothbrushingEvent` write-only export — share-only, idempotent, revocable; only thorough sessions are written.
 
 ---
 
 ## Tech Stack
 
 - **UI:** SwiftUI
-- **Persistence:** Core Data (programmatic `NSPersistentCloudKitContainer`, local mode until P2.5b)
-- **Pure logic:** Local Swift package [`ToothBuddyCore/`](ToothBuddyCore/) — platform-agnostic, XCTest-covered
-- **Targets (per [`project.yml`](project.yml)):**
-  - `ToothBuddy` — main app (SwiftUI)
-  - `ToothBuddyWidget` — app-extension (Home Screen widget + Live Activity)
-  - `ToothBuddyTests` — app unit-test bundle
+- **Persistence:** Core Data (programmatic `NSPersistentCloudKitContainer`, local-only until Phase 2)
+- **Pure logic:** Local Swift package [`ToothBuddyCore/`](ToothBuddyCore/) — platform-agnostic, XCTest-covered (`GuidedSessionEngine`, `StreakEngine`, `ZoneGuidance`, `ReportBuilder`, `WidgetSnapshot`, …)
+- **Targets (per [`project.yml`](project.yml)):** `ToothBuddy` (app), `ToothBuddyWidget` (widget + Live Activity), `ToothBuddyTests`
 - **System integrations:** AVFoundation, Vision, AppIntents, ActivityKit, WidgetKit, HealthKit (write-only), UserNotifications, App Group `group.com.ctlandu.ToothBuddy`
-- **Minimum:** iOS 16.0; Live Activity surface 16.1+
-- **Build:** Xcode 26+ (Swift Playgrounds support dropped — App Playgrounds can't carry the entitlements P2/P5 need)
+- **Minimum:** iOS 17.0
+- **Build:** Xcode + [XcodeGen](https://github.com/yonsson/XcodeGen)
 
 ---
 
 ## How to Run
 
-The `ToothBuddy.xcodeproj` is generated by [XcodeGen](https://github.com/yonsson/XcodeGen) from [`project.yml`](project.yml) and is **git-ignored**. After cloning:
+`ToothBuddy.xcodeproj` is generated from [`project.yml`](project.yml) and is **git-ignored**:
 
 ```sh
 brew install xcodegen   # one-time
-xcodegen generate       # creates ToothBuddy.xcodeproj
+xcodegen generate
 open ToothBuddy.xcodeproj
 ```
-
-Then pick a simulator (or device) in Xcode and run.
 
 ### Tests
 
 ```sh
-# Pure logic (fast, no simulator) — 108 tests
-cd ToothBuddyCore && swift test
+# Pure logic (fast, no simulator)
+swift test --package-path ToothBuddyCore
 
-# App layer (boots simulator) — 18 tests
-xcodebuild -project ToothBuddy.xcodeproj -scheme ToothBuddy \
-  -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.6' \
-  CODE_SIGNING_ALLOWED=NO test
+# Everything (one-shot: xcodegen + Core tests + app build/test + dead-code scan)
+bash scripts/audit.sh
 ```
 
-Per-feature manual smoke checklists are in each `specs/NN-*.md` §12.
-
-### Quality audit (one-shot)
-
-```bash
-bash scripts/audit.sh   # xcodegen + build + swift test + xcodebuild test + periphery
-```
-
-Periphery is an optional dev tool that flags dead code; install it once with:
-
-```bash
-brew install peripheryapp/periphery/periphery
-```
-
-`scripts/audit.sh` skips Periphery if it isn't installed. See [`docs/plans/2026-05-28-001-refactor-quality-audit-plan.md`](docs/plans/2026-05-28-001-refactor-quality-audit-plan.md) for what the audit covers.
+The app target builds with `SWIFT_TREAT_WARNINGS_AS_ERRORS` — the baseline is 0 warnings.
 
 ---
 
@@ -111,28 +95,22 @@ brew install peripheryapp/periphery/periphery
 
 | Path | What |
 |------|------|
-| [`ROADMAP.md`](ROADMAP.md) | Product direction & priorities |
-| [`PLAN.md`](PLAN.md) | Execution process, per-feature status board, decision log |
-| [`specs/`](specs/) | One spec per shipped feature (problem → behavior → acceptance criteria → smoke checklist) |
-| [`CHANGELOG.md`](CHANGELOG.md) | What changed, per shipped feature |
-| [`project.yml`](project.yml) | XcodeGen source of truth (generates `ToothBuddy.xcodeproj`) |
+| [`docs/product-north-star.md`](docs/product-north-star.md) | Current product definition (authoritative) |
+| [`docs/plans/`](docs/plans/) | Implementation plans (latest = quality-pivot rebuild) |
 | [`ToothBuddyCore/`](ToothBuddyCore/) | Local Swift package — pure logic + XCTest suite |
-| `MyApp.swift`, `ContentView.swift` | App entry + tab container |
-| `OnboardingView.swift` | First-run flow (shows once) |
-| `BrushView.swift`, `BrushGameOverlay.swift` | Brushing screen + Sugar Bugs overlay |
-| `CameraService.swift`, `CameraPreviewView.swift`, `VisionFrameProcessor.swift`, `BrushingZoneMonitor.swift` | Single-claim camera pipeline + zone estimator |
-| `Persistence.swift`, `BrushingStore.swift`, `GamificationStore.swift` | Core Data stack + per-profile records + achievements |
-| `ProfileStore.swift`, `ProfilePickerView.swift` | Multi-profile (kid/adult) |
-| `GroupStore.swift`, `GroupDashboardView.swift` | Peer family group + dashboard |
-| `CareStore.swift`, `NotificationScheduler.swift` | Brush-head / dentist reminders + adaptive local notifications |
-| `ContentHistoryStore.swift`, `HabitCurveView.swift`, `TipsView.swift` | Content engine + adult habit curve + gamified course |
-| `ReportPDFRenderer.swift` | Dentist-shareable PDF (30/90/365d) |
-| `HistoryView.swift` | Streak / sessions / Health opt-in row (adult) |
-| `BrushingIntentBridge.swift`, `ToothBuddyIntents.swift` | App Intents / Siri Shortcuts |
-| `BrushingLiveActivity.swift`, `WidgetBridge.swift`, `Shared/`, `Widget/` | Live Activity + Home Screen widget (App Group) |
-| `HealthExporter.swift` | Write-only `toothbrushingEvent` export to Apple Health |
-| `Theme.swift`, `SoundManager.swift`, `VoiceCoach.swift` | Cross-cutting UI / audio / TTS |
-| `Support/` | `Info.plist`, `WidgetInfo.plist`, entitlements |
+| `MyApp.swift`, `ContentView.swift` | App entry + tab container (Brush / History / Tips) |
+| `OnboardingView.swift` | First-run flow (auto-creates the single owner profile) |
+| `BrushView.swift` | Guided session: audio-first + smart-mirror, done summary |
+| `BrushGameOverlay.swift` | Sugar Bugs mini-game (mirror mode, toggleable) |
+| `CameraService.swift`, `VisionFrameProcessor.swift`, `BrushingZoneMonitor.swift` | Camera pipeline + zone coverage/verification (drives `GuidedSessionEngine`) |
+| `PreferencesStore.swift`, `SettingsView.swift` | Per-feature settings (replaces the kid/adult split) |
+| `Persistence.swift`, `BrushingStore.swift`, `ProfileStore.swift`, `GamificationStore.swift` | Core Data + single-owner records + quality rewards |
+| `CareStore.swift`, `NotificationScheduler.swift` | Brush-head / dentist reminders + adaptive notifications |
+| `ContentHistoryStore.swift`, `HabitCurveView.swift`, `TipsView.swift` | Content engine + habit curve + course |
+| `ReportPDFRenderer.swift`, `HistoryView.swift` | Dentist-proof PDF + history/quality screen |
+| `ToothBuddyIntents.swift`, `BrushingLiveActivity.swift`, `WidgetBridge.swift`, `Shared/`, `Widget/` | Siri + Live Activity + Home-Screen widget |
+| `HealthExporter.swift` | Write-only `toothbrushingEvent` export |
+| `Theme.swift`, `DuoTheme.swift`, `SoundManager.swift`, `VoiceCoach.swift` | Design system + audio / TTS |
 
 ---
 

@@ -1,5 +1,7 @@
 # ToothBuddy Feature Inventory
 
+> **⚠️ 已被取代（2026-05-29）：** 这份描述的是旧"习惯打卡 / 家庭"产品。当前产品权威定义见 `docs/product-north-star.md`，重做计划见 `docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md`。本文件保留作历史快照。
+
 写于 2026-05-29。一份简洁 spec list，按用户视角的功能模块组织。每条标注：做什么、关键文件、实现思路、状态。
 
 代码侧自检（2026-05-29）：
