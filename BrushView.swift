@@ -14,6 +14,8 @@ struct BrushView: View {
     /// Spec 05 §6.1 — the active profile's experience mode (per-profile; a kid sibling
     /// on the same device is unaffected). Drives the calm adult presentation.
     private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
+    /// U5 — smart-mirror (camera visual) vs audio-first (eyes-free). Drives the brushing UI.
+    private var isMirror: Bool { prefs.sessionMode == .mirror }
     /// Spec 05 §6.1 — the calm "morning ✓ / evening ✓" summary shown instead of stars
     /// for an adult profile. Derived from the active profile's records (today).
     private var adultSlotSummary: String {
@@ -293,24 +295,23 @@ struct BrushView: View {
 
             // Live camera preview ONLY while brushing — idle state shows BuddyView
             // (no point pointing the camera at a not-yet-brushing user).
-            if cameraAuthorized, isBrushing {
+            if cameraAuthorized, isBrushing, isMirror {
                 CameraPreviewView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .allowsHitTesting(false)
             }
 
-            // Sugar Bugs game (Spec 04.3) — playful, non-adult only (Spec 05 §6.1);
-            // decorative, below the LIVE pill / zone prompt. Camera-off → timed fallback.
-            if isBrushing, !isAdult,
-               ContentHistoryStore.shared.effectiveTone(forAdult: isAdult) == .playful {
+            // Sugar Bugs game (Spec 04.3) — U5/U8: shown in mirror mode when the user
+            // keeps the game on (Settings), no longer gated by kid/adult.
+            if isBrushing, isMirror, prefs.gameEnabled {
                 BrushGameOverlay()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .allowsHitTesting(false)
             }
 
-            if isBrushing {
+            if isBrushing, isMirror {
                 // LIVE pill + disclaimer aligned to top
                 VStack(spacing: 5) {
                     HStack(spacing: 6) {
@@ -340,6 +341,8 @@ struct BrushView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 14)
                 .frame(maxHeight: .infinity, alignment: .top)
+            } else if isBrushing {
+                audioGuideView
             } else {
                 // Idle hero — BuddyView mascot centered, camera-off message below.
                 VStack(spacing: 16) {
@@ -359,7 +362,7 @@ struct BrushView: View {
 
             // Bottom of camera: zone instruction + mute toggle when brushing only.
             VStack(spacing: 8) {
-                if isBrushing, let zone = zoneMonitor.currentZone {
+                if isBrushing, isMirror, let zone = zoneMonitor.currentZone {
                     HStack(spacing: 8) {
                         Text(zone.prompt)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
@@ -395,6 +398,40 @@ struct BrushView: View {
         .padding(.bottom, 16)
         .animation(.easeInOut(duration: 0.4), value: isBrushing)
         .onAppear { requestCameraIfNeeded() }
+    }
+
+    /// U5 — eyes-free brushing view: no camera, no game. Big mascot + current-zone prompt
+    /// + reassurance that the phone can be set down; voice does the guiding.
+    private var audioGuideView: some View {
+        VStack(spacing: 18) {
+            BuddyView()
+                .frame(width: 120, height: 138)
+            if let zone = zoneMonitor.currentZone {
+                Text(zone.prompt)
+                    .font(Duo.Fnt.ebd(20))
+                    .tracking(0.2)
+                    .foregroundColor(Duo.ink)
+                    .multilineTextAlignment(.center)
+                    .contentTransition(.opacity)
+            }
+            Text("Eyes-free — set your phone down, I'll guide you by voice.")
+                .font(Duo.Fnt.sbd(13))
+                .foregroundColor(Duo.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) { voiceCoach.isMuted.toggle() }
+            } label: {
+                Image(systemName: voiceCoach.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(voiceCoach.isMuted ? Theme.textMuted : Theme.textPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.92))
+                    .clipShape(Circle())
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 16)
     }
 
     private func requestCameraIfNeeded() {
@@ -517,6 +554,7 @@ struct BrushView: View {
         store.isBrushing = true
         elapsedSeconds = 0
         zoneMonitor.targetSeconds = prefs.targetSeconds
+        zoneMonitor.useCamera = isMirror   // U5 — audio-first mode never opens the camera
         voiceCoach.isMuted = !prefs.voiceEnabled
         zoneMonitor.startMonitoring()
         // Spec 05 §6.5 — Live Activity (additive; no-op if unsupported/disabled).

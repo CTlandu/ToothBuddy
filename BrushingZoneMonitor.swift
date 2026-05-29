@@ -83,6 +83,9 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     // stopMonitoring() by BrushView to persist the record's quality signals.
     /// Session target in seconds (U7 Settings / U4 inject; default = 2-minute standard).
     var targetSeconds = 120
+    /// U5 — false in audio-first mode: skip the camera entirely (privacy + battery); the
+    /// session stays guided-only. Set by BrushView before startMonitoring().
+    var useCamera = true
     private var coverageSeconds: [CoarseZone: Int] = [:]
     private var activeSecondsCount = 0
     private var cameraBrushingSeconds = 0
@@ -116,10 +119,10 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
         activeSecondsCount = 0
         cameraBrushingSeconds = 0
         usedCameraMode = false
-        cameraAuthorizedAtStart = camera.isAuthorized
-        fallbackMode = !camera.isAuthorized            // no permission → timed at once
+        cameraAuthorizedAtStart = camera.isAuthorized && useCamera
+        fallbackMode = !camera.isAuthorized || !useCamera   // no permission / audio mode → timed
 
-        if camera.isAuthorized {
+        if camera.isAuthorized, useCamera {
             camera.attachVision(sink: { [weak self] sample in
                 Task { @MainActor in self?.ingest(sample) }
             })
@@ -166,7 +169,7 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
         guard running else { return }
         let now = CACurrentMediaTime()
 
-        if !camera.isAuthorized {
+        if !camera.isAuthorized || !useCamera {
             fallbackMode = true
         } else if now - lastFaceSeen > cfg.fallbackGrace {
             fallbackMode = true
