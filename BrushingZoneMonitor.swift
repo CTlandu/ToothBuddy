@@ -106,6 +106,11 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
         GuidedSessionEngine.progress(plan: SessionPlan(targetSeconds: targetSeconds),
                                      coverage: coverageSeconds, mode: .fallbackTimed).isComplete
     }
+    /// U14 — zones brushed to target so far (Live Activity progress).
+    var sessionZonesCompleted: Int {
+        GuidedSessionEngine.progress(plan: SessionPlan(targetSeconds: targetSeconds),
+                                     coverage: coverageSeconds, mode: .fallbackTimed).zonesCompleted
+    }
 
     private init() {}
 

@@ -22,6 +22,9 @@ struct BrushingLiveActivityWidget: Widget {
                     Text(context.state.zoneHint)
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundColor(Duo.muted)
+                    Text("\(context.state.zonesCompleted)/\(context.state.totalZones) areas")
+                        .font(.system(size: 11, weight: .heavy, design: .rounded))
+                        .foregroundColor(Duo.green)
                 }
                 Spacer()
                 Text(timeText(context.state.secondsRemaining))
@@ -45,7 +48,7 @@ struct BrushingLiveActivityWidget: Widget {
                         .foregroundColor(Duo.ink)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.zoneHint)
+                    Text("\(context.state.zoneHint) · \(context.state.zonesCompleted)/\(context.state.totalZones) areas")
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundColor(Duo.muted)
                 }

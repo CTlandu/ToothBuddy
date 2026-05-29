@@ -575,7 +575,9 @@ struct BrushView: View {
                 if elapsedSeconds % 5 == 0 {
                     BrushingLiveActivity.update(
                         secondsRemaining: max(0, prefs.targetSeconds - elapsedSeconds),
-                        zoneHint: zoneMonitor.currentZone?.announcement ?? "Keep brushing")
+                        zoneHint: zoneMonitor.currentZone?.announcement ?? "Keep brushing",
+                        zonesCompleted: zoneMonitor.sessionZonesCompleted,
+                        totalZones: CoarseZone.allCases.count)
                 }
                 for cue in sessionCues
                 where cue.atSecond == elapsedSeconds

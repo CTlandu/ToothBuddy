@@ -27,10 +27,12 @@ enum BrushingLiveActivity {
         }
     }
 
-    static func update(secondsRemaining: Int, zoneHint: String) {
+    static func update(secondsRemaining: Int, zoneHint: String,
+                       zonesCompleted: Int, totalZones: Int) {
         guard let activity = current else { return }
         let state = BrushingActivityAttributes.ContentState(
-            secondsRemaining: max(0, secondsRemaining), zoneHint: zoneHint)
+            secondsRemaining: max(0, secondsRemaining), zoneHint: zoneHint,
+            zonesCompleted: zonesCompleted, totalZones: totalZones)
         let content = ActivityContent(state: state, staleDate: nil)
         Task { await activity.update(content) }
     }
@@ -57,7 +59,8 @@ enum BrushingLiveActivity {
 @MainActor
 enum BrushingLiveActivity {
     static func start(profileName: String, totalSeconds: Int) {}
-    static func update(secondsRemaining: Int, zoneHint: String) {}
+    static func update(secondsRemaining: Int, zoneHint: String,
+                       zonesCompleted: Int, totalZones: Int) {}
     static func end() {}
 }
 #endif

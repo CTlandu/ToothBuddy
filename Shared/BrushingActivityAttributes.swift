@@ -11,9 +11,14 @@ struct BrushingActivityAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         public var secondsRemaining: Int
         public var zoneHint: String
-        public init(secondsRemaining: Int, zoneHint: String) {
+        public var zonesCompleted: Int
+        public var totalZones: Int
+        public init(secondsRemaining: Int, zoneHint: String,
+                    zonesCompleted: Int = 0, totalZones: Int = 6) {
             self.secondsRemaining = secondsRemaining
             self.zoneHint = zoneHint
+            self.zonesCompleted = zonesCompleted
+            self.totalZones = totalZones
         }
     }
     public var profileName: String
