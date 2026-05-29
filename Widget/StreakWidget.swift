@@ -30,8 +30,8 @@ struct StreakWidget: Widget {
         StaticConfiguration(kind: "ToothBuddyStreak", provider: StreakProvider()) { entry in
             StreakWidgetView(snapshot: entry.snapshot)
         }
-        .configurationDisplayName(Text("Brushing Streak"))
-        .description(Text("Your streak and whether today's brushing is done."))
+        .configurationDisplayName(Text("Brushing"))
+        .description(Text("Today's brushing quality, plus your streak."))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -61,29 +61,46 @@ struct StreakWidgetView: View {
         }
     }
 
-    /// Chunky streak block — yellow flame badge + big rounded digit.
-    private var streakBlock: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                ZStack {
-                    Capsule().fill(Duo.yellowShadow).offset(y: 2)
-                    HStack(spacing: 3) {
-                        Text("🔥").font(.system(size: 14))
-                        Text("\(snapshot.currentStreak)")
-                            .font(.system(size: 16, weight: .heavy, design: .rounded))
-                            .foregroundColor(Duo.ink)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Duo.yellow))
-                    .overlay(Capsule().stroke(Duo.ink, lineWidth: 1.5))
-                }
-                .fixedSize()
+    /// U12 hero — today's brushing quality.
+    private var qualityBlock: some View {
+        HStack(spacing: 8) {
+            Image(systemName: snapshot.todayThoroughCount > 0 ? "checkmark.seal.fill" : "mouth.fill")
+                .font(.system(size: 24, weight: .heavy))
+                .foregroundColor(snapshot.todayThoroughCount > 0 ? Duo.green : Duo.muted)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(snapshot.todayThoroughCount > 0 ? "Brushed well" : "Brush today")
+                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .foregroundColor(Duo.ink)
+                Text("\(snapshot.todayThoroughCount) thorough today")
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
+                    .foregroundColor(Duo.muted)
             }
-            Text("day streak")
-                .font(.system(size: 10, weight: .heavy, design: .rounded))
-                .tracking(0.4)
-                .foregroundColor(Duo.muted)
+        }
+    }
+
+    /// Demoted streak — a small flame badge, no longer the hero.
+    private var streakBadge: some View {
+        HStack(spacing: 3) {
+            Text("🔥").font(.system(size: 11))
+            Text("\(snapshot.currentStreak)")
+                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                .foregroundColor(Duo.ink)
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(Duo.yellow))
+        .overlay(Capsule().stroke(Duo.ink, lineWidth: 1.5))
+    }
+
+    /// Last session's coverage + verification.
+    private var lastCoverage: some View {
+        HStack(spacing: 5) {
+            Image(systemName: snapshot.lastVerified ? "checkmark.shield.fill" : "hand.draw.fill")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(snapshot.lastVerified ? Duo.green : Duo.muted)
+            Text("\(snapshot.lastZonesMet)/6 areas")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundColor(Duo.ink)
         }
     }
 
@@ -100,30 +117,33 @@ struct StreakWidgetView: View {
     }
 
     private var small: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            streakBlock
+        VStack(alignment: .leading, spacing: 6) {
+            qualityBlock
             Spacer(minLength: 0)
             slot("Morning", snapshot.amDone)
             slot("Evening", snapshot.pmDone)
+            HStack { Spacer(); streakBadge }
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
     private var medium: some View {
-        HStack {
+        HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(snapshot.profileName)
                     .font(.system(size: 15, weight: .heavy, design: .rounded))
                     .foregroundColor(Duo.ink)
-                streakBlock
+                qualityBlock
+                lastCoverage
             }
             Spacer()
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .trailing, spacing: 8) {
+                streakBadge
                 slot("Morning", snapshot.amDone)
                 slot("Evening", snapshot.pmDone)
                 if snapshot.atRisk {
-                    Text("Streak at risk tonight")
+                    Text("Brush before bed")
                         .font(.system(size: 10, weight: .heavy, design: .rounded))
                         .foregroundColor(Duo.red)
                 }
