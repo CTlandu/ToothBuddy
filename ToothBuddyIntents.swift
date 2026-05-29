@@ -20,10 +20,7 @@ struct LogBrushingIntent: AppIntent {
         case .alreadyLoggedThisSlot:
             return .result(dialog: "You already logged this one — nice work.")
         case .logged:
-            let s = BrushingStore.shared.consecutiveDaysCount
-            return .result(dialog: s > 0
-                ? "Brushing logged. Your streak is \(s) day\(s == 1 ? "" : "s")."
-                : "Brushing logged. Keep it up!")
+            return .result(dialog: "Brushing logged. Keep it up!")
         }
     }
 }
@@ -44,10 +41,11 @@ struct StartBrushingIntent: AppIntent {
     }
 }
 
-/// "What's my brushing streak" — read-only current streak for the active profile.
+/// "What's my brushing streak" — reports this week's thorough (target-met) brushes for the
+/// active profile, with the streak as a secondary mention (U13 — quality is the headline).
 struct BrushingStreakIntent: AppIntent {
-    static let title: LocalizedStringResource = "Brushing Streak"
-    static let description = IntentDescription("Hear your current brushing streak.")
+    static let title: LocalizedStringResource = "Brushing Summary"
+    static let description = IntentDescription("Hear how your brushing is going this week.")
     static let openAppWhenRun = false
 
     @MainActor
@@ -56,10 +54,17 @@ struct BrushingStreakIntent: AppIntent {
             return .result(dialog: "Open ToothBuddy and pick a profile first.")
         }
         BrushingStore.shared.reload()
+        let recs = BrushingStore.shared.records
+        let cal = Calendar.current
+        let weekAgo = cal.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let weekThorough = recs.filter { $0.metMinimum && $0.startDate >= weekAgo }.count
         let s = BrushingStore.shared.consecutiveDaysCount
-        return .result(dialog: s == 0
-            ? "No streak yet — brush today to start one!"
-            : "Your brushing streak is \(s) day\(s == 1 ? "" : "s"). Keep going!")
+        if weekThorough == 0 && s == 0 {
+            return .result(dialog: "No brushes logged yet — give every area a good brush today!")
+        }
+        let quality = "You've had \(weekThorough) thorough brush\(weekThorough == 1 ? "" : "es") this week."
+        let streakTail = s > 0 ? " Your streak is \(s) day\(s == 1 ? "" : "s")." : ""
+        return .result(dialog: "\(quality)\(streakTail)")
     }
 }
 

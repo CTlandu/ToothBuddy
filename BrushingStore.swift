@@ -102,12 +102,14 @@ final class BrushingStore: ObservableObject {
         r.applyQuality(activeSeconds: activeSeconds ?? max(0, Int(end.timeIntervalSince(start))),
                        targetSeconds: targetSeconds, coverage: coverage,
                        cameraVerified: cameraVerified, guidanceMode: guidanceMode)
+        // U13 — only a thorough (target-met) session is written to Apple Health.
+        let metMinimum = r.toDTO()?.metMinimum ?? false
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
         // Spec 05 §6.6 — opt-in, idempotent Health export (no-op unless authorized).
         if widgetSyncEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
-                                                 end: end, isCompleted: true)
+                                                 end: end, isCompleted: metMinimum)
         }
     }
 
