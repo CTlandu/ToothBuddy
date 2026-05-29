@@ -104,7 +104,7 @@ final class BrushingStore: ObservableObject {
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
         // Spec 05 §6.6 — opt-in, idempotent Health export (no-op unless authorized).
-        if widgetSyncEnabled {
+        if widgetSyncEnabled, PreferencesStore.shared.healthConnectEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
                                                  end: end, isCompleted: metMinimum)
         }
@@ -135,7 +135,7 @@ final class BrushingStore: ObservableObject {
                        cameraVerified: false, guidanceMode: .fallbackTimed)
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
-        if widgetSyncEnabled {
+        if widgetSyncEnabled, PreferencesStore.shared.healthConnectEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
                                                  end: now, isCompleted: true)
         }
@@ -158,6 +158,10 @@ final class BrushingStore: ObservableObject {
         let r = CDBrushingRecord(context: ctx)
         r.id = rec.id; r.startDate = rec.startDate; r.endDate = rec.endDate
         r.modifiedAt = Date(); r.profile = cdp
+        // Restore the U1 quality fields too — an undo must not demote a thorough/verified brush.
+        r.applyQuality(activeSeconds: rec.activeSeconds, targetSeconds: rec.targetSeconds,
+                       coverage: rec.coverage, cameraVerified: rec.cameraVerified,
+                       guidanceMode: rec.guidanceMode)
         lastDeletedRecord = nil
         saveAndReload()
     }

@@ -132,4 +132,23 @@ final class BrushingStoreTests: XCTestCase {
         XCTAssertTrue(r.coverage.isEmpty)
         XCTAssertFalse(r.metMinimum)   // synthetic log has no coverage ⇒ not a verified brush
     }
+
+    // Regression (code review): undo must not demote a thorough/verified brush.
+    func testRestorePreservesEnrichedFieldsOnUndo() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let cov: [CoarseZone: Int] = Dictionary(uniqueKeysWithValues:
+            CoarseZone.allCases.map { ($0, 20) })
+        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date(),
+                         activeSeconds: 120, targetSeconds: 120, coverage: cov,
+                         cameraVerified: true, guidanceMode: .camera)
+        bs.deleteRecord(id: bs.records.first!.id)
+        bs.restoreLastDeleted()
+        let r = bs.records.first!
+        XCTAssertTrue(r.cameraVerified)
+        XCTAssertEqual(r.guidanceMode, .camera)
+        XCTAssertEqual(r.coverage.count, 6)
+        XCTAssertTrue(r.metMinimum)
+    }
 }

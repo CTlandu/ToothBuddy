@@ -43,7 +43,7 @@ public struct BrushingRecord: Identifiable, Codable, Equatable, Sendable {
     /// The honest "did a good brush" signal — same rule in camera and guided-only mode.
     public var metMinimum: Bool {
         guard targetSeconds > 0, activeSeconds >= targetSeconds else { return false }
-        let perZone = targetSeconds / CoarseZone.allCases.count
+        let perZone = max(1, targetSeconds / CoarseZone.allCases.count)
         return CoarseZone.allCases.allSatisfy { (coverage[$0] ?? 0) >= perZone }
     }
 
