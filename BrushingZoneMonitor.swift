@@ -98,6 +98,11 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
                                   brushingDetectedSeconds: cameraBrushingSeconds,
                                   activeSeconds: activeSecondsCount)
     }
+    /// U4 — the prescribed route is finished: every zone reached its per-zone target.
+    var sessionIsComplete: Bool {
+        GuidedSessionEngine.progress(plan: SessionPlan(targetSeconds: targetSeconds),
+                                     coverage: coverageSeconds, mode: .fallbackTimed).isComplete
+    }
 
     private init() {}
 

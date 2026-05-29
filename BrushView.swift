@@ -10,6 +10,7 @@ struct BrushView: View {
     @StateObject private var voiceCoach = VoiceCoach.shared
     @StateObject private var profiles = ProfileStore.shared
     @StateObject private var intentBridge = BrushingIntentBridge.shared
+    @StateObject private var prefs = PreferencesStore.shared
     /// Spec 05 §6.1 — the active profile's experience mode (per-profile; a kid sibling
     /// on the same device is unaffected). Drives the calm adult presentation.
     private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
@@ -515,14 +516,16 @@ struct BrushView: View {
         isBrushing = true
         store.isBrushing = true
         elapsedSeconds = 0
+        zoneMonitor.targetSeconds = prefs.targetSeconds
+        voiceCoach.isMuted = !prefs.voiceEnabled
         zoneMonitor.startMonitoring()
         // Spec 05 §6.5 — Live Activity (additive; no-op if unsupported/disabled).
         BrushingLiveActivity.start(
             profileName: profiles.activeProfile?.name ?? "ToothBuddy",
-            totalSeconds: 120)
-        // Build this session's varying content timeline (Spec 03); adult profiles
-        // default to the calm `essentials` tone unless the user set one (Spec 05 §6.1).
-        let tone = ContentHistoryStore.shared.effectiveTone(forAdult: isAdult)
+            totalSeconds: prefs.targetSeconds)
+        // Build this session's varying content timeline (Spec 03). Tone now comes from
+        // Settings (U7), not the profile's kid/adult mode.
+        let tone = prefs.contentTone
         let cal = Calendar.current
         let dayIdx = Int(cal.startOfDay(for: Date()).timeIntervalSinceReferenceDate / 86_400)
         let kinds: [ContentKind] = tone == .essentials
@@ -531,7 +534,7 @@ struct BrushView: View {
         let content = ContentSelector.pick(kind: kind, now: Date(),
                                            history: ContentHistoryStore.shared.recent(),
                                            tone: tone, calendar: cal)
-        sessionCues = SessionScript.build(durationSeconds: 120, tone: tone,
+        sessionCues = SessionScript.build(durationSeconds: prefs.targetSeconds, tone: tone,
                                           content: content, calendar: cal)
         spokenCueTimes = []
         if let cid = content?.id { ContentHistoryStore.shared.record(cid) }
@@ -545,11 +548,13 @@ struct BrushView: View {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
                 guard let start = startDate else { return }
+                // U4 — prescribed route done (all zones brushed to target): wrap up.
+                if zoneMonitor.sessionIsComplete { stopBrushing(); return }
                 elapsedSeconds = Int(Date().timeIntervalSince(start))
                 // Spec 05 §6.5 — refresh the Live Activity every 5s (chatty-safe).
                 if elapsedSeconds % 5 == 0 {
                     BrushingLiveActivity.update(
-                        secondsRemaining: max(0, 120 - elapsedSeconds),
+                        secondsRemaining: max(0, prefs.targetSeconds - elapsedSeconds),
                         zoneHint: zoneMonitor.currentZone?.announcement ?? "Keep brushing")
                 }
                 for cue in sessionCues
@@ -573,7 +578,12 @@ struct BrushView: View {
         SoundManager.doneBrushing()
         timer?.invalidate()
         timer = nil
-        voiceCoach.stop()
+        // U4 — speak the wrap-up line (no-op if voice off), instead of an abrupt cut.
+        if let wrap = sessionCues.first(where: { $0.kind == .wrap }) {
+            voiceCoach.speak(wrap.text)
+        } else {
+            voiceCoach.stop()
+        }
         zoneMonitor.stopMonitoring()
         BrushingLiveActivity.end()   // Spec 05 §6.5 — never a stuck activity
         store.isBrushing = false
