@@ -5,15 +5,13 @@ struct HistoryView: View {
     @StateObject private var store = BrushingStore.shared
     @StateObject private var gamification = GamificationStore.shared
     @StateObject private var profiles = ProfileStore.shared
-    /// Spec 05 §6.1 — adult ⇒ no kid gamification (level/achievements), show the
-    /// calm habit curve instead. Per-profile; a kid sibling is unaffected.
-    private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
+    @StateObject private var prefs = PreferencesStore.shared
     @State private var contentAppeared = false
     @State private var selectedAchievement: Achievement?
 
     var body: some View {
         List {
-            if !isAdult {
+            if prefs.showLevelAchievements {
                 Section {
                     levelCard
                         .opacity(contentAppeared ? 1 : 0)
@@ -35,7 +33,7 @@ struct HistoryView: View {
             }
             .listSectionSeparator(.hidden)
 
-            if isAdult, let pid = profiles.activeProfileID {
+            if prefs.showHabitCurve, let pid = profiles.activeProfileID {
                 Section {
                     HabitCurveView(records: store.records, profileID: pid)
                         .opacity(contentAppeared ? 1 : 0)
@@ -45,7 +43,9 @@ struct HistoryView: View {
                         .listRowSeparator(.hidden)
                 }
                 .listSectionSeparator(.hidden)
+            }
 
+            if prefs.healthConnectEnabled {
                 Section {
                     HealthConnectRow()
                         .opacity(contentAppeared ? 1 : 0)
@@ -67,7 +67,7 @@ struct HistoryView: View {
             }
             .listSectionSeparator(.hidden)
 
-            if !isAdult {
+            if prefs.showLevelAchievements {
                 Section(header: achievementsHeader) {
                     achievementsRow
                         .opacity(contentAppeared ? 1 : 0)
