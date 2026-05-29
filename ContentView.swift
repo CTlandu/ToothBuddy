@@ -3,7 +3,6 @@ import SwiftUI
 enum AppTab: String, CaseIterable {
     case brush
     case history
-    case family
     case tips
 }
 
@@ -122,14 +121,6 @@ struct ContentView: View {
                                       removal: .move(edge: .leading).combined(with: .opacity))
                         : .asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
                                       removal: .move(edge: .trailing).combined(with: .opacity)))
-            case .family:
-                GroupDashboardView()
-                    .id("family")
-                    .transition(tabOrderIndex >= previousTabOrderIndex
-                        ? .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
-                                      removal: .move(edge: .leading).combined(with: .opacity))
-                        : .asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
-                                      removal: .move(edge: .trailing).combined(with: .opacity)))
             case .tips:
                 TipsView()
                     .id("tips")
@@ -145,7 +136,7 @@ struct ContentView: View {
     }
 
     /// Tab order: History (left), Brush (center), Tips (right).
-    private static let tabOrder: [AppTab] = [.history, .brush, .family, .tips]
+    private static let tabOrder: [AppTab] = [.history, .brush, .tips]
 
     private var customTabBar: some View {
         HStack(spacing: 6) {
@@ -227,7 +218,6 @@ extension AppTab {
         switch self {
         case .brush:   return String(localized: "Brush")
         case .history: return String(localized: "History")
-        case .family:  return String(localized: "Family")
         case .tips:    return String(localized: "Tips")
         }
     }
@@ -236,7 +226,6 @@ extension AppTab {
         switch self {
         case .brush:   return "mouth.fill"
         case .history: return "chart.bar.fill"
-        case .family:  return "person.3.fill"
         case .tips:    return "lightbulb.fill"
         }
     }

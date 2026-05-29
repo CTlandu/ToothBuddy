@@ -49,21 +49,6 @@ final class BrushingStoreTests: XCTestCase {
         XCTAssertEqual(bs.records.count, 1)
     }
 
-    // MARK: - allRecords spans every profile (Group dashboard)
-
-    func testAllRecordsSpansEveryProfile() {
-        let (_, ps, bs) = freshTriple()
-        let a = ps.createProfile(name: "A", color: .sky, symbol: .star)!
-        let b = ps.createProfile(name: "B", color: .mint, symbol: .bolt)!
-
-        ps.setActive(a.id); bs.reload()
-        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date())
-        ps.setActive(b.id); bs.reload()
-        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date())
-
-        XCTAssertEqual(bs.allRecords().count, 2)
-    }
-
     // MARK: - Delete + Undo round-trip
 
     func testDeleteAndRestoreRoundTrip() {

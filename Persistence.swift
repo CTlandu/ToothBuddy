@@ -17,16 +17,6 @@ final class CDProfile: NSManagedObject {
     @NSManaged var records: NSSet?
     @NSManaged var care: CDProfileCare?
     @NSManaged var achievements: NSSet?
-    @NSManaged var group: CDGroup?
-}
-
-@objc(CDGroup)
-final class CDGroup: NSManagedObject {
-    @NSManaged var id: UUID?
-    @NSManaged var name: String?
-    @NSManaged var createdAt: Date?
-    @NSManaged var modifiedAt: Date?
-    @NSManaged var members: NSSet?
 }
 
 @objc(CDBrushingRecord)
@@ -103,10 +93,6 @@ enum ToothBuddyModel {
         ach.name = "CDAchievementUnlock"
         ach.managedObjectClassName = "CDAchievementUnlock"
 
-        let group = NSEntityDescription()
-        group.name = "CDGroup"
-        group.managedObjectClassName = "CDGroup"
-
         profile.properties = [
             attr("id", .UUIDAttributeType),
             attr("name", .stringAttributeType),
@@ -143,13 +129,6 @@ enum ToothBuddyModel {
             attr("achievementID", .stringAttributeType),
             attr("unlockedAt", .dateAttributeType)
         ]
-        group.properties = [
-            attr("id", .UUIDAttributeType),
-            attr("name", .stringAttributeType),
-            attr("createdAt", .dateAttributeType),
-            attr("modifiedAt", .dateAttributeType)
-        ]
-
         // Relationships (all with inverses — required for CloudKit).
         let pToR = NSRelationshipDescription()
         pToR.name = "records"; pToR.destinationEntity = record
@@ -175,23 +154,13 @@ enum ToothBuddyModel {
         aToP.minCount = 0; aToP.maxCount = 1; aToP.deleteRule = .nullifyDeleteRule
         pToA.inverseRelationship = aToP; aToP.inverseRelationship = pToA
 
-        // Group ↔ members (Spec 02 §6.4 / §7.1). Optional; nil = pure-solo.
-        let gToM = NSRelationshipDescription()
-        gToM.name = "members"; gToM.destinationEntity = profile
-        gToM.minCount = 0; gToM.maxCount = 0; gToM.deleteRule = .nullifyDeleteRule
-        let pToG = NSRelationshipDescription()
-        pToG.name = "group"; pToG.destinationEntity = group
-        pToG.minCount = 0; pToG.maxCount = 1; pToG.deleteRule = .nullifyDeleteRule
-        gToM.inverseRelationship = pToG; pToG.inverseRelationship = gToM
-
-        profile.properties += [pToR, pToCare, pToA, pToG]
+        profile.properties += [pToR, pToCare, pToA]
         record.properties += [rToP]
         care.properties += [careToP]
         ach.properties += [aToP]
-        group.properties += [gToM]
 
         let model = NSManagedObjectModel()
-        model.entities = [profile, record, care, ach, group]
+        model.entities = [profile, record, care, ach]
         return model
     }
 }

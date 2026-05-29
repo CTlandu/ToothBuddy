@@ -40,8 +40,6 @@ targets:
       - DuoComponents.swift
       - DuoCharacters.swift
       - GamificationStore.swift
-      - GroupStore.swift
-      - GroupDashboardView.swift
       - HabitCurveView.swift
       - HealthExporter.swift
       - HistoryView.swift
@@ -51,7 +49,6 @@ targets:
       - Persistence.swift
       - PreferencesStore.swift
       - ProfileStore.swift
-      - ProfilePickerView.swift
       - SettingsView.swift
       - ReportPDFRenderer.swift
       - SoundManager.swift

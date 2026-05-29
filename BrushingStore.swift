@@ -84,13 +84,6 @@ final class BrushingStore: ObservableObject {
                                        config: .default, calendar: .current)
     }
 
-    /// Every profile's records (for the Group dashboard, Spec 02 §6.5).
-    func allRecords() -> [BrushingRecord] {
-        let req = NSFetchRequest<CDBrushingRecord>(entityName: "CDBrushingRecord")
-        req.sortDescriptors = [NSSortDescriptor(key: "startDate", ascending: false)]
-        return ((try? ctx.fetch(req)) ?? []).compactMap { $0.toDTO() }
-    }
-
     // MARK: Mutations
 
     /// Record a completed session for the active profile. The quality signals (U3) carry the
