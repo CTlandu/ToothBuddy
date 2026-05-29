@@ -9,11 +9,9 @@ enum AppTab: String, CaseIterable {
 
 struct ContentView: View {
     @StateObject private var store = BrushingStore.shared
-    @StateObject private var profiles = ProfileStore.shared
     @StateObject private var intentBridge = BrushingIntentBridge.shared
     @State private var selectedTab: AppTab = .brush
     @State private var previousTab: AppTab = .brush
-    @State private var showProfileSwitcher = false
     @State private var showSettings = false
 
     var body: some View {
@@ -39,11 +37,6 @@ struct ContentView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: store.isBrushing)
         .background(Theme.appBackground.ignoresSafeArea())
         .ignoresSafeArea(edges: .bottom)
-        .sheet(isPresented: $showProfileSwitcher) {
-            ProfilePickerView(store: profiles, isGate: false) {
-                showProfileSwitcher = false
-            }
-        }
         .sheet(isPresented: $showSettings) { SettingsView() }
         // Spec 05 §6.3 — StartBrushingIntent: jump to the Brush tab; BrushView
         // consumes the request and begins the session.
@@ -90,7 +83,7 @@ struct ContentView: View {
                 .frame(width: 32, height: 36)
             DuoWordmark(text: "ToothBuddy", size: 24, face: .white, tracking: 0.5)
             Spacer()
-            profileButton
+            Spacer().frame(width: 36)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -102,18 +95,6 @@ struct ContentView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
                 .frame(width: 36, height: 36)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var profileButton: some View {
-        Button { showProfileSwitcher = true } label: {
-            Image(systemName: profiles.activeProfile?.symbol.systemImage ?? "person.crop.circle")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 36, height: 36)
-                .background((profiles.activeProfile?.colorTag.color) ?? Theme.accentBlue)
-                .clipShape(Circle())
         }
         .buttonStyle(.plain)
     }

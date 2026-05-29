@@ -7,7 +7,7 @@ import ToothBuddyCore
 /// device-local in UserDefaults and NEVER synced.
 @MainActor
 final class ProfileStore: ObservableObject {
-    static let shared = ProfileStore()
+    static let shared = ProfileStore(autoCreateOwner: true)
 
     @Published private(set) var profiles: [Profile] = []
     @Published private(set) var activeProfileID: UUID?
@@ -15,12 +15,23 @@ final class ProfileStore: ObservableObject {
     private let ctx: NSManagedObjectContext
     private let activeKey = "ToothBuddy.activeProfileID"
 
-    init(controller: PersistenceController = .shared) {
+    init(controller: PersistenceController = .shared, autoCreateOwner: Bool = false) {
         ctx = controller.container.viewContext
         if let s = UserDefaults.standard.string(forKey: activeKey) {
             activeProfileID = UUID(uuidString: s)
         }
         reload()
+        if autoCreateOwner { ensureOwnerProfile() }
+    }
+
+    /// U9 — single-user model: guarantee one owner profile exists and is active.
+    /// Only the shared instance auto-creates; tests opt out (default false).
+    private func ensureOwnerProfile() {
+        if profiles.isEmpty {
+            _ = createProfile(name: "Me", color: .sky, symbol: .star, makeActive: true)
+        } else if activeProfileID == nil {
+            setActive(profiles.first?.id)
+        }
     }
 
     var activeProfile: Profile? {
