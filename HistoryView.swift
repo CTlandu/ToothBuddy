@@ -8,6 +8,7 @@ struct HistoryView: View {
     @StateObject private var prefs = PreferencesStore.shared
     @State private var contentAppeared = false
     @State private var selectedAchievement: Achievement?
+    @State private var shareURL: URL?
 
     var body: some View {
         List {
@@ -61,6 +62,14 @@ struct HistoryView: View {
                 statsRow
                     .opacity(contentAppeared ? 1 : 0)
                     .offset(y: contentAppeared ? 0 : 12)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            .listSectionSeparator(.hidden)
+
+            Section {
+                shareReportButton
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
@@ -125,6 +134,41 @@ struct HistoryView: View {
             .presentationDetents([.height(340)])
             .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: Binding(get: { shareURL != nil },
+                                    set: { if !$0 { shareURL = nil } })) {
+            if let url = shareURL { ShareSheet(items: [url]) }
+        }
+    }
+
+    /// U15 — build a 90-day dentist-proof PDF for the owner and present the share sheet.
+    private var shareReportButton: some View {
+        Button {
+            let cal = Calendar.current
+            let end = Date()
+            let start = cal.date(byAdding: .day, value: -89, to: end) ?? end
+            guard let pid = profiles.activeProfileID else { return }
+            let data = ReportBuilder.build(
+                profileID: pid, profileName: profiles.activeProfile?.name ?? "Me",
+                in: store.records, start: start, end: end, now: end,
+                config: .default, calendar: cal)
+            shareURL = ReportPDFRenderer.writeTempPDF(data)
+        } label: {
+            DuoCard(padding: 14) {
+                HStack(spacing: 10) {
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 16, weight: .heavy))
+                        .foregroundColor(Duo.blue)
+                    Text("Share dentist report (90 days)")
+                        .font(Duo.Fnt.ebd(14))
+                        .foregroundColor(Duo.ink)
+                    Spacer()
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 14, weight: .heavy))
+                        .foregroundColor(Duo.muted)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private var levelCard: some View {

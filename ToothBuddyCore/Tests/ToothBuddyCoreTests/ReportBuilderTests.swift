@@ -62,6 +62,29 @@ final class ReportBuilderTests: XCTestCase {
         XCTAssertEqual(r.totalDays, 7)
         XCTAssertEqual(r.completionPercent, 0)
         XCTAssertEqual(r.currentStreak, 0)
-        XCTAssertTrue(r.days.allSatisfy { !$0.active })
+        XCTAssertEqual(r.thoroughSessions, 0)
+        XCTAssertEqual(r.verifiedSessions, 0)
+        XCTAssertEqual(r.avgActiveSeconds, 0)
+        XCTAssertTrue(r.days.allSatisfy { !$0.active && !$0.thorough })
+    }
+
+    func testQualityTallies() {
+        let p = UUID()
+        let full = Dictionary(uniqueKeysWithValues: CoarseZone.allCases.map { ($0, 20) })
+        func thoroughRec(_ n: Int, verified: Bool) -> BrushingRecord {
+            let s = cal.date(byAdding: .hour, value: 9, to: day(n))!
+            return BrushingRecord(profileID: p, startDate: s, endDate: s.addingTimeInterval(120),
+                                  activeSeconds: 120, targetSeconds: 120, coverage: full,
+                                  cameraVerified: verified,
+                                  guidanceMode: verified ? .camera : .fallbackTimed)
+        }
+        let all = [thoroughRec(0, verified: true), thoroughRec(-1, verified: false), rec(p, -2)]
+        let r = build(p, all, day(-2), day(0))
+        XCTAssertEqual(r.totalSessions, 3)
+        XCTAssertEqual(r.thoroughSessions, 2)
+        XCTAssertEqual(r.verifiedSessions, 1)
+        XCTAssertEqual(r.avgActiveSeconds, (120 + 120 + 130) / 3)   // rec() is a 130s session
+        XCTAssertEqual(r.days.first { $0.date == day(0) }?.thorough, true)
+        XCTAssertEqual(r.days.first { $0.date == day(-2) }?.thorough, false)  // plain → not thorough
     }
 }
