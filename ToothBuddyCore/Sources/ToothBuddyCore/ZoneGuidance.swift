@@ -2,7 +2,7 @@ import Foundation
 
 /// Coarse, engagement-grade brushing zone (Spec 04). Maps 1:1 to the app's `BrushingZone`.
 /// Deliberately coarse — never per-tooth/clinical.
-public enum CoarseZone: String, CaseIterable, Sendable, Equatable {
+public enum CoarseZone: String, CaseIterable, Codable, Sendable, Equatable {
     case upperLeft, upperRight, lowerLeft, lowerRight, frontTop, frontBottom
 }
 
@@ -114,7 +114,7 @@ public struct ZoneCoverageTracker: Equatable, Sendable {
     }
 }
 
-public enum GuidanceMode: Sendable { case camera, fallbackTimed }
+public enum GuidanceMode: String, Codable, Sendable { case camera, fallbackTimed }
 
 public struct GuidanceState: Equatable, Sendable {
     public var lastAnnouncedZone: CoarseZone?

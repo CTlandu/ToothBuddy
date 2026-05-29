@@ -36,6 +36,13 @@ final class CDBrushingRecord: NSManagedObject {
     @NSManaged var endDate: Date?
     @NSManaged var modifiedAt: Date?
     @NSManaged var profile: CDProfile?
+    // U1 (quality-pivot) — enriched quality signals. Additive, optional/defaulted ⇒ zero-loss
+    // + CloudKit-safe per the model rule below.
+    @NSManaged var activeSeconds: NSNumber?   // nil ⇒ DTO falls back to wall-clock duration
+    @NSManaged var targetSeconds: Int64       // default 120
+    @NSManaged var coverageJSON: String?      // [CoarseZone.rawValue: seconds] as JSON
+    @NSManaged var cameraVerified: Bool       // default false
+    @NSManaged var guidanceMode: String?      // GuidanceMode.rawValue
 }
 
 @objc(CDProfileCare)
@@ -117,7 +124,13 @@ enum ToothBuddyModel {
             attr("id", .UUIDAttributeType),
             attr("startDate", .dateAttributeType),
             attr("endDate", .dateAttributeType),
-            attr("modifiedAt", .dateAttributeType)
+            attr("modifiedAt", .dateAttributeType),
+            // U1 — enriched quality fields (additive; optional or defaulted ⇒ CloudKit-safe).
+            attr("activeSeconds", .integer64AttributeType),
+            attr("targetSeconds", .integer64AttributeType, optional: false, def: 120),
+            attr("coverageJSON", .stringAttributeType),
+            attr("cameraVerified", .booleanAttributeType, optional: false, def: false),
+            attr("guidanceMode", .stringAttributeType, optional: true, def: "fallbackTimed")
         ]
         care.properties = [
             attr("lastBrushHeadReplaced", .dateAttributeType),
@@ -254,6 +267,43 @@ extension CDProfile {
 extension CDBrushingRecord {
     func toDTO() -> BrushingRecord? {
         guard let id, let pid = profile?.id, let startDate, let endDate else { return nil }
-        return BrushingRecord(id: id, profileID: pid, startDate: startDate, endDate: endDate)
+        return BrushingRecord(id: id, profileID: pid, startDate: startDate, endDate: endDate,
+                              activeSeconds: activeSeconds?.intValue,
+                              targetSeconds: Int(targetSeconds),
+                              coverage: CoverageCodec.decode(coverageJSON),
+                              cameraVerified: cameraVerified,
+                              guidanceMode: GuidanceMode(rawValue: guidanceMode ?? "") ?? .fallbackTimed)
+    }
+
+    /// Write the U1 enriched quality fields onto this managed record.
+    func applyQuality(activeSeconds: Int, targetSeconds: Int,
+                      coverage: [CoarseZone: Int], cameraVerified: Bool,
+                      guidanceMode: GuidanceMode) {
+        self.activeSeconds = NSNumber(value: activeSeconds)
+        self.targetSeconds = Int64(targetSeconds)
+        self.coverageJSON = CoverageCodec.encode(coverage)
+        self.cameraVerified = cameraVerified
+        self.guidanceMode = guidanceMode.rawValue
+    }
+}
+
+/// Encodes a per-zone coverage map to/from a compact JSON string keyed by `CoarseZone.rawValue`
+/// (string keys round-trip cleanly through Core Data and a future CloudKit mirror).
+enum CoverageCodec {
+    static func encode(_ coverage: [CoarseZone: Int]) -> String? {
+        guard !coverage.isEmpty else { return nil }
+        let byRaw = Dictionary(uniqueKeysWithValues: coverage.map { ($0.key.rawValue, $0.value) })
+        guard let data = try? JSONEncoder().encode(byRaw) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func decode(_ json: String?) -> [CoarseZone: Int] {
+        guard let json, let data = json.data(using: .utf8),
+              let byRaw = try? JSONDecoder().decode([String: Int].self, from: data) else { return [:] }
+        var out: [CoarseZone: Int] = [:]
+        for (raw, seconds) in byRaw where CoarseZone(rawValue: raw) != nil {
+            out[CoarseZone(rawValue: raw)!] = seconds
+        }
+        return out
     }
 }
