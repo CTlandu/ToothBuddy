@@ -49,8 +49,10 @@ targets:
       - NotificationScheduler.swift
       - OnboardingView.swift
       - Persistence.swift
+      - PreferencesStore.swift
       - ProfileStore.swift
       - ProfilePickerView.swift
+      - SettingsView.swift
       - ReportPDFRenderer.swift
       - SoundManager.swift
       - Theme.swift

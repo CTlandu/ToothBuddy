@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .brush
     @State private var previousTab: AppTab = .brush
     @State private var showProfileSwitcher = false
+    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -43,6 +44,7 @@ struct ContentView: View {
                 showProfileSwitcher = false
             }
         }
+        .sheet(isPresented: $showSettings) { SettingsView() }
         // Spec 05 §6.3 — StartBrushingIntent: jump to the Brush tab; BrushView
         // consumes the request and begins the session.
         .onChange(of: intentBridge.startRequested) { _, requested in
@@ -82,7 +84,7 @@ struct ContentView: View {
 
     private var appHeader: some View {
         HStack(spacing: 8) {
-            Spacer().frame(width: 44)
+            settingsButton
             Spacer()
             BuddyView()
                 .frame(width: 32, height: 36)
@@ -92,6 +94,16 @@ struct ContentView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+
+    private var settingsButton: some View {
+        Button { showSettings = true } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.plain)
     }
 
     private var profileButton: some View {
