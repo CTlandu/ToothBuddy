@@ -1,7 +1,7 @@
 ---
 title: "feat: ToothBuddy quality-pivot rebuild (Phase 1)"
 type: feat
-status: active
+status: completed
 date: 2026-05-29
 origin: docs/product-north-star.md
 ---
