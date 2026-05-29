@@ -11,25 +11,8 @@ struct BrushView: View {
     @StateObject private var profiles = ProfileStore.shared
     @StateObject private var intentBridge = BrushingIntentBridge.shared
     @StateObject private var prefs = PreferencesStore.shared
-    /// Spec 05 §6.1 — the active profile's experience mode (per-profile; a kid sibling
-    /// on the same device is unaffected). Drives the calm adult presentation.
-    private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
     /// U5 — smart-mirror (camera visual) vs audio-first (eyes-free). Drives the brushing UI.
     private var isMirror: Bool { prefs.sessionMode == .mirror }
-    /// Spec 05 §6.1 — the calm "morning ✓ / evening ✓" summary shown instead of stars
-    /// for an adult profile. Derived from the active profile's records (today).
-    private var adultSlotSummary: String {
-        let cal = Calendar.current
-        let today0 = cal.startOfDay(for: Date())
-        var am = false, pm = false
-        for r in store.records where cal.startOfDay(for: r.startDate) == today0 {
-            switch SessionSlot.slot(for: r.startDate, boundaryHour: 12, calendar: cal) {
-            case .morning: am = true
-            case .evening: pm = true
-            }
-        }
-        return "Morning \(am ? "✓" : "—")   ·   Evening \(pm ? "✓" : "—")"
-    }
     @State private var isBrushing = false
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
@@ -102,8 +85,7 @@ struct BrushView: View {
             if let record = doneSheetRecord {
                 ZStack {
                     Duo.pageBackground.ignoresSafeArea()
-                    DoneResultSheet(record: record, isAdult: isAdult,
-                                    slotSummary: adultSlotSummary,
+                    DoneResultSheet(record: record, celebrate: prefs.celebrationsEnabled,
                                     onDismiss: { showDoneSheet = false }, onDelete: {
                         store.deleteRecord(id: record.id)
                         showDoneSheet = false
@@ -650,66 +632,41 @@ struct BrushView: View {
 // MARK: - Done result popup: Duo-style chunky card with Foam celebration
 private struct DoneResultSheet: View {
     let record: BrushingRecord
-    /// Spec 05 §6.1 — adult ⇒ no stars/confetti, calm copy, quiet slot summary.
-    var isAdult: Bool = false
-    var slotSummary: String = ""
+    /// U6 — celebrations (Foam + stars) on/off, from Settings (replaces the kid/adult split).
+    var celebrate: Bool = true
     let onDismiss: () -> Void
     let onDelete: () -> Void
     @State private var cardAppeared = false
 
     private var stars: Int { record.starCount }
     private var duration: Int { record.durationSeconds }
+    private var perZoneTarget: Int { record.targetSeconds / CoarseZone.allCases.count }
+    private func zoneMet(_ z: CoarseZone) -> Bool { (record.coverage[z] ?? 0) >= perZoneTarget }
+    private var zonesMet: Int { CoarseZone.allCases.filter(zoneMet).count }
 
     private var title: String {
-        if isAdult { return String(localized: "Brushing logged") }
-        switch stars {
-        case 3: return String(localized: "Perfect!")
-        case 2: return String(localized: "Good job!")
-        default: return String(localized: "Every brush counts!")
-        }
+        record.metMinimum ? String(localized: "Great brush!") : String(localized: "Brushing logged")
     }
-
-    private var titleColor: Color {
-        if isAdult { return Duo.ink }
-        switch stars {
-        case 3: return Duo.green
-        case 2: return Duo.blue
-        default: return Duo.yellowShadow
-        }
-    }
+    private var titleColor: Color { record.metMinimum ? Duo.green : Duo.ink }
 
     private var message: String {
-        if isAdult {
-            return duration >= 120
-                ? String(localized: "Logged a full two-minute session.")
-                : String(localized: "Logged. Aim for two minutes when you can.")
-        }
-        switch stars {
-        case 3: return String(localized: "You brushed for 2 minutes. That's the recommended time.")
-        case 2: return String(localized: "You're building a great habit. Keep it up!")
-        default: return String(localized: "Try for 2 minutes next time. You've got this!")
-        }
-    }
-
-    private var funFact: String {
-        if isAdult { return slotSummary }
-        switch stars {
-        case 3: return String(localized: "Did you know? Tooth enamel is the hardest part of your body.")
-        case 2: return String(localized: "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth.")
-        default: return String(localized: "Tip: Brushing twice a day helps keep cavities away.")
+        if record.metMinimum {
+            return String(localized: "You covered every area for the full time. That's a thorough brush.")
+        } else if zonesMet > 0 {
+            return String(localized: "You covered \(zonesMet) of \(CoarseZone.allCases.count) areas. Give each one a little longer next time.")
+        } else {
+            return String(localized: "Logged. Try to brush each area for the full time next round.")
         }
     }
 
     var body: some View {
-        VStack(spacing: 14) {
-            // Hero — Foam celebration for kid (3 stars = biggest), calm Buddy for adult.
-            if isAdult {
-                BuddyView()
-                    .frame(width: 70, height: 80)
-            } else {
+        VStack(spacing: 12) {
+            if celebrate {
                 FoamView()
-                    .frame(width: stars >= 3 ? 110 : 90,
-                           height: stars >= 3 ? 110 : 90)
+                    .frame(width: record.metMinimum ? 96 : 80,
+                           height: record.metMinimum ? 96 : 80)
+            } else {
+                BuddyView().frame(width: 70, height: 80)
             }
 
             Text(title)
@@ -718,29 +675,52 @@ private struct DoneResultSheet: View {
                 .foregroundColor(titleColor)
 
             Text(formattedTime)
-                .font(Duo.Fnt.ebd(40).monospacedDigit())
+                .font(Duo.Fnt.ebd(38).monospacedDigit())
                 .tracking(2)
                 .foregroundColor(Duo.ink)
+            Text(record.metMinimum
+                 ? String(localized: "Target met")
+                 : String(localized: "Target \(formattedTarget)"))
+                .font(Duo.Fnt.sbd(12))
+                .foregroundColor(record.metMinimum ? Duo.green : Duo.muted)
 
-            if !isAdult {
-                StarRatingView(count: stars, size: 26)
-            }
-
+            // Per-zone coverage — green = brushed long enough, gray = needs more time.
             VStack(spacing: 6) {
-                Text(message)
-                    .font(Duo.Fnt.sbd(14))
-                    .foregroundColor(Duo.ink)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(funFact)
-                    .font(Duo.Fnt.reg(12))
+                HStack(spacing: 8) {
+                    ForEach(CoarseZone.allCases, id: \.self) { z in
+                        Circle()
+                            .fill(zoneMet(z) ? Duo.green : Color(white: 0.85))
+                            .frame(width: 16, height: 16)
+                            .overlay(Circle().stroke(Duo.ink, lineWidth: 1.5))
+                    }
+                }
+                Text("\(zonesMet) / \(CoarseZone.allCases.count) areas covered")
+                    .font(Duo.Fnt.sbd(11))
                     .foregroundColor(Duo.muted)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 8)
 
-            DuoButton("DONE", role: isAdult ? .secondary : .primary) {
+            // Verification badge — the un-fakeable, dentist-facing flag.
+            HStack(spacing: 5) {
+                Image(systemName: record.cameraVerified ? "checkmark.shield.fill" : "hand.draw.fill")
+                Text(record.cameraVerified
+                     ? String(localized: "Camera-verified")
+                     : String(localized: "Guided (no camera)"))
+            }
+            .font(Duo.Fnt.sbd(12))
+            .foregroundColor(record.cameraVerified ? Duo.green : Duo.muted)
+
+            if celebrate {
+                StarRatingView(count: stars, size: 22)
+            }
+
+            Text(message)
+                .font(Duo.Fnt.sbd(13))
+                .foregroundColor(Duo.ink)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 8)
+
+            DuoButton("DONE", role: celebrate ? .primary : .secondary) {
                 SoundManager.sheetDismissed()
                 onDismiss()
             }
@@ -779,5 +759,8 @@ private struct DoneResultSheet: View {
         let m = duration / 60
         let s = duration % 60
         return String(format: "%02d:%02d", m, s)
+    }
+    private var formattedTarget: String {
+        String(format: "%d:%02d", record.targetSeconds / 60, record.targetSeconds % 60)
     }
 }
