@@ -93,14 +93,22 @@ final class BrushingStore: ObservableObject {
 
     // MARK: Mutations
 
-    /// Record a completed session for the active profile.
-    func recordSession(start: Date, end: Date) {
+    /// Record a completed session for the active profile. The quality signals (U3) carry the
+    /// session's coverage / active time / camera-verification; old call sites that omit them
+    /// get sensible defaults (active = wall-clock duration, guided-only, unverified).
+    func recordSession(start: Date, end: Date,
+                       activeSeconds: Int? = nil, targetSeconds: Int = 120,
+                       coverage: [CoarseZone: Int] = [:], cameraVerified: Bool = false,
+                       guidanceMode: GuidanceMode = .fallbackTimed) {
         guard let pid = profiles.activeProfileID,
               let cdp = profiles.managedProfile(pid) else { return }
         let r = CDBrushingRecord(context: ctx)
         let sid = UUID()
         r.id = sid; r.startDate = start; r.endDate = end
         r.modifiedAt = Date(); r.profile = cdp
+        r.applyQuality(activeSeconds: activeSeconds ?? max(0, Int(end.timeIntervalSince(start))),
+                       targetSeconds: targetSeconds, coverage: coverage,
+                       cameraVerified: cameraVerified, guidanceMode: guidanceMode)
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
         // Spec 05 §6.6 — opt-in, idempotent Health export (no-op unless authorized).
@@ -129,6 +137,10 @@ final class BrushingStore: ObservableObject {
         r.startDate = start
         r.endDate = now
         r.modifiedAt = Date(); r.profile = cdp
+        // Quick-log / Siri is a synthetic 2-min session with no zone tracking — mark it
+        // guided-only + unverified so it never masquerades as a camera-confirmed brush.
+        r.applyQuality(activeSeconds: 120, targetSeconds: 120, coverage: [:],
+                       cameraVerified: false, guidanceMode: .fallbackTimed)
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
         if widgetSyncEnabled {

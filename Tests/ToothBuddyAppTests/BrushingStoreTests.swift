@@ -115,4 +115,36 @@ final class BrushingStoreTests: XCTestCase {
         // And it can serve a basic read without crashing.
         _ = s.records
     }
+
+    // MARK: - U3: enriched quality fields persist
+
+    func testRecordSessionPersistsEnrichedQualityFields() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let cov: [CoarseZone: Int] = Dictionary(uniqueKeysWithValues:
+            CoarseZone.allCases.map { ($0, 20) })
+        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date(),
+                         activeSeconds: 120, targetSeconds: 120, coverage: cov,
+                         cameraVerified: true, guidanceMode: .camera)
+        let r = bs.records.first!
+        XCTAssertEqual(r.activeSeconds, 120)
+        XCTAssertEqual(r.targetSeconds, 120)
+        XCTAssertTrue(r.cameraVerified)
+        XCTAssertEqual(r.guidanceMode, .camera)
+        XCTAssertEqual(r.coverage.count, 6)
+        XCTAssertTrue(r.metMinimum)
+    }
+
+    func testQuickLogMarksGuidedOnlyUnverified() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        bs.quickLogForCurrentSlot()
+        let r = bs.records.first!
+        XCTAssertFalse(r.cameraVerified)
+        XCTAssertEqual(r.guidanceMode, .fallbackTimed)
+        XCTAssertTrue(r.coverage.isEmpty)
+        XCTAssertFalse(r.metMinimum)   // synthetic log has no coverage ⇒ not a verified brush
+    }
 }

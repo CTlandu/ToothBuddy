@@ -578,7 +578,14 @@ struct BrushView: View {
         BrushingLiveActivity.end()   // Spec 05 §6.5 — never a stuck activity
         store.isBrushing = false
         guard let start = startDate else { return }
-        store.recordSession(start: start, end: Date())   // scoped to active profile (Spec 02)
+        // U3 — persist the session's quality signals from the monitor (read after stop;
+        // the monitor keeps its accumulators until the next startMonitoring()).
+        store.recordSession(start: start, end: Date(),
+                            activeSeconds: zoneMonitor.sessionActiveSeconds,
+                            targetSeconds: zoneMonitor.targetSeconds,
+                            coverage: zoneMonitor.sessionCoverage,
+                            cameraVerified: zoneMonitor.sessionCameraVerified,
+                            guidanceMode: zoneMonitor.sessionGuidanceMode)
         // Contextual permission (after first completed session) + refresh reminders. Spec 01 §4.7.
         NotificationScheduler.shared.requestAuthorizationIfNeeded()
         NotificationScheduler.shared.reschedule(records: store.records, streak: store.streak)
