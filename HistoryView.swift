@@ -9,6 +9,8 @@ struct HistoryView: View {
     @State private var contentAppeared = false
     @State private var selectedAchievement: Achievement?
     @State private var shareURL: URL?
+    /// U5 — surfaced when the dentist-report PDF can't be written (instead of a dead button).
+    @State private var exportFailed = false
 
     var body: some View {
         List {
@@ -138,6 +140,12 @@ struct HistoryView: View {
                                     set: { if !$0 { shareURL = nil } })) {
             if let url = shareURL { ShareSheet(items: [url]) }
         }
+        // U5 — surface export failure instead of a button that does nothing.
+        .alert("Couldn't create the report", isPresented: $exportFailed) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("We couldn't generate the PDF. Please try again — if it keeps happening, check your device's available storage.")
+        }
     }
 
     /// U15 — build a 90-day dentist-proof PDF for the owner and present the share sheet.
@@ -151,7 +159,11 @@ struct HistoryView: View {
                 profileID: pid, profileName: profiles.activeProfile?.name ?? "Me",
                 in: store.records, start: start, end: end, now: end,
                 config: .default, calendar: cal)
-            shareURL = ReportPDFRenderer.writeTempPDF(data)
+            if let url = ReportPDFRenderer.writeTempPDF(data) {
+                shareURL = url
+            } else {
+                exportFailed = true   // U5 — visible failure, not a silent no-op
+            }
         } label: {
             DuoCard(padding: 14) {
                 HStack(spacing: 10) {

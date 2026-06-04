@@ -1,10 +1,13 @@
 import SwiftUI
+import ToothBuddyCore
 
 // MARK: - Main onboarding container
 
 struct OnboardingView: View {
     @State private var page = 0
     let onComplete: () -> Void
+    // U2 — the optional preset slide seeds these defaults; everything stays changeable in Settings.
+    @StateObject private var prefs = PreferencesStore.shared
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -52,8 +55,18 @@ struct OnboardingView: View {
                 )
                 .tag(4)
 
+                // U2 — optional "who's this for" preset (seeds defaults only, fully skippable).
+                PresetOnboardingSlide(
+                    onSelect: { preset in
+                        prefs.apply(preset.defaults)
+                        advance()
+                    },
+                    onSkip: { advance() }
+                )
+                .tag(5)
+
                 ReadyOnboardingSlide(onStart: onComplete)
-                    .tag(5)
+                    .tag(6)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea()
@@ -84,8 +97,9 @@ struct OnboardingView: View {
     }
 
     private func advance() {
+        // 0 welcome · 1–4 features · 5 preset (U2) · 6 ready
         withAnimation(.easeInOut(duration: 0.3)) {
-            page = min(page + 1, 5)
+            page = min(page + 1, 6)
         }
     }
 }
@@ -296,6 +310,83 @@ struct ReadyOnboardingSlide: View {
             .opacity(appeared ? 1 : 0)
             .animation(.easeOut(duration: 0.4).delay(0.85), value: appeared)
             .padding(.horizontal, 28)
+
+            Spacer().frame(height: 52)
+        }
+        .onAppear { appeared = true }
+        .onDisappear { appeared = false }
+    }
+}
+
+// MARK: - "Who's this for" preset slide (U2)
+
+/// Optional setup step: picking a preset seeds default preferences (tone / game /
+/// celebrations / target). Skippable. NEVER creates a kid/adult behavior branch.
+struct PresetOnboardingSlide: View {
+    let onSelect: (OnboardingPreset) -> Void
+    let onSkip: () -> Void
+    @State private var appeared = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: 72)
+
+            VStack(spacing: 10) {
+                Text("Who's this phone mostly for?")
+                    .font(Duo.Fnt.ebd(26))
+                    .foregroundColor(Duo.ink)
+                    .multilineTextAlignment(.center)
+                Text("We'll set sensible defaults — you can change anything later in Settings.")
+                    .font(Duo.Fnt.sbd(14))
+                    .foregroundColor(Duo.muted)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+            .padding(.horizontal, 30)
+
+            Spacer().frame(height: 26)
+
+            VStack(spacing: 12) {
+                ForEach(Array(OnboardingPreset.allCases.enumerated()), id: \.offset) { i, preset in
+                    Button { onSelect(preset) } label: {
+                        DuoCard(face: .white, padding: 14) {
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(preset.displayName)
+                                        .font(Duo.Fnt.ebd(16))
+                                        .foregroundColor(Duo.ink)
+                                        .multilineTextAlignment(.leading)
+                                    Text(preset.caption)
+                                        .font(Duo.Fnt.sbd(12))
+                                        .foregroundColor(Duo.muted)
+                                        .multilineTextAlignment(.leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Spacer(minLength: 8)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(Duo.green)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 16)
+                    .animation(.easeOut(duration: 0.4).delay(0.1 + Double(i) * 0.08), value: appeared)
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+
+            Button(action: onSkip) {
+                Text("Skip — I'll set this up later")
+                    .font(Duo.Fnt.sbd(13))
+                    .foregroundColor(Duo.muted)
+                    .padding(.vertical, 8)
+            }
+            .opacity(appeared ? 1 : 0)
+            .animation(.easeOut(duration: 0.4).delay(0.4), value: appeared)
 
             Spacer().frame(height: 52)
         }

@@ -16,6 +16,66 @@ final class BrushingStoreTests: XCTestCase {
         return (pc, ps, bs)
     }
 
+    // MARK: - U3 crash-safety recovery (Open Questions D-2)
+
+    func testRecoverPendingSessionCommitsHonestRecord() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let suite = UserDefaults(suiteName: "test.recover.\(UUID().uuidString)")!
+        // Wall-clock span is 300s, but only 90s were actively brushed before the kill.
+        let start = Date().addingTimeInterval(-300)
+        let snap = InProgressSessionSnapshot(startDate: start, activeSeconds: 90,
+            targetSeconds: 120, coverage: [.upperLeft: 30], cameraVerified: false,
+            guidanceMode: .fallbackTimed)
+        suite.set(try! JSONEncoder().encode(snap), forKey: InProgressSessionSnapshot.userDefaultsKey)
+
+        bs.recoverPendingSession(defaults: suite)
+
+        XCTAssertEqual(bs.records.count, 1)
+        // Honest: duration == active (90), NOT the 300s wall-clock span.
+        XCTAssertEqual(bs.records.first?.durationSeconds, 90)
+        XCTAssertEqual(bs.records.first?.activeSeconds, 90)
+        XCTAssertNil(suite.data(forKey: InProgressSessionSnapshot.userDefaultsKey))
+    }
+
+    func testRecoverPendingSessionIsOneShot() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let suite = UserDefaults(suiteName: "test.recover.\(UUID().uuidString)")!
+        let snap = InProgressSessionSnapshot(startDate: Date().addingTimeInterval(-120),
+            activeSeconds: 60, targetSeconds: 120, coverage: [:], cameraVerified: false,
+            guidanceMode: .fallbackTimed)
+        suite.set(try! JSONEncoder().encode(snap), forKey: InProgressSessionSnapshot.userDefaultsKey)
+
+        bs.recoverPendingSession(defaults: suite)
+        bs.recoverPendingSession(defaults: suite)   // second call has nothing to commit
+        XCTAssertEqual(bs.records.count, 1)
+    }
+
+    func testRecoverPendingSessionNoSnapshotIsNoOp() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let suite = UserDefaults(suiteName: "test.recover.\(UUID().uuidString)")!
+        bs.recoverPendingSession(defaults: suite)
+        XCTAssertTrue(bs.records.isEmpty)
+    }
+
+    func testRecoverPendingSessionIgnoresZeroActive() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let suite = UserDefaults(suiteName: "test.recover.\(UUID().uuidString)")!
+        let snap = InProgressSessionSnapshot(startDate: Date(), activeSeconds: 0,
+            targetSeconds: 120, coverage: [:], cameraVerified: false, guidanceMode: .fallbackTimed)
+        suite.set(try! JSONEncoder().encode(snap), forKey: InProgressSessionSnapshot.userDefaultsKey)
+        bs.recoverPendingSession(defaults: suite)
+        XCTAssertTrue(bs.records.isEmpty)
+        XCTAssertNil(suite.data(forKey: InProgressSessionSnapshot.userDefaultsKey))   // cleared anyway
+    }
+
     // MARK: - Happy path
 
     func testRecordSessionAddsOneRecord() {

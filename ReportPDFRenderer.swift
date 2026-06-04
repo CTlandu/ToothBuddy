@@ -36,39 +36,50 @@ enum ReportPDFRenderer {
                  12, .regular, .gray)
             y += 8
 
-            draw("Sessions: \(data.totalSessions)", 14, .regular)
-            draw("Thorough (every area, full time): \(data.thoroughSessions) / \(data.totalSessions)",
-                 14, .regular)
-            draw("Camera-verified: \(data.verifiedSessions) / \(data.totalSessions)",
-                 14, .regular)
-            draw("Average active time: \(Self.mmss(data.avgActiveSeconds))", 14, .regular)
-            draw("Active days: \(data.activeDays) / \(data.totalDays)  (\(data.completionPercent)%)",
-                 14, .regular)
-            draw("Current streak: \(data.currentStreak)   ·   Longest: \(data.longestStreak)",
-                 14, .regular)
-            y += 6
-            draw("Camera-verified sessions were confirmed by the front camera. Guided sessions",
-                 10, .regular, .gray)
-            draw("are self-paced with no video — they are not camera-confirmed.",
-                 10, .regular, .gray)
-            y += 8
-            draw("Daily calendar  ·  green = thorough, blue = brushed, gray = none", 13, .semibold)
+            // U5 — empty state: an honest "no sessions yet" page rather than an all-zeros
+            // table that looks like real (but empty) evidence to a dentist.
+            if !data.hasData {
+                y += 8
+                draw("No sessions recorded yet.", 15, .semibold)
+                draw("Complete a brushing session and it will appear here — with coverage,",
+                     12, .regular, .gray)
+                draw("duration, and camera-verification you can show your dentist.",
+                     12, .regular, .gray)
+            } else {
+                draw("Sessions: \(data.totalSessions)", 14, .regular)
+                draw("Thorough (every area, full time): \(data.thoroughSessions) / \(data.totalSessions)",
+                     14, .regular)
+                draw("Camera-verified: \(data.verifiedSessions) / \(data.totalSessions)",
+                     14, .regular)
+                draw("Average active time: \(Self.mmss(data.avgActiveSeconds))", 14, .regular)
+                draw("Active days: \(data.activeDays) / \(data.totalDays)  (\(data.completionPercent)%)",
+                     14, .regular)
+                draw("Current streak: \(data.currentStreak)   ·   Longest: \(data.longestStreak)",
+                     14, .regular)
+                y += 6
+                draw("Camera-verified sessions were confirmed by the front camera. Guided sessions",
+                     10, .regular, .gray)
+                draw("are self-paced with no video — they are not camera-confirmed.",
+                     10, .regular, .gray)
+                y += 8
+                draw("Daily calendar  ·  green = thorough, blue = brushed, gray = none", 13, .semibold)
 
-            // Calendar grid: 14 cells per row.
-            let perRow = 14
-            let cell: CGFloat = 26, gap: CGFloat = 4
-            var gx = margin, gy = y
-            for (i, d) in data.days.enumerated() {
-                let color: UIColor = d.thorough
-                    ? UIColor.systemGreen
-                    : (d.active ? UIColor.systemBlue : UIColor.systemGray5)
-                let rect = CGRect(x: gx, y: gy, width: cell, height: cell)
-                let path = UIBezierPath(roundedRect: rect, cornerRadius: 5)
-                color.setFill()
-                path.fill()
-                gx += cell + gap
-                if (i + 1) % perRow == 0 { gx = margin; gy += cell + gap }
-                if gy > pageH - margin { break }
+                // Calendar grid: 14 cells per row.
+                let perRow = 14
+                let cell: CGFloat = 26, gap: CGFloat = 4
+                var gx = margin, gy = y
+                for (i, d) in data.days.enumerated() {
+                    let color: UIColor = d.thorough
+                        ? UIColor.systemGreen
+                        : (d.active ? UIColor.systemBlue : UIColor.systemGray5)
+                    let rect = CGRect(x: gx, y: gy, width: cell, height: cell)
+                    let path = UIBezierPath(roundedRect: rect, cornerRadius: 5)
+                    color.setFill()
+                    path.fill()
+                    gx += cell + gap
+                    if (i + 1) % perRow == 0 { gx = margin; gy += cell + gap }
+                    if gy > pageH - margin { break }
+                }
             }
 
             let footY = pageH - margin

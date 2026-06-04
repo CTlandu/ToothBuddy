@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import QuartzCore
 import os
 import ToothBuddyCore
 
@@ -23,12 +24,31 @@ struct BrushView: View {
     @State private var spokenCueTimes: Set<Int> = []
     @State private var showDoneSheet = false
     @State private var doneSheetRecord: BrushingRecord?
-    /// True once camera permission is granted so the preview view gets a valid session.
-    @State private var cameraAuthorized = false
     /// Quality audit 2026-05-28 / Plan U2 — interval state for the whole brushing
     /// session (begin in `startBrushing`, end in `stopBrushing`). Visible in
     /// Instruments → Points of Interest as "BrushingSession".
     @State private var sessionSignpost: OSSignpostIntervalState?
+    /// U3 (Phase 1.5) — drives `elapsedSeconds` off *active* time only. Pausing on
+    /// background / audio interruption (below) keeps a phone call or alarm from inflating
+    /// both the on-screen timer and the persisted, dentist-facing duration.
+    @State private var clock: SessionClock?
+    /// True while the session is paused (app backgrounded, or audio was interrupted).
+    @State private var sessionPaused = false
+    /// The two independent pause causes; the clock runs only when BOTH are clear. We pause on
+    /// `.background` (a real "left the app"), NOT transient `.inactive` (notification banner,
+    /// Control Center, app-switcher peek) — those shouldn't freeze the timer or cut a cue.
+    @State private var phaseBackgrounded = false
+    @State private var audioInterrupted = false
+    @Environment(\.scenePhase) private var scenePhase
+    /// U4 — the EFFECTIVE camera state for this session. May differ from `isMirror` when
+    /// permission is denied; drives the render branch so a denied mirror shows the audio
+    /// view, never a black frame.
+    @State private var sessionUsesCamera = false
+    /// U4 — user wanted the mirror but the camera is unavailable: show a non-blocking notice.
+    @State private var sessionDegraded = false
+    /// U4 — brief state while the permission prompt is up after START was tapped (avoids
+    /// starting the session — and stamping it guided-only — before the user has answered).
+    @State private var preparingCamera = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,6 +99,35 @@ struct BrushView: View {
             if let zone = newZone {
                 SoundManager.zoneChanged()
                 voiceCoach.speak(zone.announcement)
+            }
+        }
+        // U3 — pause the session clock when the app leaves the foreground (call screen,
+        // Control Center, backgrounding) so timing never counts non-brushing seconds.
+        .onChange(of: scenePhase) { _, phase in
+            switch phase {
+            case .background:
+                phaseBackgrounded = true
+                applyPauseState()             // pause first so the snapshot captures paused time
+                saveInProgressSnapshot()
+            case .active:
+                phaseBackgrounded = false
+                audioInterrupted = false       // returning to foreground also clears a dropped .ended
+                applyPauseState()
+            default:
+                break                          // .inactive is transient — don't pause / cut the cue
+            }
+        }
+        // U3 — pause on audio-session interruptions that DON'T change scenePhase: a call
+        // answered on a paired device, Siri, or an alarm interrupts TTS while the app stays
+        // .active. Without this, the clock would keep running with the voice muted.
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)
+            .receive(on: RunLoop.main)) { note in
+            guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+                  let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+            switch type {
+            case .began:  setAudioInterrupted(true)
+            case .ended:  setAudioInterrupted(false)
+            @unknown default: break
             }
         }
         .sheet(isPresented: $showDoneSheet) {
@@ -277,7 +326,7 @@ struct BrushView: View {
 
             // Live camera preview ONLY while brushing — idle state shows BuddyView
             // (no point pointing the camera at a not-yet-brushing user).
-            if cameraAuthorized, isBrushing, isMirror {
+            if isBrushing, sessionUsesCamera {
                 CameraPreviewView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
@@ -286,14 +335,14 @@ struct BrushView: View {
 
             // Sugar Bugs game (Spec 04.3) — U5/U8: shown in mirror mode when the user
             // keeps the game on (Settings), no longer gated by kid/adult.
-            if isBrushing, isMirror, prefs.gameEnabled {
+            if isBrushing, sessionUsesCamera, prefs.gameEnabled {
                 BrushGameOverlay()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .allowsHitTesting(false)
             }
 
-            if isBrushing, isMirror {
+            if isBrushing, sessionUsesCamera {
                 // LIVE pill + disclaimer aligned to top
                 VStack(spacing: 5) {
                     HStack(spacing: 6) {
@@ -344,7 +393,7 @@ struct BrushView: View {
 
             // Bottom of camera: zone instruction + mute toggle when brushing only.
             VStack(spacing: 8) {
-                if isBrushing, isMirror, let zone = zoneMonitor.currentZone {
+                if isBrushing, sessionUsesCamera, let zone = zoneMonitor.currentZone {
                     HStack(spacing: 8) {
                         Text(zone.prompt)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
@@ -376,9 +425,34 @@ struct BrushView: View {
             }
             .padding(.bottom, 20)
         }
+        // U3 — a visible "paused" state so a user returning from a call doesn't think the
+        // app froze or the session ended. The timer holds; brushing resumes on return.
+        .overlay {
+            if isBrushing, sessionPaused {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 32).fill(Duo.ink.opacity(0.45))
+                    VStack(spacing: 10) {
+                        Image(systemName: "pause.circle.fill")
+                            .font(.system(size: 44, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Paused")
+                            .font(Duo.Fnt.ebd(20))
+                            .foregroundColor(.white)
+                        Text("Come back and keep brushing — your time is saved.")
+                            .font(Duo.Fnt.sbd(13))
+                            .foregroundColor(.white.opacity(0.9))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 28)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 32))
+                .transition(.opacity)
+            }
+        }
         .frame(height: 400)
         .padding(.bottom, 16)
         .animation(.easeInOut(duration: 0.4), value: isBrushing)
+        .animation(.easeInOut(duration: 0.25), value: sessionPaused)
         .onAppear { requestCameraIfNeeded() }
     }
 
@@ -386,6 +460,20 @@ struct BrushView: View {
     /// + reassurance that the phone can be set down; voice does the guiding.
     private var audioGuideView: some View {
         VStack(spacing: 18) {
+            // U4 — honest degradation notice: the user picked the mirror but the camera is
+            // unavailable, so we run audio-only (and the record stays guided-only) rather
+            // than showing a black frame. Stays up for the whole session.
+            if sessionDegraded {
+                HStack(spacing: 6) {
+                    Image(systemName: "video.slash.fill")
+                    Text("Camera off — guiding you by voice")
+                }
+                .font(Duo.Fnt.sbd(12))
+                .foregroundColor(Theme.textPrimary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Capsule().fill(Color.white.opacity(0.92)))
+            }
             BuddyView()
                 .frame(width: 120, height: 138)
             if let zone = zoneMonitor.currentZone {
@@ -416,16 +504,12 @@ struct BrushView: View {
         .padding(.horizontal, 16)
     }
 
+    /// U4 — pre-prompt for camera permission when the brushing screen appears (only if not
+    /// yet answered), so the system dialog isn't racing the START tap. The actual mode
+    /// decision happens in requestStart() via SessionModeResolver.
     private func requestCameraIfNeeded() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            cameraAuthorized = true
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                DispatchQueue.main.async { cameraAuthorized = granted }
-            }
-        default:
-            break
+        if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            AVCaptureDevice.requestAccess(for: .video) { _ in }
         }
     }
 
@@ -466,7 +550,7 @@ struct BrushView: View {
             if isBrushing {
                 stopBrushing()
             } else {
-                startBrushing()
+                requestStart()
             }
         }
     }
@@ -523,20 +607,48 @@ struct BrushView: View {
     private func handleIntentStart() {
         guard intentBridge.startRequested else { return }
         intentBridge.consume()
-        if !isBrushing { startBrushing() }
+        if !isBrushing { requestStart() }
     }
 
-    private func startBrushing() {
+    /// U4 — resolve the effective session mode BEFORE starting, so a denied camera degrades
+    /// to audio (never a black frame) and a not-yet-answered permission prompt gates the
+    /// start instead of stamping the record guided-only while the user is about to grant.
+    private func requestStart() {
+        guard !isBrushing, !preparingCamera else { return }
+        let auth = CameraService.shared.cameraAuthorization
+        if isMirror, auth == .notDetermined {
+            preparingCamera = true
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    preparingCamera = false
+                    let eff = SessionModeResolver.resolve(
+                        requestedMirror: true, authorization: granted ? .authorized : .denied)
+                    startBrushing(useCamera: eff.useCamera, degraded: eff.degraded)
+                }
+            }
+            return
+        }
+        let eff = SessionModeResolver.resolve(requestedMirror: isMirror, authorization: auth)
+        startBrushing(useCamera: eff.useCamera, degraded: eff.degraded)
+    }
+
+    private func startBrushing(useCamera: Bool, degraded: Bool) {
         // Quality audit 2026-05-28 / Plan U2 — open a signpost interval covering the
         // entire session. Paired in stopBrushing().
         sessionSignpost = appSignposter.beginInterval("BrushingSession")
         SoundManager.startBrushing()
         startDate = Date()
+        clock = SessionClock(startedAt: CACurrentMediaTime())
+        sessionPaused = false
+        phaseBackgrounded = false
+        audioInterrupted = false
+        sessionUsesCamera = useCamera
+        sessionDegraded = degraded
         isBrushing = true
         store.isBrushing = true
         elapsedSeconds = 0
         zoneMonitor.targetSeconds = prefs.targetSeconds
-        zoneMonitor.useCamera = isMirror   // U5 — audio-first mode never opens the camera
+        zoneMonitor.useCamera = useCamera   // U4 — effective mode (denied mirror → audio-only)
         voiceCoach.isMuted = !prefs.voiceEnabled
         zoneMonitor.startMonitoring()
         // Spec 05 §6.5 — Live Activity (additive; no-op if unsupported/disabled).
@@ -567,10 +679,13 @@ struct BrushView: View {
         }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
-                guard let start = startDate else { return }
+                guard let clock else { return }
+                // U3 — frozen while backgrounded / audio-interrupted; nothing accrues.
+                guard !sessionPaused else { return }
                 // U4 — prescribed route done (all zones brushed to target): wrap up.
                 if zoneMonitor.sessionIsComplete { stopBrushing(); return }
-                elapsedSeconds = Int(Date().timeIntervalSince(start))
+                // U3 — active time only; SessionClock excludes paused gaps.
+                elapsedSeconds = clock.activeSeconds(asOf: CACurrentMediaTime())
                 // Spec 05 §6.5 — refresh the Live Activity every 5s (chatty-safe).
                 if elapsedSeconds % 5 == 0 {
                     BrushingLiveActivity.update(
@@ -579,12 +694,20 @@ struct BrushView: View {
                         zonesCompleted: zoneMonitor.sessionZonesCompleted,
                         totalZones: CoarseZone.allCases.count)
                 }
-                for cue in sessionCues
-                where cue.atSecond == elapsedSeconds
-                    && (cue.kind == .content || cue.kind == .encourage)
-                    && !spokenCueTimes.contains(cue.atSecond) {
-                    spokenCueTimes.insert(cue.atSecond)
-                    voiceCoach.speak(cue.text)
+                // U3 — fire still-unspoken content/encourage cues at or before now (a `<=` sweep,
+                // so a coalesced tick never drops one the way `==` would). If several are due at
+                // once (e.g. after a long pause), mark them all spoken but voice only the most
+                // recent, so cues never talk over each other on resume.
+                let dueCues = sessionCues.filter {
+                    $0.atSecond <= elapsedSeconds
+                        && ($0.kind == .content || $0.kind == .encourage)
+                        && !spokenCueTimes.contains($0.atSecond)
+                }
+                if !dueCues.isEmpty {
+                    dueCues.forEach { spokenCueTimes.insert($0.atSecond) }
+                    if let latest = dueCues.max(by: { $0.atSecond < $1.atSecond }) {
+                        voiceCoach.speak(latest.text)
+                    }
                 }
             }
         }
@@ -610,9 +733,16 @@ struct BrushView: View {
         BrushingLiveActivity.end()   // Spec 05 §6.5 — never a stuck activity
         store.isBrushing = false
         guard let start = startDate else { return }
-        // U3 — persist the session's quality signals from the monitor (read after stop;
-        // the monitor keeps its accumulators until the next startMonitoring()).
-        store.recordSession(start: start, end: Date(),
+        // U3 — persist a NON-inflated duration. SessionClock's active seconds become the
+        // record's end, so durationSeconds / starCount (computed as end−start) and the
+        // dentist-facing PDF exclude background + interruption time. activeSeconds
+        // (brushing-detected) comes from the monitor, frozen in lockstep via its paused flag.
+        let activeElapsed = clock?.activeSeconds(asOf: CACurrentMediaTime()) ?? elapsedSeconds
+        let honestEnd = start.addingTimeInterval(TimeInterval(activeElapsed))
+        // Clear the crash-safety snapshot BEFORE committing, so a kill mid-commit can't leave a
+        // snapshot that recovers a duplicate of this same session next launch.
+        clearInProgressSnapshot()
+        store.recordSession(start: start, end: honestEnd,
                             activeSeconds: zoneMonitor.sessionActiveSeconds,
                             targetSeconds: zoneMonitor.targetSeconds,
                             coverage: zoneMonitor.sessionCoverage,
@@ -624,10 +754,68 @@ struct BrushView: View {
         doneSheetRecord = store.records.first
         showDoneSheet = true
         startDate = nil
+        clock = nil
+        sessionPaused = false
+        phaseBackgrounded = false
+        audioInterrupted = false
+        sessionUsesCamera = false
+        sessionDegraded = false
         isBrushing = false
         elapsedSeconds = 0
         sessionCues = []
         spokenCueTimes = []
+    }
+
+    // MARK: - U3 pause / resume (background + audio interruption)
+
+    /// An AVAudioSession interruption is a pause cause that can fire without a scenePhase change.
+    private func setAudioInterrupted(_ interrupted: Bool) {
+        audioInterrupted = interrupted
+        applyPauseState()
+    }
+
+    /// The clock (and the monitor's accumulators) run only when BOTH causes are clear.
+    private func applyPauseState() {
+        guard isBrushing else { return }
+        let shouldPause = phaseBackgrounded || audioInterrupted
+        if shouldPause, !sessionPaused {
+            sessionPaused = true
+            clock = clock?.paused(at: CACurrentMediaTime())
+            zoneMonitor.paused = true
+            voiceCoach.stop()
+        } else if !shouldPause, sessionPaused {
+            sessionPaused = false
+            clock = clock?.resumed(at: CACurrentMediaTime())
+            zoneMonitor.paused = false
+            // Back before being killed → the background snapshot is no longer needed. Clearing
+            // here stops a stale (shorter) snapshot from recovering over the live session next launch.
+            clearInProgressSnapshot()
+        }
+    }
+
+    // MARK: - U3 crash-safety snapshot (Open Questions D-2)
+
+    /// Persist enough to reconstruct the record if the app is killed while backgrounded.
+    /// Active seconds are already non-inflated (SessionClock), so committing them on the
+    /// next launch is honest — and far better than silently losing a near-complete brush.
+    private func saveInProgressSnapshot() {
+        guard isBrushing, let start = startDate else { return }
+        let active = clock?.activeSeconds(asOf: CACurrentMediaTime()) ?? elapsedSeconds
+        guard active > 0 else { return }
+        let snap = InProgressSessionSnapshot(
+            startDate: start,
+            activeSeconds: active,
+            targetSeconds: zoneMonitor.targetSeconds,
+            coverage: zoneMonitor.sessionCoverage,
+            cameraVerified: zoneMonitor.sessionCameraVerified,
+            guidanceMode: zoneMonitor.sessionGuidanceMode)
+        if let data = try? JSONEncoder().encode(snap) {
+            UserDefaults.standard.set(data, forKey: InProgressSessionSnapshot.userDefaultsKey)
+        }
+    }
+
+    private func clearInProgressSnapshot() {
+        UserDefaults.standard.removeObject(forKey: InProgressSessionSnapshot.userDefaultsKey)
     }
 }
 
