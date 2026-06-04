@@ -14,28 +14,38 @@ struct ContentView: View {
     @State private var showSettings = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            appHeader
-            if store.lastDeletedRecord != nil {
-                deletedRecordBanner
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .task(id: store.lastDeletedRecord?.id) {
-                        guard store.lastDeletedRecord != nil else { return }
-                        try? await Task.sleep(nanoseconds: 3_000_000_000)
-                        guard !Task.isCancelled else { return }
-                        store.clearLastDeleted()
-                    }
+        GeometryReader { proxy in
+            // App-wide quirk: this app receives a legacy ~19pt top safe-area inset rather than
+            // the Dynamic Island's ~59pt (the same reason OnboardingView hand-pads its top).
+            // Pad the header so its top sits a fixed ~58pt from the screen edge regardless:
+            // clears the island when the inset is short, and self-cancels to a small gap if a
+            // device reports the inset correctly.
+            let headerTopPad = max(8, 58 - proxy.safeAreaInsets.top)
+            VStack(spacing: 0) {
+                appHeader
+                    .padding(.top, headerTopPad)
+                if store.lastDeletedRecord != nil {
+                    deletedRecordBanner
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .task(id: store.lastDeletedRecord?.id) {
+                            guard store.lastDeletedRecord != nil else { return }
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            guard !Task.isCancelled else { return }
+                            store.clearLastDeleted()
+                        }
+                }
+                tabContent
+                if !store.isBrushing {
+                    customTabBar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
-            tabContent
-            if !store.isBrushing {
-                customTabBar
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+            .background(Theme.appBackground.ignoresSafeArea())
         }
+        .ignoresSafeArea(edges: .bottom)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.lastDeletedRecord != nil)
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: store.isBrushing)
-        .background(Theme.appBackground.ignoresSafeArea())
-        .ignoresSafeArea(edges: .bottom)
         .sheet(isPresented: $showSettings) { SettingsView() }
         // Spec 05 §6.3 — StartBrushingIntent: jump to the Brush tab; BrushView
         // consumes the request and begins the session.
