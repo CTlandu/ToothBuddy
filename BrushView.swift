@@ -32,10 +32,12 @@ struct BrushView: View {
     /// background / audio interruption (below) keeps a phone call or alarm from inflating
     /// both the on-screen timer and the persisted, dentist-facing duration.
     @State private var clock: SessionClock?
-    /// True while the session is paused (app left the foreground, or audio was interrupted).
+    /// True while the session is paused (app backgrounded, or audio was interrupted).
     @State private var sessionPaused = false
-    /// The two independent pause causes; the clock runs only when BOTH are clear.
-    @State private var phaseInactive = false
+    /// The two independent pause causes; the clock runs only when BOTH are clear. We pause on
+    /// `.background` (a real "left the app"), NOT transient `.inactive` (notification banner,
+    /// Control Center, app-switcher peek) — those shouldn't freeze the timer or cut a cue.
+    @State private var phaseBackgrounded = false
     @State private var audioInterrupted = false
     @Environment(\.scenePhase) private var scenePhase
     /// U4 — the EFFECTIVE camera state for this session. May differ from `isMirror` when
@@ -102,8 +104,18 @@ struct BrushView: View {
         // U3 — pause the session clock when the app leaves the foreground (call screen,
         // Control Center, backgrounding) so timing never counts non-brushing seconds.
         .onChange(of: scenePhase) { _, phase in
-            setPhaseActive(phase == .active)
-            if phase == .background { saveInProgressSnapshot() }
+            switch phase {
+            case .background:
+                phaseBackgrounded = true
+                applyPauseState()             // pause first so the snapshot captures paused time
+                saveInProgressSnapshot()
+            case .active:
+                phaseBackgrounded = false
+                audioInterrupted = false       // returning to foreground also clears a dropped .ended
+                applyPauseState()
+            default:
+                break                          // .inactive is transient — don't pause / cut the cue
+            }
         }
         // U3 — pause on audio-session interruptions that DON'T change scenePhase: a call
         // answered on a paired device, Siri, or an alarm interrupts TTS while the app stays
@@ -628,7 +640,7 @@ struct BrushView: View {
         startDate = Date()
         clock = SessionClock(startedAt: CACurrentMediaTime())
         sessionPaused = false
-        phaseInactive = false
+        phaseBackgrounded = false
         audioInterrupted = false
         sessionUsesCamera = useCamera
         sessionDegraded = degraded
@@ -682,15 +694,20 @@ struct BrushView: View {
                         zonesCompleted: zoneMonitor.sessionZonesCompleted,
                         totalZones: CoarseZone.allCases.count)
                 }
-                // U3 — fire every still-unspoken content/encourage cue at or before now, so a
-                // coalesced tick or a post-resume jump in active seconds never drops one
-                // (equality matching would silently skip a cue the clock stepped past).
-                for cue in sessionCues
-                where cue.atSecond <= elapsedSeconds
-                    && (cue.kind == .content || cue.kind == .encourage)
-                    && !spokenCueTimes.contains(cue.atSecond) {
-                    spokenCueTimes.insert(cue.atSecond)
-                    voiceCoach.speak(cue.text)
+                // U3 — fire still-unspoken content/encourage cues at or before now (a `<=` sweep,
+                // so a coalesced tick never drops one the way `==` would). If several are due at
+                // once (e.g. after a long pause), mark them all spoken but voice only the most
+                // recent, so cues never talk over each other on resume.
+                let dueCues = sessionCues.filter {
+                    $0.atSecond <= elapsedSeconds
+                        && ($0.kind == .content || $0.kind == .encourage)
+                        && !spokenCueTimes.contains($0.atSecond)
+                }
+                if !dueCues.isEmpty {
+                    dueCues.forEach { spokenCueTimes.insert($0.atSecond) }
+                    if let latest = dueCues.max(by: { $0.atSecond < $1.atSecond }) {
+                        voiceCoach.speak(latest.text)
+                    }
                 }
             }
         }
@@ -722,13 +739,15 @@ struct BrushView: View {
         // (brushing-detected) comes from the monitor, frozen in lockstep via its paused flag.
         let activeElapsed = clock?.activeSeconds(asOf: CACurrentMediaTime()) ?? elapsedSeconds
         let honestEnd = start.addingTimeInterval(TimeInterval(activeElapsed))
+        // Clear the crash-safety snapshot BEFORE committing, so a kill mid-commit can't leave a
+        // snapshot that recovers a duplicate of this same session next launch.
+        clearInProgressSnapshot()
         store.recordSession(start: start, end: honestEnd,
                             activeSeconds: zoneMonitor.sessionActiveSeconds,
                             targetSeconds: zoneMonitor.targetSeconds,
                             coverage: zoneMonitor.sessionCoverage,
                             cameraVerified: zoneMonitor.sessionCameraVerified,
                             guidanceMode: zoneMonitor.sessionGuidanceMode)
-        clearInProgressSnapshot()
         // Contextual permission (after first completed session) + refresh reminders. Spec 01 §4.7.
         NotificationScheduler.shared.requestAuthorizationIfNeeded()
         NotificationScheduler.shared.reschedule(records: store.records, streak: store.streak)
@@ -737,7 +756,7 @@ struct BrushView: View {
         startDate = nil
         clock = nil
         sessionPaused = false
-        phaseInactive = false
+        phaseBackgrounded = false
         audioInterrupted = false
         sessionUsesCamera = false
         sessionDegraded = false
@@ -749,13 +768,7 @@ struct BrushView: View {
 
     // MARK: - U3 pause / resume (background + audio interruption)
 
-    /// scenePhase != .active is one of the two pause causes.
-    private func setPhaseActive(_ active: Bool) {
-        phaseInactive = !active
-        applyPauseState()
-    }
-
-    /// An AVAudioSession interruption is the other — it can fire without a scenePhase change.
+    /// An AVAudioSession interruption is a pause cause that can fire without a scenePhase change.
     private func setAudioInterrupted(_ interrupted: Bool) {
         audioInterrupted = interrupted
         applyPauseState()
@@ -764,7 +777,7 @@ struct BrushView: View {
     /// The clock (and the monitor's accumulators) run only when BOTH causes are clear.
     private func applyPauseState() {
         guard isBrushing else { return }
-        let shouldPause = phaseInactive || audioInterrupted
+        let shouldPause = phaseBackgrounded || audioInterrupted
         if shouldPause, !sessionPaused {
             sessionPaused = true
             clock = clock?.paused(at: CACurrentMediaTime())
@@ -774,6 +787,9 @@ struct BrushView: View {
             sessionPaused = false
             clock = clock?.resumed(at: CACurrentMediaTime())
             zoneMonitor.paused = false
+            // Back before being killed → the background snapshot is no longer needed. Clearing
+            // here stops a stale (shorter) snapshot from recovering over the live session next launch.
+            clearInProgressSnapshot()
         }
     }
 
