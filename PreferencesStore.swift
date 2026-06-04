@@ -23,6 +23,16 @@ final class PreferencesStore: ObservableObject {
 
     private let d: UserDefaults
 
+    /// U2 — apply an onboarding preset's seeded defaults. Only sets the four presetted
+    /// fields; everything else keeps its current value. targetSeconds is re-clamped to a
+    /// valid standard (120/180) defensively.
+    func apply(_ defaults: PreferenceDefaults) {
+        contentTone = defaults.contentTone
+        gameEnabled = defaults.gameEnabled
+        celebrationsEnabled = defaults.celebrationsEnabled
+        targetSeconds = defaults.targetSeconds == 180 ? 180 : 120
+    }
+
     init(defaults: UserDefaults = .standard) {
         d = defaults
         gameEnabled = d.object(forKey: K.game) as? Bool ?? true
