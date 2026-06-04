@@ -1,7 +1,7 @@
 ---
 title: "feat: ToothBuddy Phase 1.5 — 本地闭环打磨(可真机 test 形态)"
 type: feat
-status: active
+status: completed
 date: 2026-06-04
 deepened: 2026-06-04
 origin: docs/product-north-star.md
