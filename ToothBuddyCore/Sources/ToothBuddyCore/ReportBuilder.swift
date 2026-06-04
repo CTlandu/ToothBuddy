@@ -31,6 +31,10 @@ public struct ReportData: Equatable, Sendable {
     public let longestStreak: Int
     public let days: [DayCell]          // one per calendar day in [start, end]
 
+    /// U5 — true when the range has at least one session. Drives the report's empty state
+    /// so a zero-session export reads "no sessions yet" instead of a misleading all-zeros table.
+    public var hasData: Bool { totalSessions > 0 }
+
     public init(profileID: UUID, profileName: String, start: Date, end: Date,
                 totalSessions: Int, thoroughSessions: Int, verifiedSessions: Int,
                 avgActiveSeconds: Int, activeDays: Int, totalDays: Int,

@@ -58,6 +58,7 @@ final class ReportBuilderTests: XCTestCase {
     func testEmpty() {
         let r = build(UUID(), [], day(-6), day(0))
         XCTAssertEqual(r.totalSessions, 0)
+        XCTAssertFalse(r.hasData)                          // U5 — drives the empty-state page
         XCTAssertEqual(r.activeDays, 0)
         XCTAssertEqual(r.totalDays, 7)
         XCTAssertEqual(r.completionPercent, 0)
@@ -66,6 +67,14 @@ final class ReportBuilderTests: XCTestCase {
         XCTAssertEqual(r.verifiedSessions, 0)
         XCTAssertEqual(r.avgActiveSeconds, 0)
         XCTAssertTrue(r.days.allSatisfy { !$0.active && !$0.thorough })
+    }
+
+    func testHasDataTrueEvenForGuidedOnly() {
+        let p = UUID()
+        // A single guided-only (unverified) session still counts as data.
+        let r = build(p, [rec(p, -1)], day(-6), day(0))
+        XCTAssertTrue(r.hasData)
+        XCTAssertEqual(r.verifiedSessions, 0)              // guided-only count not regressed
     }
 
     func testQualityTallies() {
