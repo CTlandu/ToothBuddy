@@ -67,6 +67,9 @@ private struct RootView: View {
         .task {
             // Spec 05 §6.5 — clear any Live Activity left over from a killed session.
             BrushingLiveActivity.endStaleOnLaunch()
+            // U3 (D-2) — if a session was in progress when the app was killed, commit its
+            // (non-inflated) active time now instead of silently losing the brush.
+            BrushingStore.shared.recoverPendingSession()
             WidgetBridge.refresh()
         }
         .onChange(of: scenePhase) { _, phase in

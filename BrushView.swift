@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import QuartzCore
 import os
 import ToothBuddyCore
 
@@ -29,6 +30,16 @@ struct BrushView: View {
     /// session (begin in `startBrushing`, end in `stopBrushing`). Visible in
     /// Instruments → Points of Interest as "BrushingSession".
     @State private var sessionSignpost: OSSignpostIntervalState?
+    /// U3 (Phase 1.5) — drives `elapsedSeconds` off *active* time only. Pausing on
+    /// background / audio interruption (below) keeps a phone call or alarm from inflating
+    /// both the on-screen timer and the persisted, dentist-facing duration.
+    @State private var clock: SessionClock?
+    /// True while the session is paused (app left the foreground, or audio was interrupted).
+    @State private var sessionPaused = false
+    /// The two independent pause causes; the clock runs only when BOTH are clear.
+    @State private var phaseInactive = false
+    @State private var audioInterrupted = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,6 +90,25 @@ struct BrushView: View {
             if let zone = newZone {
                 SoundManager.zoneChanged()
                 voiceCoach.speak(zone.announcement)
+            }
+        }
+        // U3 — pause the session clock when the app leaves the foreground (call screen,
+        // Control Center, backgrounding) so timing never counts non-brushing seconds.
+        .onChange(of: scenePhase) { _, phase in
+            setPhaseActive(phase == .active)
+            if phase == .background { saveInProgressSnapshot() }
+        }
+        // U3 — pause on audio-session interruptions that DON'T change scenePhase: a call
+        // answered on a paired device, Siri, or an alarm interrupts TTS while the app stays
+        // .active. Without this, the clock would keep running with the voice muted.
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)
+            .receive(on: RunLoop.main)) { note in
+            guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+                  let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+            switch type {
+            case .began:  setAudioInterrupted(true)
+            case .ended:  setAudioInterrupted(false)
+            @unknown default: break
             }
         }
         .sheet(isPresented: $showDoneSheet) {
@@ -376,9 +406,34 @@ struct BrushView: View {
             }
             .padding(.bottom, 20)
         }
+        // U3 — a visible "paused" state so a user returning from a call doesn't think the
+        // app froze or the session ended. The timer holds; brushing resumes on return.
+        .overlay {
+            if isBrushing, sessionPaused {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 32).fill(Duo.ink.opacity(0.45))
+                    VStack(spacing: 10) {
+                        Image(systemName: "pause.circle.fill")
+                            .font(.system(size: 44, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Paused")
+                            .font(Duo.Fnt.ebd(20))
+                            .foregroundColor(.white)
+                        Text("Come back and keep brushing — your time is saved.")
+                            .font(Duo.Fnt.sbd(13))
+                            .foregroundColor(.white.opacity(0.9))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 28)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 32))
+                .transition(.opacity)
+            }
+        }
         .frame(height: 400)
         .padding(.bottom, 16)
         .animation(.easeInOut(duration: 0.4), value: isBrushing)
+        .animation(.easeInOut(duration: 0.25), value: sessionPaused)
         .onAppear { requestCameraIfNeeded() }
     }
 
@@ -532,6 +587,10 @@ struct BrushView: View {
         sessionSignpost = appSignposter.beginInterval("BrushingSession")
         SoundManager.startBrushing()
         startDate = Date()
+        clock = SessionClock(startedAt: CACurrentMediaTime())
+        sessionPaused = false
+        phaseInactive = false
+        audioInterrupted = false
         isBrushing = true
         store.isBrushing = true
         elapsedSeconds = 0
@@ -567,10 +626,13 @@ struct BrushView: View {
         }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
-                guard let start = startDate else { return }
+                guard let clock else { return }
+                // U3 — frozen while backgrounded / audio-interrupted; nothing accrues.
+                guard !sessionPaused else { return }
                 // U4 — prescribed route done (all zones brushed to target): wrap up.
                 if zoneMonitor.sessionIsComplete { stopBrushing(); return }
-                elapsedSeconds = Int(Date().timeIntervalSince(start))
+                // U3 — active time only; SessionClock excludes paused gaps.
+                elapsedSeconds = clock.activeSeconds(asOf: CACurrentMediaTime())
                 // Spec 05 §6.5 — refresh the Live Activity every 5s (chatty-safe).
                 if elapsedSeconds % 5 == 0 {
                     BrushingLiveActivity.update(
@@ -579,8 +641,11 @@ struct BrushView: View {
                         zonesCompleted: zoneMonitor.sessionZonesCompleted,
                         totalZones: CoarseZone.allCases.count)
                 }
+                // U3 — fire every still-unspoken content/encourage cue at or before now, so a
+                // coalesced tick or a post-resume jump in active seconds never drops one
+                // (equality matching would silently skip a cue the clock stepped past).
                 for cue in sessionCues
-                where cue.atSecond == elapsedSeconds
+                where cue.atSecond <= elapsedSeconds
                     && (cue.kind == .content || cue.kind == .encourage)
                     && !spokenCueTimes.contains(cue.atSecond) {
                     spokenCueTimes.insert(cue.atSecond)
@@ -610,24 +675,88 @@ struct BrushView: View {
         BrushingLiveActivity.end()   // Spec 05 §6.5 — never a stuck activity
         store.isBrushing = false
         guard let start = startDate else { return }
-        // U3 — persist the session's quality signals from the monitor (read after stop;
-        // the monitor keeps its accumulators until the next startMonitoring()).
-        store.recordSession(start: start, end: Date(),
+        // U3 — persist a NON-inflated duration. SessionClock's active seconds become the
+        // record's end, so durationSeconds / starCount (computed as end−start) and the
+        // dentist-facing PDF exclude background + interruption time. activeSeconds
+        // (brushing-detected) comes from the monitor, frozen in lockstep via its paused flag.
+        let activeElapsed = clock?.activeSeconds(asOf: CACurrentMediaTime()) ?? elapsedSeconds
+        let honestEnd = start.addingTimeInterval(TimeInterval(activeElapsed))
+        store.recordSession(start: start, end: honestEnd,
                             activeSeconds: zoneMonitor.sessionActiveSeconds,
                             targetSeconds: zoneMonitor.targetSeconds,
                             coverage: zoneMonitor.sessionCoverage,
                             cameraVerified: zoneMonitor.sessionCameraVerified,
                             guidanceMode: zoneMonitor.sessionGuidanceMode)
+        clearInProgressSnapshot()
         // Contextual permission (after first completed session) + refresh reminders. Spec 01 §4.7.
         NotificationScheduler.shared.requestAuthorizationIfNeeded()
         NotificationScheduler.shared.reschedule(records: store.records, streak: store.streak)
         doneSheetRecord = store.records.first
         showDoneSheet = true
         startDate = nil
+        clock = nil
+        sessionPaused = false
+        phaseInactive = false
+        audioInterrupted = false
         isBrushing = false
         elapsedSeconds = 0
         sessionCues = []
         spokenCueTimes = []
+    }
+
+    // MARK: - U3 pause / resume (background + audio interruption)
+
+    /// scenePhase != .active is one of the two pause causes.
+    private func setPhaseActive(_ active: Bool) {
+        phaseInactive = !active
+        applyPauseState()
+    }
+
+    /// An AVAudioSession interruption is the other — it can fire without a scenePhase change.
+    private func setAudioInterrupted(_ interrupted: Bool) {
+        audioInterrupted = interrupted
+        applyPauseState()
+    }
+
+    /// The clock (and the monitor's accumulators) run only when BOTH causes are clear.
+    private func applyPauseState() {
+        guard isBrushing else { return }
+        let shouldPause = phaseInactive || audioInterrupted
+        if shouldPause, !sessionPaused {
+            sessionPaused = true
+            clock = clock?.paused(at: CACurrentMediaTime())
+            zoneMonitor.paused = true
+            voiceCoach.stop()
+        } else if !shouldPause, sessionPaused {
+            sessionPaused = false
+            clock = clock?.resumed(at: CACurrentMediaTime())
+            zoneMonitor.paused = false
+        }
+    }
+
+    // MARK: - U3 crash-safety snapshot (Open Questions D-2)
+
+    /// Persist enough to reconstruct the record if the app is killed while backgrounded.
+    /// Active seconds are already non-inflated (SessionClock), so committing them on the
+    /// next launch is honest — and far better than silently losing a near-complete brush.
+    private func saveInProgressSnapshot() {
+        guard isBrushing, let start = startDate else { return }
+        let active = clock?.activeSeconds(asOf: CACurrentMediaTime()) ?? elapsedSeconds
+        guard active > 0 else { return }
+        let snap = InProgressSessionSnapshot(
+            startDate: start,
+            activeSeconds: active,
+            targetSeconds: zoneMonitor.targetSeconds,
+            coverage: zoneMonitor.sessionCoverage,
+            cameraVerified: zoneMonitor.sessionCameraVerified,
+            guidanceMode: zoneMonitor.sessionGuidanceMode)
+        if let data = try? JSONEncoder().encode(snap) {
+            UserDefaults.standard.set(data, forKey: InProgressSessionSnapshot.userDefaultsKey)
+        }
+    }
+
+    private func clearInProgressSnapshot() {
+        UserDefaults.standard.removeObject(forKey: InProgressSessionSnapshot.userDefaultsKey)
     }
 }
 

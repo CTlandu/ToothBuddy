@@ -142,6 +142,22 @@ final class BrushingStore: ObservableObject {
         return .logged
     }
 
+    /// U3 (Open Questions D-2) — at launch, commit a session that was in progress when the
+    /// app was killed while backgrounded. No-op when there's no snapshot. The snapshot's
+    /// activeSeconds are SessionClock's paused-aware value, so the recovered record is honest,
+    /// not inflated — and the user doesn't silently lose a near-complete brush.
+    func recoverPendingSession(defaults: UserDefaults = .standard) {
+        let key = InProgressSessionSnapshot.userDefaultsKey
+        guard let data = defaults.data(forKey: key) else { return }
+        defaults.removeObject(forKey: key)   // one-shot: never re-commit
+        guard let snap = try? JSONDecoder().decode(InProgressSessionSnapshot.self, from: data),
+              snap.activeSeconds > 0 else { return }
+        recordSession(start: snap.startDate, end: snap.recoveredEndDate,
+                      activeSeconds: snap.activeSeconds, targetSeconds: snap.targetSeconds,
+                      coverage: snap.coverage, cameraVerified: snap.cameraVerified,
+                      guidanceMode: snap.guidanceMode)
+    }
+
     func deleteRecord(id: UUID) {
         let req = NSFetchRequest<CDBrushingRecord>(entityName: "CDBrushingRecord")
         req.predicate = NSPredicate(format: "id == %@", id as CVarArg)

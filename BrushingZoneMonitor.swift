@@ -86,6 +86,12 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     /// U5 — false in audio-first mode: skip the camera entirely (privacy + battery); the
     /// session stays guided-only. Set by BrushView before startMonitoring().
     var useCamera = true
+    /// U3 (Phase 1.5) — set by BrushView when the session pauses (app backgrounded or an
+    /// audio interruption begins) so per-second coverage / active accumulation freezes in
+    /// lockstep with SessionClock. Unlike stopMonitoring() this keeps Vision + zone state
+    /// intact, so a foreground interruption (e.g. a call answered on a paired device, which
+    /// never changes scenePhase) cannot inflate the saved record.
+    var paused = false
     private var coverageSeconds: [CoarseZone: Int] = [:]
     private var activeSecondsCount = 0
     private var cameraBrushingSeconds = 0
@@ -117,6 +123,7 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     func startMonitoring() {
         guard !running else { return }                 // idempotent
         running = true
+        paused = false
         startTime = CACurrentMediaTime()
         lastFaceSeen = startTime
         window.removeAll()
@@ -171,7 +178,7 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     // MARK: - Decision tick (≤ 1 currentZone change / sec → no UI/voice thrash)
 
     private func tick() {
-        guard running else { return }
+        guard running, !paused else { return }          // frozen while the session is paused
         let now = CACurrentMediaTime()
 
         if !camera.isAuthorized || !useCamera {
