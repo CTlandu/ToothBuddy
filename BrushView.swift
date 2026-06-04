@@ -24,8 +24,6 @@ struct BrushView: View {
     @State private var spokenCueTimes: Set<Int> = []
     @State private var showDoneSheet = false
     @State private var doneSheetRecord: BrushingRecord?
-    /// True once camera permission is granted so the preview view gets a valid session.
-    @State private var cameraAuthorized = false
     /// Quality audit 2026-05-28 / Plan U2 — interval state for the whole brushing
     /// session (begin in `startBrushing`, end in `stopBrushing`). Visible in
     /// Instruments → Points of Interest as "BrushingSession".
@@ -40,6 +38,15 @@ struct BrushView: View {
     @State private var phaseInactive = false
     @State private var audioInterrupted = false
     @Environment(\.scenePhase) private var scenePhase
+    /// U4 — the EFFECTIVE camera state for this session. May differ from `isMirror` when
+    /// permission is denied; drives the render branch so a denied mirror shows the audio
+    /// view, never a black frame.
+    @State private var sessionUsesCamera = false
+    /// U4 — user wanted the mirror but the camera is unavailable: show a non-blocking notice.
+    @State private var sessionDegraded = false
+    /// U4 — brief state while the permission prompt is up after START was tapped (avoids
+    /// starting the session — and stamping it guided-only — before the user has answered).
+    @State private var preparingCamera = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -307,7 +314,7 @@ struct BrushView: View {
 
             // Live camera preview ONLY while brushing — idle state shows BuddyView
             // (no point pointing the camera at a not-yet-brushing user).
-            if cameraAuthorized, isBrushing, isMirror {
+            if isBrushing, sessionUsesCamera {
                 CameraPreviewView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
@@ -316,14 +323,14 @@ struct BrushView: View {
 
             // Sugar Bugs game (Spec 04.3) — U5/U8: shown in mirror mode when the user
             // keeps the game on (Settings), no longer gated by kid/adult.
-            if isBrushing, isMirror, prefs.gameEnabled {
+            if isBrushing, sessionUsesCamera, prefs.gameEnabled {
                 BrushGameOverlay()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .allowsHitTesting(false)
             }
 
-            if isBrushing, isMirror {
+            if isBrushing, sessionUsesCamera {
                 // LIVE pill + disclaimer aligned to top
                 VStack(spacing: 5) {
                     HStack(spacing: 6) {
@@ -374,7 +381,7 @@ struct BrushView: View {
 
             // Bottom of camera: zone instruction + mute toggle when brushing only.
             VStack(spacing: 8) {
-                if isBrushing, isMirror, let zone = zoneMonitor.currentZone {
+                if isBrushing, sessionUsesCamera, let zone = zoneMonitor.currentZone {
                     HStack(spacing: 8) {
                         Text(zone.prompt)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
@@ -441,6 +448,20 @@ struct BrushView: View {
     /// + reassurance that the phone can be set down; voice does the guiding.
     private var audioGuideView: some View {
         VStack(spacing: 18) {
+            // U4 — honest degradation notice: the user picked the mirror but the camera is
+            // unavailable, so we run audio-only (and the record stays guided-only) rather
+            // than showing a black frame. Stays up for the whole session.
+            if sessionDegraded {
+                HStack(spacing: 6) {
+                    Image(systemName: "video.slash.fill")
+                    Text("Camera off — guiding you by voice")
+                }
+                .font(Duo.Fnt.sbd(12))
+                .foregroundColor(Theme.textPrimary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Capsule().fill(Color.white.opacity(0.92)))
+            }
             BuddyView()
                 .frame(width: 120, height: 138)
             if let zone = zoneMonitor.currentZone {
@@ -471,16 +492,12 @@ struct BrushView: View {
         .padding(.horizontal, 16)
     }
 
+    /// U4 — pre-prompt for camera permission when the brushing screen appears (only if not
+    /// yet answered), so the system dialog isn't racing the START tap. The actual mode
+    /// decision happens in requestStart() via SessionModeResolver.
     private func requestCameraIfNeeded() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            cameraAuthorized = true
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                DispatchQueue.main.async { cameraAuthorized = granted }
-            }
-        default:
-            break
+        if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            AVCaptureDevice.requestAccess(for: .video) { _ in }
         }
     }
 
@@ -521,7 +538,7 @@ struct BrushView: View {
             if isBrushing {
                 stopBrushing()
             } else {
-                startBrushing()
+                requestStart()
             }
         }
     }
@@ -578,10 +595,32 @@ struct BrushView: View {
     private func handleIntentStart() {
         guard intentBridge.startRequested else { return }
         intentBridge.consume()
-        if !isBrushing { startBrushing() }
+        if !isBrushing { requestStart() }
     }
 
-    private func startBrushing() {
+    /// U4 — resolve the effective session mode BEFORE starting, so a denied camera degrades
+    /// to audio (never a black frame) and a not-yet-answered permission prompt gates the
+    /// start instead of stamping the record guided-only while the user is about to grant.
+    private func requestStart() {
+        guard !isBrushing, !preparingCamera else { return }
+        let auth = CameraService.shared.cameraAuthorization
+        if isMirror, auth == .notDetermined {
+            preparingCamera = true
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    preparingCamera = false
+                    let eff = SessionModeResolver.resolve(
+                        requestedMirror: true, authorization: granted ? .authorized : .denied)
+                    startBrushing(useCamera: eff.useCamera, degraded: eff.degraded)
+                }
+            }
+            return
+        }
+        let eff = SessionModeResolver.resolve(requestedMirror: isMirror, authorization: auth)
+        startBrushing(useCamera: eff.useCamera, degraded: eff.degraded)
+    }
+
+    private func startBrushing(useCamera: Bool, degraded: Bool) {
         // Quality audit 2026-05-28 / Plan U2 — open a signpost interval covering the
         // entire session. Paired in stopBrushing().
         sessionSignpost = appSignposter.beginInterval("BrushingSession")
@@ -591,11 +630,13 @@ struct BrushView: View {
         sessionPaused = false
         phaseInactive = false
         audioInterrupted = false
+        sessionUsesCamera = useCamera
+        sessionDegraded = degraded
         isBrushing = true
         store.isBrushing = true
         elapsedSeconds = 0
         zoneMonitor.targetSeconds = prefs.targetSeconds
-        zoneMonitor.useCamera = isMirror   // U5 — audio-first mode never opens the camera
+        zoneMonitor.useCamera = useCamera   // U4 — effective mode (denied mirror → audio-only)
         voiceCoach.isMuted = !prefs.voiceEnabled
         zoneMonitor.startMonitoring()
         // Spec 05 §6.5 — Live Activity (additive; no-op if unsupported/disabled).
@@ -698,6 +739,8 @@ struct BrushView: View {
         sessionPaused = false
         phaseInactive = false
         audioInterrupted = false
+        sessionUsesCamera = false
+        sessionDegraded = false
         isBrushing = false
         elapsedSeconds = 0
         sessionCues = []

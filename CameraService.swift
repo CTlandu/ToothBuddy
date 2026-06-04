@@ -41,6 +41,18 @@ final class CameraService: @unchecked Sendable {
         AVCaptureDevice.authorizationStatus(for: .video) == .authorized
     }
 
+    /// U4 — coarse permission state for `SessionModeResolver`, so the brushing flow can
+    /// degrade mirror → audio honestly (and tell denied apart from not-yet-asked).
+    var cameraAuthorization: CameraAuthorization {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:    return .authorized
+        case .denied:        return .denied
+        case .restricted:    return .restricted
+        case .notDetermined: return .notDetermined
+        @unknown default:    return .denied
+        }
+    }
+
     /// Begin (or keep) the live preview. Idempotent. Called when the brushing screen is
     /// shown, independent of whether a session is active. No-ops cleanly if unauthorized.
     func startPreview() {
