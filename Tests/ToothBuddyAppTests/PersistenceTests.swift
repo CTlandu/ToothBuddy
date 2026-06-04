@@ -74,19 +74,6 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(ps.profiles.first { $0.id == kid.id }?.mode, .adult)
     }
 
-    // Spec 05 §6.1 — explicit user tone wins; otherwise adult⇒essentials, kid⇒playful.
-    func testEffectiveToneFollowsModeUntilUserSetsItExplicitly() {
-        UserDefaults.standard.removeObject(forKey: "ToothBuddy.contentTone")
-        let s = ContentHistoryStore.shared
-        XCTAssertFalse(s.toneExplicitlySet)
-        XCTAssertEqual(s.effectiveTone(forAdult: true), .essentials)
-        XCTAssertEqual(s.effectiveTone(forAdult: false), .playful)
-        s.setTone(.playful)                       // explicit choice
-        XCTAssertTrue(s.toneExplicitlySet)
-        XCTAssertEqual(s.effectiveTone(forAdult: true), .playful)   // user wins
-        UserDefaults.standard.removeObject(forKey: "ToothBuddy.contentTone")
-    }
-
     // Spec 05 §6.3 / AC7 — quick-log is idempotent within a slot.
     func testQuickLogIsIdempotentWithinSlot() {
         let (pc, ps) = freshStores()

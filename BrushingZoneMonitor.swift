@@ -72,14 +72,45 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     private let windowCap = 24
 
     private var window: [ZoneSample] = []
-    private var coverage = ZoneCoverageTracker()
-    private var guidanceState = GuidanceState()
     private var decisionTimer: Timer?
     private var observers: [NSObjectProtocol] = []
     private var running = false
     private var startTime: CFTimeInterval = 0
     private var lastFaceSeen: CFTimeInterval = 0
     private var fallbackMode = false
+
+    // U3 — per-session quality accumulators. Reset in startMonitoring(); read after
+    // stopMonitoring() by BrushView to persist the record's quality signals.
+    /// Session target in seconds (U7 Settings / U4 inject; default = 2-minute standard).
+    var targetSeconds = 120
+    /// U5 — false in audio-first mode: skip the camera entirely (privacy + battery); the
+    /// session stays guided-only. Set by BrushView before startMonitoring().
+    var useCamera = true
+    private var coverageSeconds: [CoarseZone: Int] = [:]
+    private var activeSecondsCount = 0
+    private var cameraBrushingSeconds = 0
+    private var usedCameraMode = false
+    private var cameraAuthorizedAtStart = false
+
+    /// Read after `stopMonitoring()` to persist what the session achieved.
+    var sessionCoverage: [CoarseZone: Int] { coverageSeconds }
+    var sessionActiveSeconds: Int { activeSecondsCount }
+    var sessionGuidanceMode: GuidanceMode { usedCameraMode ? .camera : .fallbackTimed }
+    var sessionCameraVerified: Bool {
+        CameraVerification.decide(cameraAuthorized: cameraAuthorizedAtStart,
+                                  brushingDetectedSeconds: cameraBrushingSeconds,
+                                  activeSeconds: activeSecondsCount)
+    }
+    /// U4 — the prescribed route is finished: every zone reached its per-zone target.
+    var sessionIsComplete: Bool {
+        GuidedSessionEngine.progress(plan: SessionPlan(targetSeconds: targetSeconds),
+                                     coverage: coverageSeconds, mode: .fallbackTimed).isComplete
+    }
+    /// U14 — zones brushed to target so far (Live Activity progress).
+    var sessionZonesCompleted: Int {
+        GuidedSessionEngine.progress(plan: SessionPlan(targetSeconds: targetSeconds),
+                                     coverage: coverageSeconds, mode: .fallbackTimed).zonesCompleted
+    }
 
     private init() {}
 
@@ -89,11 +120,14 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
         startTime = CACurrentMediaTime()
         lastFaceSeen = startTime
         window.removeAll()
-        coverage = ZoneCoverageTracker()
-        guidanceState = GuidanceState()
-        fallbackMode = !camera.isAuthorized            // no permission → timed at once
+        coverageSeconds = [:]
+        activeSecondsCount = 0
+        cameraBrushingSeconds = 0
+        usedCameraMode = false
+        cameraAuthorizedAtStart = camera.isAuthorized && useCamera
+        fallbackMode = !camera.isAuthorized || !useCamera   // no permission / audio mode → timed
 
-        if camera.isAuthorized {
+        if camera.isAuthorized, useCamera {
             camera.attachVision(sink: { [weak self] sample in
                 Task { @MainActor in self?.ingest(sample) }
             })
@@ -139,9 +173,8 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
     private func tick() {
         guard running else { return }
         let now = CACurrentMediaTime()
-        let elapsed = now - startTime
 
-        if !camera.isAuthorized {
+        if !camera.isAuthorized || !useCamera {
             fallbackMode = true
         } else if now - lastFaceSeen > cfg.fallbackGrace {
             fallbackMode = true
@@ -149,28 +182,30 @@ final class BrushingZoneMonitor: ObservableObject, BrushingZoneMonitoring {
             fallbackMode = false
         }
 
+        let plan = SessionPlan(targetSeconds: targetSeconds)
         let mode: GuidanceMode = fallbackMode ? .fallbackTimed : .camera
+        let dt = Int(decisionInterval)
         var estimate: ZoneEstimate?
         if mode == .camera {
             let e = BrushingZoneEstimator.estimate(window: window, config: cfg)
             estimate = e
-            if e.isActivelyBrushing, let z = e.zone {
-                coverage.record(z, dt: decisionInterval)
-            }
             isBrushingActive = e.isActivelyBrushing
+            usedCameraMode = true
+            if e.isActivelyBrushing { cameraBrushingSeconds += dt }
         } else {
             isBrushingActive = true   // timed fallback: game still plays (Spec 04.3 §6.3)
         }
 
-        let out = GuidanceDecider.decide(mode: mode,
-                                         estimate: estimate,
-                                         coverage: coverage,
-                                         elapsed: elapsed,
-                                         state: guidanceState,
-                                         config: cfg)
-        guidanceState = out.newState
-        let mapped = Self.brushingZone(for: out.promptZone)
-        if mapped != currentZone { currentZone = mapped }
+        // Prescribed-route coverage (U2 engine): camera credits the detected zone; timed
+        // fallback credits the current prescribed zone, so guided-only sessions get coverage.
+        coverageSeconds = GuidedSessionEngine.tick(plan: plan, coverage: coverageSeconds,
+                                                   mode: mode, detected: estimate, dt: dt)
+        if isBrushingActive { activeSecondsCount += dt }
+
+        if let cz = GuidedSessionEngine.currentZone(plan: plan, coverage: coverageSeconds, mode: mode) {
+            let mapped = Self.brushingZone(for: cz)
+            if mapped != currentZone { currentZone = mapped }
+        }
     }
 
     // MARK: - Camera session interruptions (no frozen black preview)

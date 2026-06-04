@@ -1,5 +1,7 @@
 # ToothBuddy Roadmap
 
+> **⚠️ Superseded (2026-05-29):** This describes the old habit-tracker / family product. The current product definition is [`docs/product-north-star.md`](docs/product-north-star.md); the Phase-1 rebuild is [`docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md`](docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md). Kept for history.
+
 This document is the source of truth for product direction. Detailed specs live in [`specs/`](specs/), one per focus area, written and implemented iteratively in priority order.
 
 ## Product Principles (hard constraints)

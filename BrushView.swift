@@ -10,23 +10,9 @@ struct BrushView: View {
     @StateObject private var voiceCoach = VoiceCoach.shared
     @StateObject private var profiles = ProfileStore.shared
     @StateObject private var intentBridge = BrushingIntentBridge.shared
-    /// Spec 05 §6.1 — the active profile's experience mode (per-profile; a kid sibling
-    /// on the same device is unaffected). Drives the calm adult presentation.
-    private var isAdult: Bool { profiles.activeProfile?.mode == .adult }
-    /// Spec 05 §6.1 — the calm "morning ✓ / evening ✓" summary shown instead of stars
-    /// for an adult profile. Derived from the active profile's records (today).
-    private var adultSlotSummary: String {
-        let cal = Calendar.current
-        let today0 = cal.startOfDay(for: Date())
-        var am = false, pm = false
-        for r in store.records where cal.startOfDay(for: r.startDate) == today0 {
-            switch SessionSlot.slot(for: r.startDate, boundaryHour: 12, calendar: cal) {
-            case .morning: am = true
-            case .evening: pm = true
-            }
-        }
-        return "Morning \(am ? "✓" : "—")   ·   Evening \(pm ? "✓" : "—")"
-    }
+    @StateObject private var prefs = PreferencesStore.shared
+    /// U5 — smart-mirror (camera visual) vs audio-first (eyes-free). Drives the brushing UI.
+    private var isMirror: Bool { prefs.sessionMode == .mirror }
     @State private var isBrushing = false
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
@@ -99,8 +85,7 @@ struct BrushView: View {
             if let record = doneSheetRecord {
                 ZStack {
                     Duo.pageBackground.ignoresSafeArea()
-                    DoneResultSheet(record: record, isAdult: isAdult,
-                                    slotSummary: adultSlotSummary,
+                    DoneResultSheet(record: record, celebrate: prefs.celebrationsEnabled,
                                     onDismiss: { showDoneSheet = false }, onDelete: {
                         store.deleteRecord(id: record.id)
                         showDoneSheet = false
@@ -292,24 +277,23 @@ struct BrushView: View {
 
             // Live camera preview ONLY while brushing — idle state shows BuddyView
             // (no point pointing the camera at a not-yet-brushing user).
-            if cameraAuthorized, isBrushing {
+            if cameraAuthorized, isBrushing, isMirror {
                 CameraPreviewView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .allowsHitTesting(false)
             }
 
-            // Sugar Bugs game (Spec 04.3) — playful, non-adult only (Spec 05 §6.1);
-            // decorative, below the LIVE pill / zone prompt. Camera-off → timed fallback.
-            if isBrushing, !isAdult,
-               ContentHistoryStore.shared.effectiveTone(forAdult: isAdult) == .playful {
+            // Sugar Bugs game (Spec 04.3) — U5/U8: shown in mirror mode when the user
+            // keeps the game on (Settings), no longer gated by kid/adult.
+            if isBrushing, isMirror, prefs.gameEnabled {
                 BrushGameOverlay()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .allowsHitTesting(false)
             }
 
-            if isBrushing {
+            if isBrushing, isMirror {
                 // LIVE pill + disclaimer aligned to top
                 VStack(spacing: 5) {
                     HStack(spacing: 6) {
@@ -339,6 +323,8 @@ struct BrushView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 14)
                 .frame(maxHeight: .infinity, alignment: .top)
+            } else if isBrushing {
+                audioGuideView
             } else {
                 // Idle hero — BuddyView mascot centered, camera-off message below.
                 VStack(spacing: 16) {
@@ -358,7 +344,7 @@ struct BrushView: View {
 
             // Bottom of camera: zone instruction + mute toggle when brushing only.
             VStack(spacing: 8) {
-                if isBrushing, let zone = zoneMonitor.currentZone {
+                if isBrushing, isMirror, let zone = zoneMonitor.currentZone {
                     HStack(spacing: 8) {
                         Text(zone.prompt)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
@@ -394,6 +380,40 @@ struct BrushView: View {
         .padding(.bottom, 16)
         .animation(.easeInOut(duration: 0.4), value: isBrushing)
         .onAppear { requestCameraIfNeeded() }
+    }
+
+    /// U5 — eyes-free brushing view: no camera, no game. Big mascot + current-zone prompt
+    /// + reassurance that the phone can be set down; voice does the guiding.
+    private var audioGuideView: some View {
+        VStack(spacing: 18) {
+            BuddyView()
+                .frame(width: 120, height: 138)
+            if let zone = zoneMonitor.currentZone {
+                Text(zone.prompt)
+                    .font(Duo.Fnt.ebd(20))
+                    .tracking(0.2)
+                    .foregroundColor(Duo.ink)
+                    .multilineTextAlignment(.center)
+                    .contentTransition(.opacity)
+            }
+            Text("Eyes-free — set your phone down, I'll guide you by voice.")
+                .font(Duo.Fnt.sbd(13))
+                .foregroundColor(Duo.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) { voiceCoach.isMuted.toggle() }
+            } label: {
+                Image(systemName: voiceCoach.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(voiceCoach.isMuted ? Theme.textMuted : Theme.textPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.92))
+                    .clipShape(Circle())
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 16)
     }
 
     private func requestCameraIfNeeded() {
@@ -515,14 +535,17 @@ struct BrushView: View {
         isBrushing = true
         store.isBrushing = true
         elapsedSeconds = 0
+        zoneMonitor.targetSeconds = prefs.targetSeconds
+        zoneMonitor.useCamera = isMirror   // U5 — audio-first mode never opens the camera
+        voiceCoach.isMuted = !prefs.voiceEnabled
         zoneMonitor.startMonitoring()
         // Spec 05 §6.5 — Live Activity (additive; no-op if unsupported/disabled).
         BrushingLiveActivity.start(
             profileName: profiles.activeProfile?.name ?? "ToothBuddy",
-            totalSeconds: 120)
-        // Build this session's varying content timeline (Spec 03); adult profiles
-        // default to the calm `essentials` tone unless the user set one (Spec 05 §6.1).
-        let tone = ContentHistoryStore.shared.effectiveTone(forAdult: isAdult)
+            totalSeconds: prefs.targetSeconds)
+        // Build this session's varying content timeline (Spec 03). Tone now comes from
+        // Settings (U7), not the profile's kid/adult mode.
+        let tone = prefs.contentTone
         let cal = Calendar.current
         let dayIdx = Int(cal.startOfDay(for: Date()).timeIntervalSinceReferenceDate / 86_400)
         let kinds: [ContentKind] = tone == .essentials
@@ -531,7 +554,7 @@ struct BrushView: View {
         let content = ContentSelector.pick(kind: kind, now: Date(),
                                            history: ContentHistoryStore.shared.recent(),
                                            tone: tone, calendar: cal)
-        sessionCues = SessionScript.build(durationSeconds: 120, tone: tone,
+        sessionCues = SessionScript.build(durationSeconds: prefs.targetSeconds, tone: tone,
                                           content: content, calendar: cal)
         spokenCueTimes = []
         if let cid = content?.id { ContentHistoryStore.shared.record(cid) }
@@ -545,12 +568,16 @@ struct BrushView: View {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
                 guard let start = startDate else { return }
+                // U4 — prescribed route done (all zones brushed to target): wrap up.
+                if zoneMonitor.sessionIsComplete { stopBrushing(); return }
                 elapsedSeconds = Int(Date().timeIntervalSince(start))
                 // Spec 05 §6.5 — refresh the Live Activity every 5s (chatty-safe).
                 if elapsedSeconds % 5 == 0 {
                     BrushingLiveActivity.update(
-                        secondsRemaining: max(0, 120 - elapsedSeconds),
-                        zoneHint: zoneMonitor.currentZone?.announcement ?? "Keep brushing")
+                        secondsRemaining: max(0, prefs.targetSeconds - elapsedSeconds),
+                        zoneHint: zoneMonitor.currentZone?.announcement ?? "Keep brushing",
+                        zonesCompleted: zoneMonitor.sessionZonesCompleted,
+                        totalZones: CoarseZone.allCases.count)
                 }
                 for cue in sessionCues
                 where cue.atSecond == elapsedSeconds
@@ -573,12 +600,24 @@ struct BrushView: View {
         SoundManager.doneBrushing()
         timer?.invalidate()
         timer = nil
-        voiceCoach.stop()
+        // U4 — speak the wrap-up line (no-op if voice off), instead of an abrupt cut.
+        if let wrap = sessionCues.first(where: { $0.kind == .wrap }) {
+            voiceCoach.speak(wrap.text)
+        } else {
+            voiceCoach.stop()
+        }
         zoneMonitor.stopMonitoring()
         BrushingLiveActivity.end()   // Spec 05 §6.5 — never a stuck activity
         store.isBrushing = false
         guard let start = startDate else { return }
-        store.recordSession(start: start, end: Date())   // scoped to active profile (Spec 02)
+        // U3 — persist the session's quality signals from the monitor (read after stop;
+        // the monitor keeps its accumulators until the next startMonitoring()).
+        store.recordSession(start: start, end: Date(),
+                            activeSeconds: zoneMonitor.sessionActiveSeconds,
+                            targetSeconds: zoneMonitor.targetSeconds,
+                            coverage: zoneMonitor.sessionCoverage,
+                            cameraVerified: zoneMonitor.sessionCameraVerified,
+                            guidanceMode: zoneMonitor.sessionGuidanceMode)
         // Contextual permission (after first completed session) + refresh reminders. Spec 01 §4.7.
         NotificationScheduler.shared.requestAuthorizationIfNeeded()
         NotificationScheduler.shared.reschedule(records: store.records, streak: store.streak)
@@ -595,66 +634,41 @@ struct BrushView: View {
 // MARK: - Done result popup: Duo-style chunky card with Foam celebration
 private struct DoneResultSheet: View {
     let record: BrushingRecord
-    /// Spec 05 §6.1 — adult ⇒ no stars/confetti, calm copy, quiet slot summary.
-    var isAdult: Bool = false
-    var slotSummary: String = ""
+    /// U6 — celebrations (Foam + stars) on/off, from Settings (replaces the kid/adult split).
+    var celebrate: Bool = true
     let onDismiss: () -> Void
     let onDelete: () -> Void
     @State private var cardAppeared = false
 
     private var stars: Int { record.starCount }
     private var duration: Int { record.durationSeconds }
+    private var perZoneTarget: Int { record.targetSeconds / CoarseZone.allCases.count }
+    private func zoneMet(_ z: CoarseZone) -> Bool { (record.coverage[z] ?? 0) >= perZoneTarget }
+    private var zonesMet: Int { CoarseZone.allCases.filter(zoneMet).count }
 
     private var title: String {
-        if isAdult { return String(localized: "Brushing logged") }
-        switch stars {
-        case 3: return String(localized: "Perfect!")
-        case 2: return String(localized: "Good job!")
-        default: return String(localized: "Every brush counts!")
-        }
+        record.metMinimum ? String(localized: "Great brush!") : String(localized: "Brushing logged")
     }
-
-    private var titleColor: Color {
-        if isAdult { return Duo.ink }
-        switch stars {
-        case 3: return Duo.green
-        case 2: return Duo.blue
-        default: return Duo.yellowShadow
-        }
-    }
+    private var titleColor: Color { record.metMinimum ? Duo.green : Duo.ink }
 
     private var message: String {
-        if isAdult {
-            return duration >= 120
-                ? String(localized: "Logged a full two-minute session.")
-                : String(localized: "Logged. Aim for two minutes when you can.")
-        }
-        switch stars {
-        case 3: return String(localized: "You brushed for 2 minutes. That's the recommended time.")
-        case 2: return String(localized: "You're building a great habit. Keep it up!")
-        default: return String(localized: "Try for 2 minutes next time. You've got this!")
-        }
-    }
-
-    private var funFact: String {
-        if isAdult { return slotSummary }
-        switch stars {
-        case 3: return String(localized: "Did you know? Tooth enamel is the hardest part of your body.")
-        case 2: return String(localized: "Fun fact: Kids have 20 baby teeth. Taking care of them now helps your adult teeth.")
-        default: return String(localized: "Tip: Brushing twice a day helps keep cavities away.")
+        if record.metMinimum {
+            return String(localized: "You covered every area for the full time. That's a thorough brush.")
+        } else if zonesMet > 0 {
+            return String(localized: "You covered \(zonesMet) of \(CoarseZone.allCases.count) areas. Give each one a little longer next time.")
+        } else {
+            return String(localized: "Logged. Try to brush each area for the full time next round.")
         }
     }
 
     var body: some View {
-        VStack(spacing: 14) {
-            // Hero — Foam celebration for kid (3 stars = biggest), calm Buddy for adult.
-            if isAdult {
-                BuddyView()
-                    .frame(width: 70, height: 80)
-            } else {
+        VStack(spacing: 12) {
+            if celebrate {
                 FoamView()
-                    .frame(width: stars >= 3 ? 110 : 90,
-                           height: stars >= 3 ? 110 : 90)
+                    .frame(width: record.metMinimum ? 96 : 80,
+                           height: record.metMinimum ? 96 : 80)
+            } else {
+                BuddyView().frame(width: 70, height: 80)
             }
 
             Text(title)
@@ -663,29 +677,52 @@ private struct DoneResultSheet: View {
                 .foregroundColor(titleColor)
 
             Text(formattedTime)
-                .font(Duo.Fnt.ebd(40).monospacedDigit())
+                .font(Duo.Fnt.ebd(38).monospacedDigit())
                 .tracking(2)
                 .foregroundColor(Duo.ink)
+            Text(record.metMinimum
+                 ? String(localized: "Target met")
+                 : String(localized: "Target \(formattedTarget)"))
+                .font(Duo.Fnt.sbd(12))
+                .foregroundColor(record.metMinimum ? Duo.green : Duo.muted)
 
-            if !isAdult {
-                StarRatingView(count: stars, size: 26)
-            }
-
+            // Per-zone coverage — green = brushed long enough, gray = needs more time.
             VStack(spacing: 6) {
-                Text(message)
-                    .font(Duo.Fnt.sbd(14))
-                    .foregroundColor(Duo.ink)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(funFact)
-                    .font(Duo.Fnt.reg(12))
+                HStack(spacing: 8) {
+                    ForEach(CoarseZone.allCases, id: \.self) { z in
+                        Circle()
+                            .fill(zoneMet(z) ? Duo.green : Color(white: 0.85))
+                            .frame(width: 16, height: 16)
+                            .overlay(Circle().stroke(Duo.ink, lineWidth: 1.5))
+                    }
+                }
+                Text("\(zonesMet) / \(CoarseZone.allCases.count) areas covered")
+                    .font(Duo.Fnt.sbd(11))
                     .foregroundColor(Duo.muted)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 8)
 
-            DuoButton("DONE", role: isAdult ? .secondary : .primary) {
+            // Verification badge — the un-fakeable, dentist-facing flag.
+            HStack(spacing: 5) {
+                Image(systemName: record.cameraVerified ? "checkmark.shield.fill" : "hand.draw.fill")
+                Text(record.cameraVerified
+                     ? String(localized: "Camera-verified")
+                     : String(localized: "Guided (no camera)"))
+            }
+            .font(Duo.Fnt.sbd(12))
+            .foregroundColor(record.cameraVerified ? Duo.green : Duo.muted)
+
+            if celebrate {
+                StarRatingView(count: stars, size: 22)
+            }
+
+            Text(message)
+                .font(Duo.Fnt.sbd(13))
+                .foregroundColor(Duo.ink)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 8)
+
+            DuoButton("DONE", role: celebrate ? .primary : .secondary) {
                 SoundManager.sheetDismissed()
                 onDismiss()
             }
@@ -724,5 +761,8 @@ private struct DoneResultSheet: View {
         let m = duration / 60
         let s = duration % 60
         return String(format: "%02d:%02d", m, s)
+    }
+    private var formattedTarget: String {
+        String(format: "%d:%02d", record.targetSeconds / 60, record.targetSeconds % 60)
     }
 }

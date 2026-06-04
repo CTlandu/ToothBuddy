@@ -17,16 +17,6 @@ final class CDProfile: NSManagedObject {
     @NSManaged var records: NSSet?
     @NSManaged var care: CDProfileCare?
     @NSManaged var achievements: NSSet?
-    @NSManaged var group: CDGroup?
-}
-
-@objc(CDGroup)
-final class CDGroup: NSManagedObject {
-    @NSManaged var id: UUID?
-    @NSManaged var name: String?
-    @NSManaged var createdAt: Date?
-    @NSManaged var modifiedAt: Date?
-    @NSManaged var members: NSSet?
 }
 
 @objc(CDBrushingRecord)
@@ -36,6 +26,13 @@ final class CDBrushingRecord: NSManagedObject {
     @NSManaged var endDate: Date?
     @NSManaged var modifiedAt: Date?
     @NSManaged var profile: CDProfile?
+    // U1 (quality-pivot) — enriched quality signals. Additive, optional/defaulted ⇒ zero-loss
+    // + CloudKit-safe per the model rule below.
+    @NSManaged var activeSeconds: NSNumber?   // nil ⇒ DTO falls back to wall-clock duration
+    @NSManaged var targetSeconds: Int64       // default 120
+    @NSManaged var coverageJSON: String?      // [CoarseZone.rawValue: seconds] as JSON
+    @NSManaged var cameraVerified: Bool       // default false
+    @NSManaged var guidanceMode: String?      // GuidanceMode.rawValue
 }
 
 @objc(CDProfileCare)
@@ -96,10 +93,6 @@ enum ToothBuddyModel {
         ach.name = "CDAchievementUnlock"
         ach.managedObjectClassName = "CDAchievementUnlock"
 
-        let group = NSEntityDescription()
-        group.name = "CDGroup"
-        group.managedObjectClassName = "CDGroup"
-
         profile.properties = [
             attr("id", .UUIDAttributeType),
             attr("name", .stringAttributeType),
@@ -117,7 +110,13 @@ enum ToothBuddyModel {
             attr("id", .UUIDAttributeType),
             attr("startDate", .dateAttributeType),
             attr("endDate", .dateAttributeType),
-            attr("modifiedAt", .dateAttributeType)
+            attr("modifiedAt", .dateAttributeType),
+            // U1 — enriched quality fields (additive; optional or defaulted ⇒ CloudKit-safe).
+            attr("activeSeconds", .integer64AttributeType),
+            attr("targetSeconds", .integer64AttributeType, optional: false, def: 120),
+            attr("coverageJSON", .stringAttributeType),
+            attr("cameraVerified", .booleanAttributeType, optional: false, def: false),
+            attr("guidanceMode", .stringAttributeType, optional: true, def: "fallbackTimed")
         ]
         care.properties = [
             attr("lastBrushHeadReplaced", .dateAttributeType),
@@ -130,13 +129,6 @@ enum ToothBuddyModel {
             attr("achievementID", .stringAttributeType),
             attr("unlockedAt", .dateAttributeType)
         ]
-        group.properties = [
-            attr("id", .UUIDAttributeType),
-            attr("name", .stringAttributeType),
-            attr("createdAt", .dateAttributeType),
-            attr("modifiedAt", .dateAttributeType)
-        ]
-
         // Relationships (all with inverses — required for CloudKit).
         let pToR = NSRelationshipDescription()
         pToR.name = "records"; pToR.destinationEntity = record
@@ -162,23 +154,13 @@ enum ToothBuddyModel {
         aToP.minCount = 0; aToP.maxCount = 1; aToP.deleteRule = .nullifyDeleteRule
         pToA.inverseRelationship = aToP; aToP.inverseRelationship = pToA
 
-        // Group ↔ members (Spec 02 §6.4 / §7.1). Optional; nil = pure-solo.
-        let gToM = NSRelationshipDescription()
-        gToM.name = "members"; gToM.destinationEntity = profile
-        gToM.minCount = 0; gToM.maxCount = 0; gToM.deleteRule = .nullifyDeleteRule
-        let pToG = NSRelationshipDescription()
-        pToG.name = "group"; pToG.destinationEntity = group
-        pToG.minCount = 0; pToG.maxCount = 1; pToG.deleteRule = .nullifyDeleteRule
-        gToM.inverseRelationship = pToG; pToG.inverseRelationship = gToM
-
-        profile.properties += [pToR, pToCare, pToA, pToG]
+        profile.properties += [pToR, pToCare, pToA]
         record.properties += [rToP]
         care.properties += [careToP]
         ach.properties += [aToP]
-        group.properties += [gToM]
 
         let model = NSManagedObjectModel()
-        model.entities = [profile, record, care, ach, group]
+        model.entities = [profile, record, care, ach]
         return model
     }
 }
@@ -254,6 +236,43 @@ extension CDProfile {
 extension CDBrushingRecord {
     func toDTO() -> BrushingRecord? {
         guard let id, let pid = profile?.id, let startDate, let endDate else { return nil }
-        return BrushingRecord(id: id, profileID: pid, startDate: startDate, endDate: endDate)
+        return BrushingRecord(id: id, profileID: pid, startDate: startDate, endDate: endDate,
+                              activeSeconds: activeSeconds?.intValue,
+                              targetSeconds: Int(targetSeconds),
+                              coverage: CoverageCodec.decode(coverageJSON),
+                              cameraVerified: cameraVerified,
+                              guidanceMode: GuidanceMode(rawValue: guidanceMode ?? "") ?? .fallbackTimed)
+    }
+
+    /// Write the U1 enriched quality fields onto this managed record.
+    func applyQuality(activeSeconds: Int, targetSeconds: Int,
+                      coverage: [CoarseZone: Int], cameraVerified: Bool,
+                      guidanceMode: GuidanceMode) {
+        self.activeSeconds = NSNumber(value: activeSeconds)
+        self.targetSeconds = Int64(targetSeconds)
+        self.coverageJSON = CoverageCodec.encode(coverage)
+        self.cameraVerified = cameraVerified
+        self.guidanceMode = guidanceMode.rawValue
+    }
+}
+
+/// Encodes a per-zone coverage map to/from a compact JSON string keyed by `CoarseZone.rawValue`
+/// (string keys round-trip cleanly through Core Data and a future CloudKit mirror).
+enum CoverageCodec {
+    static func encode(_ coverage: [CoarseZone: Int]) -> String? {
+        guard !coverage.isEmpty else { return nil }
+        let byRaw = Dictionary(uniqueKeysWithValues: coverage.map { ($0.key.rawValue, $0.value) })
+        guard let data = try? JSONEncoder().encode(byRaw) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func decode(_ json: String?) -> [CoarseZone: Int] {
+        guard let json, let data = json.data(using: .utf8),
+              let byRaw = try? JSONDecoder().decode([String: Int].self, from: data) else { return [:] }
+        var out: [CoarseZone: Int] = [:]
+        for (raw, seconds) in byRaw where CoarseZone(rawValue: raw) != nil {
+            out[CoarseZone(rawValue: raw)!] = seconds
+        }
+        return out
     }
 }

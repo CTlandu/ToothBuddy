@@ -46,6 +46,7 @@ struct MyApp: App {
 /// the app becomes active.
 private struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    // U9 — referenced so ProfileStore.shared inits at launch and auto-creates the owner.
     @StateObject private var profiles = ProfileStore.shared
     @Environment(\.scenePhase) private var scenePhase
 
@@ -57,16 +58,12 @@ private struct RootView: View {
                         hasCompletedOnboarding = true
                     }
                 }
-            } else if profiles.activeProfile == nil {
-                // First-run gate: must create or pick a profile (Spec 02 §6.2).
-                ProfilePickerView(store: profiles, isGate: true)
-                    .transition(.opacity)
             } else {
                 ContentView()
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: profiles.activeProfile == nil)
+        .animation(.easeInOut(duration: 0.3), value: hasCompletedOnboarding)
         .task {
             // Spec 05 §6.5 — clear any Live Activity left over from a killed session.
             BrushingLiveActivity.endStaleOnLaunch()

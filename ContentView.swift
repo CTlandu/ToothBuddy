@@ -3,17 +3,15 @@ import SwiftUI
 enum AppTab: String, CaseIterable {
     case brush
     case history
-    case family
     case tips
 }
 
 struct ContentView: View {
     @StateObject private var store = BrushingStore.shared
-    @StateObject private var profiles = ProfileStore.shared
     @StateObject private var intentBridge = BrushingIntentBridge.shared
     @State private var selectedTab: AppTab = .brush
     @State private var previousTab: AppTab = .brush
-    @State private var showProfileSwitcher = false
+    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -38,11 +36,7 @@ struct ContentView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: store.isBrushing)
         .background(Theme.appBackground.ignoresSafeArea())
         .ignoresSafeArea(edges: .bottom)
-        .sheet(isPresented: $showProfileSwitcher) {
-            ProfilePickerView(store: profiles, isGate: false) {
-                showProfileSwitcher = false
-            }
-        }
+        .sheet(isPresented: $showSettings) { SettingsView() }
         // Spec 05 §6.3 — StartBrushingIntent: jump to the Brush tab; BrushView
         // consumes the request and begins the session.
         .onChange(of: intentBridge.startRequested) { _, requested in
@@ -82,26 +76,24 @@ struct ContentView: View {
 
     private var appHeader: some View {
         HStack(spacing: 8) {
-            Spacer().frame(width: 44)
+            settingsButton
             Spacer()
             BuddyView()
                 .frame(width: 32, height: 36)
             DuoWordmark(text: "ToothBuddy", size: 24, face: .white, tracking: 0.5)
             Spacer()
-            profileButton
+            Spacer().frame(width: 36)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
     }
 
-    private var profileButton: some View {
-        Button { showProfileSwitcher = true } label: {
-            Image(systemName: profiles.activeProfile?.symbol.systemImage ?? "person.crop.circle")
+    private var settingsButton: some View {
+        Button { showSettings = true } label: {
+            Image(systemName: "gearshape.fill")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
                 .frame(width: 36, height: 36)
-                .background((profiles.activeProfile?.colorTag.color) ?? Theme.accentBlue)
-                .clipShape(Circle())
         }
         .buttonStyle(.plain)
     }
@@ -129,14 +121,6 @@ struct ContentView: View {
                                       removal: .move(edge: .leading).combined(with: .opacity))
                         : .asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
                                       removal: .move(edge: .trailing).combined(with: .opacity)))
-            case .family:
-                GroupDashboardView()
-                    .id("family")
-                    .transition(tabOrderIndex >= previousTabOrderIndex
-                        ? .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
-                                      removal: .move(edge: .leading).combined(with: .opacity))
-                        : .asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
-                                      removal: .move(edge: .trailing).combined(with: .opacity)))
             case .tips:
                 TipsView()
                     .id("tips")
@@ -152,7 +136,7 @@ struct ContentView: View {
     }
 
     /// Tab order: History (left), Brush (center), Tips (right).
-    private static let tabOrder: [AppTab] = [.history, .brush, .family, .tips]
+    private static let tabOrder: [AppTab] = [.history, .brush, .tips]
 
     private var customTabBar: some View {
         HStack(spacing: 6) {
@@ -234,7 +218,6 @@ extension AppTab {
         switch self {
         case .brush:   return String(localized: "Brush")
         case .history: return String(localized: "History")
-        case .family:  return String(localized: "Family")
         case .tips:    return String(localized: "Tips")
         }
     }
@@ -243,7 +226,6 @@ extension AppTab {
         switch self {
         case .brush:   return "mouth.fill"
         case .history: return "chart.bar.fill"
-        case .family:  return "person.3.fill"
         case .tips:    return "lightbulb.fill"
         }
     }

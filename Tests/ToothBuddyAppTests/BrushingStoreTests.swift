@@ -49,21 +49,6 @@ final class BrushingStoreTests: XCTestCase {
         XCTAssertEqual(bs.records.count, 1)
     }
 
-    // MARK: - allRecords spans every profile (Group dashboard)
-
-    func testAllRecordsSpansEveryProfile() {
-        let (_, ps, bs) = freshTriple()
-        let a = ps.createProfile(name: "A", color: .sky, symbol: .star)!
-        let b = ps.createProfile(name: "B", color: .mint, symbol: .bolt)!
-
-        ps.setActive(a.id); bs.reload()
-        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date())
-        ps.setActive(b.id); bs.reload()
-        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date())
-
-        XCTAssertEqual(bs.allRecords().count, 2)
-    }
-
     // MARK: - Delete + Undo round-trip
 
     func testDeleteAndRestoreRoundTrip() {
@@ -114,5 +99,56 @@ final class BrushingStoreTests: XCTestCase {
         XCTAssertTrue(s === BrushingStore.shared)
         // And it can serve a basic read without crashing.
         _ = s.records
+    }
+
+    // MARK: - U3: enriched quality fields persist
+
+    func testRecordSessionPersistsEnrichedQualityFields() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let cov: [CoarseZone: Int] = Dictionary(uniqueKeysWithValues:
+            CoarseZone.allCases.map { ($0, 20) })
+        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date(),
+                         activeSeconds: 120, targetSeconds: 120, coverage: cov,
+                         cameraVerified: true, guidanceMode: .camera)
+        let r = bs.records.first!
+        XCTAssertEqual(r.activeSeconds, 120)
+        XCTAssertEqual(r.targetSeconds, 120)
+        XCTAssertTrue(r.cameraVerified)
+        XCTAssertEqual(r.guidanceMode, .camera)
+        XCTAssertEqual(r.coverage.count, 6)
+        XCTAssertTrue(r.metMinimum)
+    }
+
+    func testQuickLogMarksGuidedOnlyUnverified() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        bs.quickLogForCurrentSlot()
+        let r = bs.records.first!
+        XCTAssertFalse(r.cameraVerified)
+        XCTAssertEqual(r.guidanceMode, .fallbackTimed)
+        XCTAssertTrue(r.coverage.isEmpty)
+        XCTAssertFalse(r.metMinimum)   // synthetic log has no coverage ⇒ not a verified brush
+    }
+
+    // Regression (code review): undo must not demote a thorough/verified brush.
+    func testRestorePreservesEnrichedFieldsOnUndo() {
+        let (_, ps, bs) = freshTriple()
+        let p = ps.createProfile(name: "A", color: .sky, symbol: .star)!
+        ps.setActive(p.id); bs.reload()
+        let cov: [CoarseZone: Int] = Dictionary(uniqueKeysWithValues:
+            CoarseZone.allCases.map { ($0, 20) })
+        bs.recordSession(start: Date().addingTimeInterval(-120), end: Date(),
+                         activeSeconds: 120, targetSeconds: 120, coverage: cov,
+                         cameraVerified: true, guidanceMode: .camera)
+        bs.deleteRecord(id: bs.records.first!.id)
+        bs.restoreLastDeleted()
+        let r = bs.records.first!
+        XCTAssertTrue(r.cameraVerified)
+        XCTAssertEqual(r.guidanceMode, .camera)
+        XCTAssertEqual(r.coverage.count, 6)
+        XCTAssertTrue(r.metMinimum)
     }
 }

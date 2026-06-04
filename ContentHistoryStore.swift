@@ -26,13 +26,6 @@ final class ContentHistoryStore {
         UserDefaults.standard.object(forKey: "ToothBuddy.contentTone") != nil
     }
 
-    /// Spec 05 §6.1 — an explicit user tone always wins; otherwise an `adult` profile
-    /// defaults to `.essentials` and a `kid` profile to `.playful`.
-    func effectiveTone(forAdult isAdult: Bool) -> ContentTone {
-        if toneExplicitlySet { return tone }
-        return isAdult ? .essentials : .playful
-    }
-
     func recent() -> [UUID] {
         (UserDefaults.standard.array(forKey: key) as? [String] ?? [])
             .compactMap(UUID.init(uuidString:))

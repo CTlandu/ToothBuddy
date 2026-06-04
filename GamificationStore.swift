@@ -41,12 +41,13 @@ final class GamificationStore: ObservableObject {
     }
 
     var level: Int {
-        let total = store.records.count
-        if total >= 50 { return 5 }
-        if total >= 30 { return 4 }
-        if total >= 15 { return 3 }
-        if total >= 5 { return 2 }
-        if total >= 1 { return 1 }
+        // U11 — levels track *thorough* (target-met) sessions, not raw count.
+        let thorough = store.records.filter { $0.metMinimum }.count
+        if thorough >= 50 { return 5 }
+        if thorough >= 30 { return 4 }
+        if thorough >= 15 { return 3 }
+        if thorough >= 5 { return 2 }
+        if thorough >= 1 { return 1 }
         return 0
     }
 
@@ -77,14 +78,14 @@ final class GamificationStore: ObservableObject {
     // shows in the active locale. Achievement.description is content-asset prose
     // and is deferred to a follow-up content-translation plan.
     static let allAchievements: [Achievement] = [
-        Achievement(id: "first-brush",    systemImage: "drop.fill",      title: String(localized: "First Brush"),     description: "Complete your first brushing session"),
-        Achievement(id: "five-sessions",  systemImage: "5.circle.fill",  title: String(localized: "Getting Started"), description: "Complete 5 brushing sessions"),
-        Achievement(id: "ten-sessions",   systemImage: "10.circle.fill", title: String(localized: "On a Roll"),       description: "Complete 10 brushing sessions"),
-        Achievement(id: "streak-3",       systemImage: "flame.fill",     title: String(localized: "3-Day Streak"),    description: "Brush 3 days in a row"),
-        Achievement(id: "streak-7",       systemImage: "trophy.fill",    title: String(localized: "Week Warrior"),    description: "Brush 7 days in a row"),
-        Achievement(id: "two-min",        systemImage: "timer",          title: String(localized: "2-Minute Master"), description: "Brush for 2 minutes in one session"),
-        Achievement(id: "five-perfect",   systemImage: "star.fill",      title: String(localized: "Perfect Five"),    description: "Get 3 stars in 5 sessions"),
-        Achievement(id: "early-bird",     systemImage: "sunrise.fill",   title: String(localized: "Early Bird"),      description: "Brush before 8 AM"),
+        Achievement(id: "first-brush",      systemImage: "drop.fill",             title: String(localized: "First Brush"),      description: "Complete your first brushing session"),
+        Achievement(id: "two-min",          systemImage: "timer",                 title: String(localized: "Full Two Minutes"), description: "Brush for the full target time in one session"),
+        Achievement(id: "first-thorough",   systemImage: "checkmark.seal.fill",   title: String(localized: "Thorough Brush"),   description: "Cover every area for long enough in one session"),
+        Achievement(id: "verified",         systemImage: "checkmark.shield.fill", title: String(localized: "Camera-Verified"),  description: "Finish a session confirmed by the camera"),
+        Achievement(id: "five-thorough",    systemImage: "5.circle.fill",         title: String(localized: "Five Thorough"),    description: "Finish 5 thorough sessions"),
+        Achievement(id: "fifteen-thorough", systemImage: "star.fill",             title: String(localized: "Fifteen Thorough"), description: "Finish 15 thorough sessions"),
+        Achievement(id: "streak-7",         systemImage: "flame.fill",            title: String(localized: "Week Warrior"),     description: "Brush 7 days in a row"),
+        Achievement(id: "early-bird",       systemImage: "sunrise.fill",          title: String(localized: "Early Bird"),       description: "Brush before 8 AM"),
     ]
 
     var unlockedAchievements: [Achievement] {
@@ -93,24 +94,24 @@ final class GamificationStore: ObservableObject {
 
     /// Human-readable progress, e.g. "7 / 10 sessions".
     func progressDescription(for achievement: Achievement, records: [BrushingRecord]) -> String {
-        let streak = store.consecutiveDaysCount
+        let thorough = records.filter { $0.metMinimum }.count
         switch achievement.id {
         case "first-brush":
             return "\(min(records.count, 1)) / 1 session"
-        case "five-sessions":
-            return "\(min(records.count, 5)) / 5 sessions"
-        case "ten-sessions":
-            return "\(min(records.count, 10)) / 10 sessions"
-        case "streak-3":
-            return "\(min(streak, 3)) / 3 days in a row"
-        case "streak-7":
-            return "\(min(streak, 7)) / 7 days in a row"
         case "two-min":
-            let done = records.contains { $0.durationSeconds >= 120 }
+            let done = records.contains { $0.activeSeconds >= $0.targetSeconds }
             return done ? "1 / 1 session" : "0 / 1 session"
-        case "five-perfect":
-            let count = records.filter { $0.starCount >= 3 }.count
-            return "\(min(count, 5)) / 5 perfect sessions"
+        case "first-thorough":
+            return "\(min(thorough, 1)) / 1 thorough brush"
+        case "verified":
+            let done = records.contains { $0.cameraVerified }
+            return done ? "1 / 1 verified" : "0 / 1 verified"
+        case "five-thorough":
+            return "\(min(thorough, 5)) / 5 thorough brushes"
+        case "fifteen-thorough":
+            return "\(min(thorough, 15)) / 15 thorough brushes"
+        case "streak-7":
+            return "\(min(store.consecutiveDaysCount, 7)) / 7 days in a row"
         case "early-bird":
             let cal = Calendar.current
             let done = records.contains { cal.component(.hour, from: $0.startDate) < 8 }
@@ -126,16 +127,15 @@ final class GamificationStore: ObservableObject {
             if condition, !unlockedAchievementIds.contains(id) { newlyUnlocked.append(id) }
         }
 
-        consider("first-brush",   records.count >= 1)
-        consider("five-sessions", records.count >= 5)
-        consider("ten-sessions",  records.count >= 10)
-
-        let streak = store.consecutiveDaysCount
-        consider("streak-3", streak >= 3)
-        consider("streak-7", streak >= 7)
-
-        consider("two-min", records.contains { $0.durationSeconds >= 120 })
-        consider("five-perfect", records.filter { $0.starCount >= 3 }.count >= 5)
+        let thorough = records.filter { $0.metMinimum }.count
+        consider("first-brush", records.count >= 1)
+        consider("two-min", records.contains { $0.activeSeconds >= $0.targetSeconds })
+        consider("first-thorough", thorough >= 1)
+        consider("verified", records.contains { $0.cameraVerified })
+        consider("five-thorough", thorough >= 5)
+        consider("fifteen-thorough", thorough >= 15)
+        // Streak kept as a light consistency badge — no longer a hero metric (U11).
+        consider("streak-7", store.consecutiveDaysCount >= 7)
 
         let cal = Calendar.current
         consider("early-bird", records.contains { cal.component(.hour, from: $0.startDate) < 8 })

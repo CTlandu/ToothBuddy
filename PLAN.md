@@ -1,5 +1,7 @@
 # ToothBuddy Development Plan
 
+> **⚠️ Superseded (2026-05-29):** Tracks the old habit-tracker / family product. Current definition: [`docs/product-north-star.md`](docs/product-north-star.md); active rebuild: [`docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md`](docs/plans/2026-05-29-001-feat-quality-pivot-rebuild-plan.md). Kept for history.
+
 The end-to-end process tracker. [`ROADMAP.md`](ROADMAP.md) defines *what* and *why*; this defines *how* and *where we are*. Specs live in [`specs/`](specs/).
 
 > **For any AI session resuming this project:** read `ROADMAP.md`, then this file, then the spec for the feature currently in progress. Do not write feature code for a spec whose **Confirm gate** is not checked.

@@ -65,4 +65,31 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(back, s)
         XCTAssertEqual(WidgetSnapshot.placeholder.profileName, "ToothBuddy")
     }
+
+    func testQualityFieldsFromEnrichedRecords() {
+        let p = UUID()
+        let s0 = at(0, 8)
+        let full = Dictionary(uniqueKeysWithValues: CoarseZone.allCases.map { ($0, 20) })
+        let thorough = BrushingRecord(profileID: p, startDate: s0,
+                                      endDate: s0.addingTimeInterval(120),
+                                      activeSeconds: 120, targetSeconds: 120,
+                                      coverage: full, cameraVerified: true, guidanceMode: .camera)
+        let s = build(p, [thorough], now: at(0, 21))
+        XCTAssertEqual(s.todayThoroughCount, 1)
+        XCTAssertEqual(s.lastZonesMet, 6)
+        XCTAssertTrue(s.lastVerified)
+    }
+
+    func testLegacySnapshotDecodesWithoutQualityKeys() throws {
+        // A pre-U12 snapshot (no quality keys) must still decode (defaults), not fail.
+        let json = """
+        {"profileName":"Mia","currentStreak":3,"amDone":true,"pmDone":false,\
+        "atRisk":false,"asOf":0}
+        """
+        let s = try JSONDecoder().decode(WidgetSnapshot.self, from: Data(json.utf8))
+        XCTAssertEqual(s.currentStreak, 3)
+        XCTAssertEqual(s.todayThoroughCount, 0)
+        XCTAssertEqual(s.lastZonesMet, 0)
+        XCTAssertFalse(s.lastVerified)
+    }
 }

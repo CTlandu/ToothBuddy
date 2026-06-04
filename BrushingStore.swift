@@ -31,13 +31,10 @@ final class BrushingStore: ObservableObject {
     private let ctx: NSManagedObjectContext
     private let profiles: ProfileStore
     private var cancellables: Set<AnyCancellable> = []
-    private let migratedKey = "ToothBuddy.didMigrateToCoreData_v1"
-    private let legacyAchievementsKey = "ToothBuddy.unlockedAchievements"
 
     init(controller: PersistenceController = .shared, profiles: ProfileStore = .shared) {
         ctx = controller.viewContext
         self.profiles = profiles
-        runMigrationIfNeeded()
         reload()
         profiles.$activeProfileID
             .dropFirst()
@@ -84,29 +81,32 @@ final class BrushingStore: ObservableObject {
                                        config: .default, calendar: .current)
     }
 
-    /// Every profile's records (for the Group dashboard, Spec 02 §6.5).
-    func allRecords() -> [BrushingRecord] {
-        let req = NSFetchRequest<CDBrushingRecord>(entityName: "CDBrushingRecord")
-        req.sortDescriptors = [NSSortDescriptor(key: "startDate", ascending: false)]
-        return ((try? ctx.fetch(req)) ?? []).compactMap { $0.toDTO() }
-    }
-
     // MARK: Mutations
 
-    /// Record a completed session for the active profile.
-    func recordSession(start: Date, end: Date) {
+    /// Record a completed session for the active profile. The quality signals (U3) carry the
+    /// session's coverage / active time / camera-verification; old call sites that omit them
+    /// get sensible defaults (active = wall-clock duration, guided-only, unverified).
+    func recordSession(start: Date, end: Date,
+                       activeSeconds: Int? = nil, targetSeconds: Int = 120,
+                       coverage: [CoarseZone: Int] = [:], cameraVerified: Bool = false,
+                       guidanceMode: GuidanceMode = .fallbackTimed) {
         guard let pid = profiles.activeProfileID,
               let cdp = profiles.managedProfile(pid) else { return }
         let r = CDBrushingRecord(context: ctx)
         let sid = UUID()
         r.id = sid; r.startDate = start; r.endDate = end
         r.modifiedAt = Date(); r.profile = cdp
+        r.applyQuality(activeSeconds: activeSeconds ?? max(0, Int(end.timeIntervalSince(start))),
+                       targetSeconds: targetSeconds, coverage: coverage,
+                       cameraVerified: cameraVerified, guidanceMode: guidanceMode)
+        // U13 — only a thorough (target-met) session is written to Apple Health.
+        let metMinimum = r.toDTO()?.metMinimum ?? false
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
         // Spec 05 §6.6 — opt-in, idempotent Health export (no-op unless authorized).
-        if widgetSyncEnabled {
+        if widgetSyncEnabled, PreferencesStore.shared.healthConnectEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
-                                                 end: end, isCompleted: true)
+                                                 end: end, isCompleted: metMinimum)
         }
     }
 
@@ -129,9 +129,13 @@ final class BrushingStore: ObservableObject {
         r.startDate = start
         r.endDate = now
         r.modifiedAt = Date(); r.profile = cdp
+        // Quick-log / Siri is a synthetic 2-min session with no zone tracking — mark it
+        // guided-only + unverified so it never masquerades as a camera-confirmed brush.
+        r.applyQuality(activeSeconds: 120, targetSeconds: 120, coverage: [:],
+                       cameraVerified: false, guidanceMode: .fallbackTimed)
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
-        if widgetSyncEnabled {
+        if widgetSyncEnabled, PreferencesStore.shared.healthConnectEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
                                                  end: now, isCompleted: true)
         }
@@ -154,6 +158,10 @@ final class BrushingStore: ObservableObject {
         let r = CDBrushingRecord(context: ctx)
         r.id = rec.id; r.startDate = rec.startDate; r.endDate = rec.endDate
         r.modifiedAt = Date(); r.profile = cdp
+        // Restore the U1 quality fields too — an undo must not demote a thorough/verified brush.
+        r.applyQuality(activeSeconds: rec.activeSeconds, targetSeconds: rec.targetSeconds,
+                       coverage: rec.coverage, cameraVerified: rec.cameraVerified,
+                       guidanceMode: rec.guidanceMode)
         lastDeletedRecord = nil
         saveAndReload()
     }
@@ -165,38 +173,4 @@ final class BrushingStore: ObservableObject {
         reload()
     }
 
-    // MARK: Zero-loss migration (Spec 02 §7.2 / AC1) — idempotent.
-
-    private func runMigrationIfNeeded() {
-        let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: migratedKey) else { return }
-        defer { defaults.set(true, forKey: migratedKey) }
-
-        guard let support = FileManager.default.urls(for: .applicationSupportDirectory,
-                                                     in: .userDomainMask).first else { return }
-        let legacyURL = support.appendingPathComponent("ToothBuddy/brushing_records.json")
-        guard let data = try? Data(contentsOf: legacyURL),
-              let legacy = try? MigrationTransform.decodeLegacy(data),
-              !legacy.isEmpty else { return }   // fresh install → nothing to migrate
-
-        // Create the default profile and own all legacy records.
-        guard let def = profiles.createProfile(name: "Me", color: .sky, symbol: .star,
-                                               makeActive: true),
-              let cdp = profiles.managedProfile(def.id) else { return }
-        for rec in MigrationTransform.migrate(legacy: legacy, defaultProfileID: def.id) {
-            let r = CDBrushingRecord(context: ctx)
-            r.id = rec.id; r.startDate = rec.startDate; r.endDate = rec.endDate
-            r.modifiedAt = Date(); r.profile = cdp
-        }
-        // Migrate legacy global achievements → this profile.
-        if let aData = defaults.data(forKey: legacyAchievementsKey),
-           let ids = try? JSONDecoder().decode([String].self, from: aData) {
-            for aid in ids {
-                let a = CDAchievementUnlock(context: ctx)
-                a.achievementID = aid; a.unlockedAt = Date(); a.profile = cdp
-            }
-        }
-        if ctx.hasChanges { try? ctx.save() }
-        // Legacy JSON is intentionally left on disk as a one-release backup.
-    }
 }
