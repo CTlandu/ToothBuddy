@@ -17,6 +17,7 @@ final class CDProfile: NSManagedObject {
     @NSManaged var records: NSSet?
     @NSManaged var care: CDProfileCare?
     @NSManaged var achievements: NSSet?
+    @NSManaged var collectibles: NSSet?     // retention v1 — additive, CloudKit-safe
 }
 
 @objc(CDBrushingRecord)
@@ -48,6 +49,13 @@ final class CDProfileCare: NSManagedObject {
 @objc(CDAchievementUnlock)
 final class CDAchievementUnlock: NSManagedObject {
     @NSManaged var achievementID: String?
+    @NSManaged var unlockedAt: Date?
+    @NSManaged var profile: CDProfile?
+}
+
+@objc(CDCollectibleUnlock)
+final class CDCollectibleUnlock: NSManagedObject {
+    @NSManaged var collectibleID: String?
     @NSManaged var unlockedAt: Date?
     @NSManaged var profile: CDProfile?
 }
@@ -93,6 +101,10 @@ enum ToothBuddyModel {
         ach.name = "CDAchievementUnlock"
         ach.managedObjectClassName = "CDAchievementUnlock"
 
+        let col = NSEntityDescription()
+        col.name = "CDCollectibleUnlock"
+        col.managedObjectClassName = "CDCollectibleUnlock"
+
         profile.properties = [
             attr("id", .UUIDAttributeType),
             attr("name", .stringAttributeType),
@@ -129,6 +141,10 @@ enum ToothBuddyModel {
             attr("achievementID", .stringAttributeType),
             attr("unlockedAt", .dateAttributeType)
         ]
+        col.properties = [
+            attr("collectibleID", .stringAttributeType),
+            attr("unlockedAt", .dateAttributeType)
+        ]
         // Relationships (all with inverses — required for CloudKit).
         let pToR = NSRelationshipDescription()
         pToR.name = "records"; pToR.destinationEntity = record
@@ -154,13 +170,22 @@ enum ToothBuddyModel {
         aToP.minCount = 0; aToP.maxCount = 1; aToP.deleteRule = .nullifyDeleteRule
         pToA.inverseRelationship = aToP; aToP.inverseRelationship = pToA
 
-        profile.properties += [pToR, pToCare, pToA]
+        let pToCol = NSRelationshipDescription()
+        pToCol.name = "collectibles"; pToCol.destinationEntity = col
+        pToCol.minCount = 0; pToCol.maxCount = 0; pToCol.deleteRule = .cascadeDeleteRule
+        let colToP = NSRelationshipDescription()
+        colToP.name = "profile"; colToP.destinationEntity = profile
+        colToP.minCount = 0; colToP.maxCount = 1; colToP.deleteRule = .nullifyDeleteRule
+        pToCol.inverseRelationship = colToP; colToP.inverseRelationship = pToCol
+
+        profile.properties += [pToR, pToCare, pToA, pToCol]
         record.properties += [rToP]
         care.properties += [careToP]
         ach.properties += [aToP]
+        col.properties += [colToP]
 
         let model = NSManagedObjectModel()
-        model.entities = [profile, record, care, ach]
+        model.entities = [profile, record, care, ach, col]
         return model
     }
 }

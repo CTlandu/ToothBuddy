@@ -49,6 +49,7 @@ targets:
       - OnboardingView.swift
       - Persistence.swift
       - PreferencesStore.swift
+      - RetentionStore.swift
       - ProfileStore.swift
       - SettingsView.swift
       - ReportPDFRenderer.swift

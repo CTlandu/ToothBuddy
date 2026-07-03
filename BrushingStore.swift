@@ -103,6 +103,7 @@ final class BrushingStore: ObservableObject {
         let metMinimum = r.toDTO()?.metMinimum ?? false
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
+        RetentionStore.shared.refresh()
         // Spec 05 §6.6 — opt-in, idempotent Health export (no-op unless authorized).
         if widgetSyncEnabled, PreferencesStore.shared.healthConnectEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
@@ -135,6 +136,7 @@ final class BrushingStore: ObservableObject {
                        cameraVerified: false, guidanceMode: .fallbackTimed)
         saveAndReload()
         GamificationStore.shared.checkAndUnlock(records: records)
+        RetentionStore.shared.refresh()
         if widgetSyncEnabled, PreferencesStore.shared.healthConnectEnabled {
             HealthExporter.shared.exportIfNeeded(sessionID: sid, start: start,
                                                  end: now, isCompleted: true)
