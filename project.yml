@@ -31,6 +31,7 @@ targets:
       - BrushingZoneMonitor.swift
       - BrushGameOverlay.swift
       - BrushView.swift
+      - BuddyReactiveView.swift
       - CameraPreviewView.swift
       - CameraService.swift
       - CareStore.swift
