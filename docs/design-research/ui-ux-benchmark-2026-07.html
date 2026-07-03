@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToothBuddy · UI/UX 对标报告 (2026-07)</title>
+<style>
+  :root{
+    --ink:#2B2535; --cream:#FAFAF5; --paper:#FFFFFF;
+    --green:#58CC02; --green-sh:#3F8F00;
+    --blue:#1CB0F6; --blue-sh:#1083B6;
+    --yellow:#FFC800; --yellow-sh:#D89E00;
+    --red:#FF4B4B; --red-sh:#C42828;
+    --muted:#6B6675; --stone:#E7E7E2;
+    --bg-top:#F7F8F0; --bg-bot:#ECF7E8;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; color:var(--ink);
+    font-family:"Nunito","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    background:linear-gradient(180deg,var(--bg-top),var(--bg-bot) 60%,var(--bg-bot));
+    line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:40px 22px 120px;}
+  h1{font-size:2.1rem; font-weight:900; letter-spacing:-.5px; margin:.2em 0 .1em; line-height:1.15;}
+  h2{font-size:1.5rem; font-weight:900; margin:2.4em 0 .5em; letter-spacing:-.3px;}
+  h3{font-size:1.14rem; font-weight:800; margin:1.4em 0 .3em;}
+  p{margin:.5em 0;}
+  a{color:var(--blue-sh); text-decoration:none; border-bottom:1.5px solid rgba(16,131,182,.35);}
+  a:hover{border-bottom-color:var(--blue-sh);}
+  code{font-family:"SF Mono",ui-monospace,Menlo,monospace; font-size:.86em; background:#2b25350f; padding:.1em .38em; border-radius:6px; color:#3a3350;}
+  .lede{font-size:1.12rem; color:#403b4c;}
+  .tag{display:inline-block; font-size:.72rem; font-weight:800; letter-spacing:.5px; text-transform:uppercase; padding:.15em .6em; border-radius:999px; border:1.5px solid var(--ink); background:var(--yellow); color:var(--ink); vertical-align:middle;}
+  .meta{color:var(--muted); font-weight:600; font-size:.92rem;}
+
+  /* chunky Duo-style card */
+  .card{
+    background:var(--paper); border:2px solid var(--ink); border-radius:16px;
+    padding:20px 22px; margin:18px 0;
+    box-shadow:0 5px 0 var(--ink);
+  }
+  .card.cream{background:var(--cream);}
+  .card h3:first-child{margin-top:0;}
+
+  .callout{
+    border:2px solid var(--ink); border-radius:16px; padding:18px 20px; margin:22px 0;
+    box-shadow:0 5px 0 var(--red-sh); background:#FFF3F3;
+  }
+  .callout .tag{background:var(--red); color:#fff; border-color:var(--red-sh);}
+  .callout.good{box-shadow:0 5px 0 var(--green-sh); background:#F2FCEB;}
+  .callout.good .tag{background:var(--green); color:#fff; border-color:var(--green-sh);}
+
+  /* reference app chips */
+  .apps{margin:.4em 0 .2em; display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{font-size:.78rem; font-weight:800; padding:.18em .65em; border-radius:999px; background:#EAF6FF; border:1.5px solid var(--blue); color:var(--blue-sh);}
+  .chip.g{background:#EEFBE4; border-color:var(--green); color:var(--green-sh);}
+  .chip.y{background:#FFF6D9; border-color:var(--yellow-sh); color:#8a6800;}
+
+  /* effort badge */
+  .eff{font-size:.74rem; font-weight:800; padding:.14em .55em; border-radius:8px; border:1.5px solid var(--ink); white-space:nowrap;}
+  .e1{background:#E6F9D9;} .e2{background:#FFF2CC;} .e3{background:#FFE0E0;}
+
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:.93rem;}
+  th,td{text-align:left; padding:9px 11px; border-bottom:1.5px solid var(--stone); vertical-align:top;}
+  th{font-weight:800; background:#2b25350a; border-bottom:2px solid var(--ink);}
+  tr:last-child td{border-bottom:none;}
+  td code{white-space:nowrap;}
+
+  .rec{margin:16px 0; padding:16px 18px; border:2px solid var(--ink); border-radius:14px; background:var(--paper); box-shadow:0 4px 0 var(--stone);}
+  .rec h3{margin-top:0;}
+  .rec .row{margin:.35em 0;}
+  .rec .row b{display:inline-block; min-width:74px; color:var(--muted); font-size:.82rem; text-transform:uppercase; letter-spacing:.4px; vertical-align:top;}
+  .rec .row span{display:inline-block; width:calc(100% - 80px);}
+
+  ul{margin:.4em 0; padding-left:1.25em;}
+  li{margin:.25em 0;}
+  .kbd{font-family:"SF Mono",ui-monospace,monospace; font-size:.82em; background:var(--ink); color:#fff; padding:.12em .45em; border-radius:6px;}
+
+  /* TOC */
+  nav.toc{background:var(--cream); border:2px solid var(--ink); border-radius:16px; padding:16px 20px; box-shadow:0 5px 0 var(--ink); margin:26px 0;}
+  nav.toc ol{margin:.3em 0; padding-left:1.3em;}
+  nav.toc a{border:none; font-weight:700;}
+  nav.toc li{margin:.15em 0;}
+
+  .hr{height:2px; background:var(--stone); border:none; margin:34px 0;}
+  .foot{color:var(--muted); font-size:.85rem; margin-top:40px;}
+  .src{font-size:.85rem; line-height:1.5;}
+  .src li{margin:.15em 0;}
+  .big-num{font-size:.85rem; font-weight:900; color:var(--green-sh);}
+  .verdict{font-weight:800; color:var(--green-sh);}
+  mark{background:var(--yellow); padding:0 .2em; border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="tag">设计对标 · 内部</span>
+  <h1>ToothBuddy UI/UX 对标报告</h1>
+  <p class="meta">2026-07-01 · 基于美区 App Store 头部 + 健康类 + Duolingo 赛道调研 · 对照现有代码逐条给建议</p>
+
+  <div class="card cream">
+    <h3>一句话结论</h3>
+    <p class="lede">地基不差，问题不在"配色/组件"，而在<mark>它不会动、不会反应、也不会奖励你</mark>。Duolingo/Finch 这类 app 的"贵气"几乎全来自一个会呼吸、会对你的操作做表情的吉祥物，加上"每个有意义的事件都同时命中视觉+触感+声音"的多通道反馈。你们现在吉祥物是<b>一帧静态 Canvas 图</b>、庆祝只有"文字+方块彩带"、里程碑没有触感——这就是"naive"的来源，而不是颜色土。</p>
+    <p><b>如果只做三件事（按性价比）：</b></p>
+    <ol>
+      <li><b>让 Buddy 活过来</b>——手搓一个 3–5 状态的 SwiftUI 吉祥物（待机呼吸 / 刷牙鼓励 / 胜利跳），在 session、胜利、空状态复用。这是把"naive→有灵魂"的最大杠杆。</li>
+      <li><b>给每个关键事件加多通道反馈</b>——<code>.sensoryFeedback</code> 触感 + 声音 + 角色反应，同时发生（换区、达标 30s/60s/2min、结束）。半天工作量，感受质变。</li>
+      <li><b>重做 session 计时区</b>——把纯文字计时器换成"环形 + 阶段刻度 + 数字滚动 + 达标庆祝"，这是产品核心屏，也是现在最敷衍的地方。</li>
+    </ol>
+  </div>
+
+  <nav class="toc">
+    <b>目录</b>
+    <ol>
+      <li><a href="#diag">现状诊断：它为什么显得 naive</a></li>
+      <li><a href="#constraint">⚠ 一个绕不开的技术约束（.swiftpm）</a></li>
+      <li><a href="#premium">"premium vs naive" 的可观察差异（对照清单）</a></li>
+      <li><a href="#recs">逐条建议：参考谁 → 对应你们哪 → 怎么改</a>
+        <ol>
+          <li><a href="#r-mascot">A. 会呼吸、会反应的吉祥物</a></li>
+          <li><a href="#r-juice">B. 多通道反馈（juice）</a></li>
+          <li><a href="#r-session">C. Session 屏（核心）</a></li>
+          <li><a href="#r-score">D. 单一权威分数 + 进度可视化</a></li>
+          <li><a href="#r-celebrate">E. 庆祝与 streak 的"分级"</a></li>
+          <li><a href="#r-icon">F. 图标与插画体系</a></li>
+          <li><a href="#r-mode">G. Kid / Adult：整套视觉切换</a></li>
+          <li><a href="#r-type">H. 排版 / 间距 / 颜色纪律</a></li>
+          <li><a href="#r-consistency">I. 一致性补洞（Settings / 计时器字体）</a></li>
+          <li><a href="#r-glass">J. iOS 26 Liquid Glass（可选、按受众定）</a></li>
+        </ol>
+      </li>
+      <li><a href="#plan">分阶段行动清单</a></li>
+      <li><a href="#sources">来源</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1. 诊断 ============ -->
+  <h2 id="diag">1 · 现状诊断：它为什么显得 naive</h2>
+  <p>先说明白：你们的设计系统本身是<b>及格线以上</b>的。<code>DuoTheme.swift</code> 里色板/字体/深度阴影都成体系（Nunito 全字重、2pt ink 描边、4pt 实心投影、14pt 圆角），<code>BrushGameOverlay.swift</code> 的彩带还是带重力的物理模拟。所以问题不是"重做设计系统"，而是几个具体的、能点名的弱点：</p>
+
+  <table>
+    <tr><th>弱点</th><th>位置</th><th>问题</th></tr>
+    <tr><td>吉祥物是静态图，从不反应</td><td><code>DuoCharacters.swift:49–97</code> (BuddyView)、<code>392–466</code> (FoamView)</td><td>Buddy/Brush/Plaque/Foam 全是一帧 Canvas 渲染，不眨眼、不弹跳、不对换区/胜利做任何表情。Duolingo 的灵魂恰恰是"角色会反应"。</td></tr>
+    <tr><td>计时器是纯文本、还用系统字体</td><td><code>BrushView.swift:308–313</code></td><td><code>.system(size:48)</code> 而非 Nunito（品牌断层）；除了 <code>.numericText()</code> 没有任何仪式感，达标里程碑无高光/弹跳。</td></tr>
+    <tr><td>胜利庆祝是"文字 + sparkles 图标"</td><td><code>BrushGameOverlay.swift:349–359</code></td><td>只有一个静态 SF Symbol + "All sparkly clean!" 文字框；没有角色登场、没有触感、没触发已有的 SoundManager。</td></tr>
+    <tr><td>换区反馈只有正弦脉冲圈</td><td><code>BrushGameOverlay.swift:218–228</code></td><td>换刷牙区只有一个 sin 波脉动圆环，无弹跳、无角色手势、无触感。机械感。</td></tr>
+    <tr><td>空状态：Buddy 半透明、无动画</td><td><code>HistoryView.swift:113–121</code></td><td>Buddy 压到 0.55 透明度反而显得"蔫了"，没有邀请感。</td></tr>
+    <tr><td>图标全是 SF Symbols（~51 处）</td><td>全仓 <code>Image(systemName:)</code></td><td>牙齿用系统 <code>mouth.fill</code>、庆祝用 <code>sparkles</code>——全是 Apple 默认件，没有自己的视觉语言，"现成货"味重。</td></tr>
+    <tr><td>Settings 是裸的系统 Form</td><td><code>SettingsView.swift</code> 全文</td><td>没套任何 Duo 组件（无描边/无深度），和 app 其余部分视觉断层，像半成品。</td></tr>
+    <tr><td>彩带是简单方块</td><td><code>BrushGameOverlay.swift:273–279</code></td><td>物理不错，但只有圆角方块，无旋转、无多形状（星/心/丝带）、无辉光。</td></tr>
+    <tr><td>结果卡角色静止、星级纯文本</td><td><code>BrushView.swift:555–630</code> (DoneResultSheet)</td><td>FoamView 一登场就是"已经开心"的定格，不是从中性 morph 到庆祝；星级只是文字徽章，无逐颗弹入。</td></tr>
+  </table>
+
+  <p><b>我的判断：</b>这些弱点有一个共同根因——<mark>缺少"状态驱动的动画"</mark>。现在的动画都是"进场时播一次"的装饰（onboarding 的 stagger 其实做得不错），但没有"app 状态变了 → 角色/UI 做出反应"这一层。Duolingo、Finch、Balatro 的高级感全在这一层。</p>
+
+  <!-- ============ 2. 约束 ============ -->
+  <h2 id="constraint">2 · ⚠ 一个绕不开的技术约束（.swiftpm）</h2>
+  <div class="callout">
+    <span class="tag">必读 · 影响方案选型</span>
+    <p style="margin-top:.6em"><b>你们是 <code>.swiftpm</code>（Swift Playground App）格式，它不允许带 <code>binaryTarget</code> 的 SPM 依赖。</b>业界做 Duolingo 式吉祥物的两大工具——<b>Rive</b>（<code>rive-ios</code>）和 <b>Lottie</b>（<code>lottie-spm</code>）——都是预编译 XCFramework 二进制包，<u>在 .swiftpm 里直接用不了</u>（Swift Forums 官方确认）。</p>
+    <p>这不是小事：几乎所有"怎么做 Duolingo 吉祥物"的教程都让你上 Rive。你们不能直接抄。</p>
+    <p style="margin-bottom:0"><b>你们的岔路口（需要你拍板）：</b></p>
+    <ul style="margin-bottom:0">
+      <li><b>路线①：留在 .swiftpm，手搓 SwiftUI 吉祥物。</b>用分层视图 + <code>.phaseAnimator</code>/<code>.keyframeAnimator</code> 做 3–5 个离散表情状态。上限比 Rive 低（没有骨骼/状态混合），但零依赖、够用、且现在就能做。<b>我推荐先走这条</b>——你们只需要"待机呼吸 / 鼓励 / 胜利"几个状态，手搓完全 hold 得住。</li>
+      <li><b>路线②：把工程转成 <code>.xcodeproj</code>，接 Rive。</b>能拿到真正的状态机吉祥物（表情平滑混合、可被输入实时驱动），天花板高很多，但要脱离 Swift Playground 生态、加构建复杂度。等你们确定要长期投产品、且吉祥物要成为核心资产时再转。</li>
+    </ul>
+  </div>
+  <div class="callout good">
+    <span class="tag">好消息</span>
+    <p style="margin:.5em 0 0">纯 SwiftUI 的现代动效 API <b>全部可用、零依赖</b>：spring 预设（<code>.snappy/.bouncy/.smooth</code>）、<code>.phaseAnimator</code>、<code>.keyframeAnimator</code>、<code>.symbolEffect</code>（SF Symbol 弹跳/旋转/呼吸）、<code>.contentTransition(.numericText())</code>（数字滚动）、<code>.sensoryFeedback</code>（触感）、<code>TimelineView + Canvas</code>（自定义粒子/环，你们已经在用）。<b>ConfettiSwiftUI</b>（纯源码、非二进制）也能进 .swiftpm。<br>换句话说：下面 90% 的建议在 .swiftpm 里就能落地，不用转工程。</p>
+  </div>
+
+  <!-- ============ 3. premium vs naive ============ -->
+  <h2 id="premium">3 · "premium vs naive" 的可观察差异（对照清单）</h2>
+  <p>调研里最有用的一份，是把"高级 vs 业余"落到<b>可观察、可检查</b>的具体差异，而不是玄学。拿这张表对着你们的屏自查：</p>
+  <table>
+    <tr><th>维度</th><th>naive（现在容易踩的）</th><th>premium（目标）</th></tr>
+    <tr><td>动画</td><td>全 <code>easeInOut</code>、时长都 300ms、进场播一次的装饰动画</td><td>spring 物理、按动作语义调 damping、staggered 有序进场、<b>状态驱动的反应</b></td></tr>
+    <tr><td>反馈</td><td>只有视觉，或只有声音</td><td>每个有意义事件同时命中 ≥2 个感官通道（视觉+触感 / 视觉+声音），<b>触感落在动画峰值而非按下瞬间</b></td></tr>
+    <tr><td>颜色</td><td>5+ 颜色到处装饰用，无语义映射</td><td>2–3 个语义色，严格绑定含义（Balatro：蓝=基础、红=倍率；WHOOP：绿/黄/红=恢复度）</td></tr>
+    <tr><td>图标</td><td>系统 SF Symbol 到处用、混搭</td><td>系统件用在"隐形时刻"（键盘/选择器），<b>品牌时刻用自定义件</b>（庆祝/空状态/成就）</td></tr>
+    <tr><td>排版</td><td>3+ 字体、正文无字重变化、全大写乱用</td><td>≤2 字体、display 与 body 有强字重对比、行高 1.4–1.6</td></tr>
+    <tr><td>间距</td><td>随手定、贴边、密</td><td>8pt 栅格纪律、留白慷慨、主操作在拇指区</td></tr>
+    <tr><td>组件</td><td>整屏系统默认控件</td><td>有一套<b>设计系统</b>（同一套 spacing/时长/圆角 token），随机开三屏没有一个值是"目测的"</td></tr>
+  </table>
+  <p>你们已经满足"设计系统"和"颜色纪律"两条（Duo token 到位）。差的是<b>动画、反馈、图标</b>这三条——正好对上第 1 节的诊断。</p>
+
+  <!-- ============ 4. 建议 ============ -->
+  <h2 id="recs">4 · 逐条建议：参考谁 → 对应你们哪 → 怎么改</h2>
+  <p>每条都点名一个真实 app、指到你们具体文件、给出 SwiftUI 落地手段和工作量估。<span class="eff e1">🟢 快</span>&lt;1h &nbsp; <span class="eff e2">🟡 中</span>半天–1天 &nbsp; <span class="eff e3">🔴 大</span>多天/需决策</p>
+
+  <!-- A mascot -->
+  <h3 id="r-mascot">A. 会呼吸、会反应的吉祥物 <span class="eff e3">🔴 大</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip g">Duolingo · Duo</span><span class="chip g">Finch</span><span class="chip">Headspace mood-blob</span><span class="chip">Chomper Chums</span></div>
+    <div class="row"><b>参考</b><span><b>Finch</b> 的核心洞察最适合你们：<i>吉祥物的样子本身就是数据可视化</i>——不显示"今天刷得好"这个数字，而是让小鸟蹦跳、发光。<b>Duolingo</b> 的 Duo 有一整套情绪状态（开心/震惊/难过/头炸），由 session 表现驱动，不是导航切换。<b>Headspace</b> 的角色永远在 2–4 秒的呼吸循环里"待机"，从不定格。</span></div>
+    <div class="row"><b>现状</b><span>你们 <code>DuoCharacters.swift</code> 的 5 个角色全是定格 Canvas 图。这是"naive"的最大单一来源。</span></div>
+    <div class="row"><b>改法</b><span>手搓一个状态驱动的 <code>BuddyView</code>（.swiftpm 内可行，见约束）。最少三态：<br>• <code>idle</code>——2–3 秒呼吸循环（整体缩放 1.0↔1.03 + 眼睛偶尔眨），用 <code>.phaseAnimator</code> 常驻；<br>• <code>cheer</code>——刷牙中每达标一个区/里程碑，弹跳 + 咧嘴 + 眼睛变 ^^；<br>• <code>celebrate</code>——结束达标，跳起 + 星星环绕。<br>把眼睛/嘴/身体拆成独立图层，各自绑一个 <code>@State</code> 相位。<b>关键改变：Buddy 要出现在 session 屏里陪刷（现在 session 里根本没有它），而不只是 header 装饰。</b></span></div>
+    <div class="row"><b>取舍</b><span>先做 idle+celebrate 两态就能拿到 80% 的"活过来"效果，1–2 天。全套表情再迭代。若哪天决定上 Rive → 走约束里的路线②。</span></div>
+  </div>
+
+  <!-- B juice -->
+  <h3 id="r-juice">B. 多通道反馈（juice）<span class="eff e2">🟡 中</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip y">Balatro（ADA 2025）</span><span class="chip g">Duolingo</span><span class="chip">Apple Activity Rings</span></div>
+    <div class="row"><b>参考</b><span><b>Balatro</b> 是"juice"教科书：每个得分事件同时上五层反馈——卡片滑动、数字滚动、按事件量级的屏幕抖动、配色匹配的粒子、音高递进。核心洞察：<i>屏幕抖动让你在看清数字之前先"体感"到分数量级</i>。<b>Duolingo</b> 叫这个 <i>multi-modal feedback</i>——每次答对同时触发角色反应+啁啾声+轻触感，<u>少任何一个通道就"薄"了</u>。业界经验：触感要落在<b>动画弹到位的峰值</b>，不是按下瞬间。</span></div>
+    <div class="row"><b>现状</b><span>换区（<code>218–228</code>）只有视觉脉冲；胜利（<code>349–359</code>）只有视觉，没调 SoundManager，没触感；里程碑没有任何反馈。</span></div>
+    <div class="row"><b>改法</b><span>给这几个事件各配"视觉+触感+声音"三件套：<br>• 换区：环形弹一下（spring 而非 sin）+ <code>.sensoryFeedback(.selection)</code> + 已有 <code>SoundManager.zoneChanged()</code>；<br>• 达标 30/60/120s：数字弹一下 + <code>.impact(weight:.light)</code> + Buddy cheer；<br>• 结束达标：<code>.sensoryFeedback(.success)</code> + 彩带 + Buddy celebrate + 音效。<br>用 iOS 17+ 的 <code>.sensoryFeedback(_, trigger:)</code>，比老的 <code>UIImpactFeedbackGenerator</code> 干净。</span></div>
+    <div class="row"><b>取舍</b><span>投入产出比最高的一档。API 全是原生、零依赖，半天能铺完主要事件。注意尊重你们已有的 Reduce Motion 处理。</span></div>
+  </div>
+
+  <!-- C session -->
+  <h3 id="r-session">C. Session 屏（核心，最该重做）<span class="eff e2">🟡 中</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip">Zero（禁食计时环）</span><span class="chip">Headspace（呼吸）</span><span class="chip y">Pokémon Smile（AR 分区）</span><span class="chip">Brush DJ</span></div>
+    <div class="row"><b>参考</b><span><b>Zero</b> 的禁食环最值得抄：环随时间填充，且把"脂肪燃烧/生酮/自噬"标成环上的<b>阶段刻度</b>——进度不只是时间，而是<i>生物学意义</i>。→ 你们可以把 2 分钟标成"斑块松动 → 达到 ADA 推荐"的阶段。<b>Headspace</b> 的播放键本身像肺一样一呼一吸，给出节奏而不需要文字。<b>Pokémon Smile</b>（和你们最像）：前置摄像头当镜子，角落象限图指示刷哪块，看向别处计时暂停，全程无文字指示。</span></div>
+    <div class="row"><b>现状</b><span>计时器是 48pt 纯文本（<code>BrushView.swift:308–313</code>），还用系统字体；换区只有脉冲圈。这是产品核心屏，却是现在最敷衍的地方。</span></div>
+    <div class="row"><b>改法</b><span>用你们已在用的 <code>TimelineView + Canvas</code> 画一个<b>进度环</b>替代纯文本：环上标 30s/60s/120s 阶段刻度，达标刻度点亮 + 弹一下；中心数字保留 <code>.numericText()</code> 但换 <b>Nunito</b>；Buddy 蹲在环下方陪刷（见 A）。达标 2min 时环完成 + 庆祝。</span></div>
+    <div class="row"><b>取舍</b><span>Canvas 环你们已有技术储备，不难。这屏一改，整个产品"核心体验"的档次直接上去。</span></div>
+  </div>
+
+  <!-- D score -->
+  <h3 id="r-score">D. 单一权威分数 + 进度可视化 <span class="eff e2">🟡 中</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip">Apple Activity Rings</span><span class="chip">WHOOP</span><span class="chip">Oura（2025 改版）</span><span class="chip y">BetterMouth · MouthScore</span></div>
+    <div class="row"><b>参考</b><span><b>WHOOP</b>：把多信号压成<i>一个</i>权威数字（0–100），首屏一眼回答"今天怎样"，图表藏在下一层（三级渐进披露）。<b>Activity Rings</b>：未闭合的环靠"闭环强迫症"驱动，完成时 sparkle 粒子庆祝。<b>Oura</b> 新版 Today 用"头条新闻"模型——只推此刻最关键的一条。直接竞品 <b>BetterMouth</b> 已经有 0–100 的 MouthScore。</span></div>
+    <div class="row"><b>现状</b><span>你们 <code>HistoryView</code> 有 level/streak/习惯曲线/成就，信息不少但没有<b>一个统领性的数字或环</b>让人一眼看懂"我刷得好不好"。</span></div>
+    <div class="row"><b>改法</b><span>产品你们已经在测"刷牙质量"了——把它做成首屏一个大的<b>质量分环</b>（本次 session 分 + 今日/本周趋势），颜色走绿/黄/红语义。History 首条 = 此刻最该看的一条，其余下沉。</span></div>
+    <div class="row"><b>取舍</b><span>这条一半是产品决策一半是 UI。若"质量分"算法还没稳，先别急着把它做成核心数字。</span></div>
+  </div>
+
+  <!-- E celebrate/streak -->
+  <h3 id="r-celebrate">E. 庆祝与 streak 的"分级" <span class="eff e2">🟡 中</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip g">Duolingo（streak 火焰进化）</span><span class="chip">Streaks（ADA 2016）</span><span class="chip g">Finch（可选 streak）</span></div>
+    <div class="row"><b>参考</b><span><b>Duolingo</b> 的关键原则是 <i>proportional celebration</i>——小胜利小彩带，大里程碑全屏；streak 图标会<b>随天数进化</b>（气球→凤凰→角色变身），30 天的火焰明显比 3 天的壮观。<b>Finch</b> 提供"streak freeze"保护和 4 档难度，避免破功即弃坑（这是伦理安全阀，现代实现几乎都有）。</span></div>
+    <div class="row"><b>现状</b><span>庆祝是固定的一个文字框（<code>349–359</code>）；streak 卡是静态展示，无"越长越壮观"的视觉升级。</span></div>
+    <div class="row"><b>改法</b><span>庆祝按量级分级：达标最低线 vs 满 2min vs 破纪录，彩带数量/角色动作/音效强度递增（你们 DoneResultSheet 已有 <code>metMinimum</code> 分支，扩成 3 档）。streak 火焰图标按天数换梯度（自定义件，见 F）。加 streak freeze 更人性。</span></div>
+  </div>
+
+  <!-- F icon -->
+  <h3 id="r-icon">F. 图标与插画体系 <span class="eff e2">🟡 中</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip g">Duolingo（形状语言）</span><span class="chip">Habitica（统一图标宇宙）</span><span class="chip y">claymorphism 趋势</span></div>
+    <div class="row"><b>参考</b><span><b>Duolingo</b> 的形状语言有明文规则：最少必要细节、先看剪影、夸张到接近漫画、全部由圆角矩形/圆/三角构成、无尖角、白色留白当画框。<b>Habitica</b>：<i>选定一个图标隐喻宇宙，所有东西都在里面建</i>（统一 2px 描边 + 平涂 + 轻阴影）。2026 图标趋势里 <b>claymorphism</b>（软糯膨胀形状、柔和阴影、类粉彩）特别适合刷牙这种"亲切、低压力、玩具感"的品类。</span></div>
+    <div class="row"><b>现状</b><span>~51 处 <code>Image(systemName:)</code>，牙齿用系统 <code>mouth.fill</code>，全是 Apple 默认件，"现成货"味。</span></div>
+    <div class="row"><b>改法</b><span>分两步、别一步到位：<br>1）<b>先把 SF Symbols 用到位</b>——<code>.hierarchical/.palette</code> 渲染模式 + <code>.symbolEffect(.bounce)</code> 点按弹跳（<span class="eff e1">🟢 快</span>，你们 TipsView 已经在用 hierarchical，铺开即可）；<br>2）<b>只给"品牌时刻"做自定义件</b>——牙齿、streak 火焰、成就徽章、货币，用统一 claymorphism 风格（PDF 矢量资源进 asset catalog，或自定义 SF Symbol 走 SF Symbols app 的 "Duplicate as Custom Symbol"）。键盘/选择器这种隐形处继续用系统件。</span></div>
+    <div class="row"><b>取舍</b><span>自定义件需要画（或找人画），是唯一"要美术产能"的一条。但 claymorphism 门槛不高，一套核心 8–10 个件即可覆盖品牌时刻。</span></div>
+  </div>
+
+  <!-- G kid/adult -->
+  <h3 id="r-mode">G. Kid / Adult：整套视觉切换，不只是换色 <span class="eff e3">🔴 大</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip y">Pokémon Smile / Chomper Chums（kid）</span><span class="chip">Oral-B / Sonicare（adult）</span><span class="chip">Headspace / Zero（adult 氛围）</span><span class="chip g">Finch（跨龄）</span></div>
+    <div class="row"><b>参考</b><span>儿童向和成人向是<b>两套语言</b>：Pokémon Smile 全 AR、卡通细菌当敌人、收集奖励、无文字、声音重；Oral-B 成人 app 是覆盖率地图 + 数字评分 + HealthKit，零角色。跨龄的 <b>Finch</b> 靠"照顾一个你命名的宠物"这个年龄中性的隐喻打通两端，视觉语言保持一致，只是任务类型不同。</span></div>
+    <div class="row"><b>现状</b><span>你们 pivot 后把 kid/adult 改成了 Settings 开关（好决策），角色里也有 <code>WisdomView</code>（戴眼镜的臼齿，成人向）。但切换目前更多是"开关功能"，视觉语言没有整套切换。</span></div>
+    <div class="row"><b>改法</b><span>让开关切换<b>整套视觉基调</b>：kid = 角色优先（Buddy 大、蹦跳多、音效多、session 不显数字）；adult = 氛围克制（Headspace/Zero 式安静计时环 + 结束后 WHOOP 式分数卡 + 可分享记录）。你们 pivot 记忆里"可验证记录给牙医看"的价值链，正好落在 adult 模式的"分数卡 + 记录"上。</span></div>
+    <div class="row"><b>取舍</b><span>范围大、且和产品策略强绑定。建议排在 A/B/C 之后——先让单一模式够好，再分叉。</span></div>
+  </div>
+
+  <!-- H type -->
+  <h3 id="r-type">H. 排版 / 间距 / 颜色纪律 <span class="eff e1">🟢 快</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip g">Duolingo（Feather + DIN）</span><span class="chip">系统 SF Pro + SF Rounded</span></div>
+    <div class="row"><b>参考</b><span>Duolingo 的字体规则：display 字体（Feather）永远是 body 字体（DIN Rounded）的 ~150% 大小，保证展示型主导。原则是<i>吉祥物→字形→整体性格是一条线</i>。间距上 premium 的共性是 8pt 栅格 + 慷慨留白（实测扫读快 20%+）。</span></div>
+    <div class="row"><b>现状</b><span>Nunito 全字重体系本身很好（相当于你们的 Feather）。主要漏洞：<b>计时器用了系统字体</b>破坏一致性（见 I）；间距是 12–18/8–14 的手调值，没有明文 8pt 栅格 token。</span></div>
+    <div class="row"><b>改法</b><span>在 <code>DuoTheme</code> 里补一个 spacing scale token（4/8/12/16/24…）并逐步替换手调值；确认所有大标题走 Nunito ExtraBold、正文走 Regular/SemiBold，字重对比拉开。<b>低风险、纯收敛。</b></span></div>
+  </div>
+
+  <!-- I consistency -->
+  <h3 id="r-consistency">I. 一致性补洞 <span class="eff e1">🟢 快</span></h3>
+  <div class="rec">
+    <div class="row"><b>现状</b><span>两个明显断层：<code>SettingsView.swift</code> 是裸系统 Form（无 Duo 组件）；计时器用 <code>.system</code> 字体而非 Nunito。</span></div>
+    <div class="row"><b>改法</b><span>Settings 套上 <code>DuoCard</code>/自定义行样式，让它和 app 其余部分一致（"随机开三屏没有一个值是目测的"那条自查）。计时器换回 Nunito。都是纯收敛的低风险活。</span></div>
+    <div class="row"><b>取舍</b><span>不性感但显脏。放进 quick-win 批次顺手做掉。</span></div>
+  </div>
+
+  <!-- J glass -->
+  <h3 id="r-glass">J. iOS 26 Liquid Glass（可选，按受众定）<span class="eff e2">🟡 中</span></h3>
+  <div class="rec">
+    <div class="apps"><span class="chip y">Moonlitt（ADA 2026 交互奖）</span><span class="chip">Apple 系统</span></div>
+    <div class="row"><b>参考</b><span>iOS 26（2025-06）的 Liquid Glass 是 2013 以来最大视觉改版：导航层用实时折射的半透明材质，滚动时 tab bar 收缩把焦点让给内容。ADA 2026 交互奖 <b>Moonlitt</b> 就是因为 Liquid Glass 用得好——<i>chrome 在你用的时候消失</i>。SwiftUI API：<code>.glassEffect()</code>、<code>GlassEffectContainer</code>。铁律：<b>文字永远放实心层，不要直接压在玻璃上</b>；别嵌套玻璃、别用在可滚动列表。</span></div>
+    <div class="row"><b>现状</b><span>你们是自定义 tab bar（<code>ContentView</code>），没上 Liquid Glass。</span></div>
+    <div class="row"><b>改法</b><span>可选。若目标是"最新原生质感"，可给 tab bar / header 的 chrome 上 <code>.glassEffect()</code>。但这跟你们 Duolingo 的"chunky 实心描边"美学其实<b>有张力</b>——玻璃是冷、透、极简，Duo 是暖、实、厚。<b>我的判断：别为了追新而混搭</b>，除非你们想整体往"更成人、更系统原生"的方向调。先把 A–C 做好更重要。</span></div>
+  </div>
+
+  <hr class="hr">
+
+  <!-- ============ 5. plan ============ -->
+  <h2 id="plan">5 · 分阶段行动清单</h2>
+  <p>按"性价比 / 依赖关系"排，不是按章节顺序。</p>
+
+  <div class="card">
+    <h3>🟢 第一批 · Quick wins（约 1 天，纯原生、零依赖、零决策）</h3>
+    <ul>
+      <li><b>spring 化</b>：把关键交互的 <code>.easeInOut</code> 换成 <code>.snappy/.bouncy</code>（30 分钟，感受立变）。</li>
+      <li><b>触感铺开</b>：给换区/达标/结束加 <code>.sensoryFeedback</code>（B 的一部分）。</li>
+      <li><b>SF Symbol 用到位</b>：<code>.symbolEffect(.bounce)</code> 点按反馈 + 统一渲染模式（F 第 1 步）。</li>
+      <li><b>补一致性洞</b>：计时器换 Nunito；Settings 套 Duo 组件（I）。</li>
+      <li><b>spacing token</b>：<code>DuoTheme</code> 加 8pt 栅格（H）。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>🟡 第二批 · 核心体验升级（约 1 周）</h3>
+    <ul>
+      <li><b>吉祥物活起来</b>（A）：先做 <code>idle</code>+<code>celebrate</code> 两态，塞进 session 屏和空状态。</li>
+      <li><b>Session 计时环</b>（C）：Canvas 进度环 + 阶段刻度 + 达标点亮，替换纯文本计时器。</li>
+      <li><b>多通道反馈补全</b>（B）：三件套铺到所有关键事件，触感落在动画峰值。</li>
+      <li><b>庆祝分级</b>（E）：DoneResultSheet 扩成 3 档 proportional celebration。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>🔴 第三批 · 需决策 / 要美术产能 / 大范围</h3>
+    <ul>
+      <li><b>自定义图标集</b>（F 第 2 步）：一套 claymorphism 品牌件（牙齿/火焰/徽章），要画。</li>
+      <li><b>单一质量分 + 进度环</b>（D）：等"质量分"算法稳了再做核心化。</li>
+      <li><b>Kid/Adult 整套视觉切换</b>（G）：跟产品策略强绑，排在单模式够好之后。</li>
+      <li><b>是否转 .xcodeproj 上 Rive</b>（约束路线②）：只有当吉祥物要成为核心资产、手搓够不着时才考虑。</li>
+      <li><b>Liquid Glass</b>（J）：可选，且和现有美学有张力，别为追新而混搭。</li>
+    </ul>
+  </div>
+
+  <div class="callout good" style="box-shadow:0 5px 0 var(--blue-sh); background:#EFF9FF;">
+    <span class="tag" style="background:var(--blue);border-color:var(--blue-sh);color:#fff">建议起点</span>
+    <p style="margin:.5em 0 0">先做<b>第一批 quick wins</b>——一天之内你就能明显感到 app "活"了，几乎零风险；然后集中火力做<b>第二批的 A（吉祥物）+ C（计时环）</b>，这两个是把"naive"甩掉的主战场。第三批等你对方向拍板后再排。<br>另外提醒：这些视觉改动<b>模拟器多半看不全</b>（智能镜相机预览、分区高亮都要真机），跟你们 PROGRESS 里"真机 smoke 是最大的门"是同一件事——做完动效最好一起真机验。</p>
+  </div>
+
+  <!-- ============ 6. sources ============ -->
+  <h2 id="sources">6 · 来源</h2>
+  <p class="meta">调研自 2026-06/07 的公开资料，含官方设计博客、Apple Design Award 名单、Apple HIG、库文档。</p>
+  <div class="src">
+    <p><b>Duolingo / 赛道</b></p>
+    <ul>
+      <li><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/">Shape language: Duolingo's art style</a> — 形状语言规则（官方）</li>
+      <li><a href="https://www.monotype.com/resources/duolingo-custom-font-inspired-their-owl-mascot-duo">Feather 字体如何从 Duo 造型来</a> — Monotype</li>
+      <li><a href="https://blog.duolingo.com/streak-milestone-design-animation/">Streak 里程碑动画设计</a> — Duolingo Blog</li>
+      <li><a href="https://dev.to/uianimation/stop-using-lottie-for-characters-why-rive-is-the-future-of-app-animation-1hjf">Rive vs Lottie（状态机 vs 时间线）</a></li>
+      <li><a href="https://60fps.design/apps/duolingo">Duolingo 动画库拆解</a> — 60fps.design</li>
+    </ul>
+    <p><b>App Store 头部 / 趋势</b></p>
+    <ul>
+      <li><a href="https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/">2026 Apple Design Award 获奖名单</a>（Moonlitt / Tide Guide）</li>
+      <li><a href="https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/">Apple 发布 Liquid Glass 设计语言</a></li>
+      <li><a href="https://blakecrosley.com/guides/design/balatro">Balatro 的"juicy feedback"拆解</a>（ADA 2025）</li>
+      <li><a href="https://asomobile.net/en/blog/app-icon-trends-and-best-practices-2025/">2026 App 图标趋势</a></li>
+      <li><a href="https://hype4.academy/articles/design/claymorphism-in-user-interfaces">Claymorphism in UI</a> — Hype4</li>
+    </ul>
+    <p><b>健康 / 健身 / 冥想 / 牙齿</b></p>
+    <ul>
+      <li><a href="https://developer.apple.com/design/human-interface-guidelines/activity-rings">Apple Activity Rings — HIG</a></li>
+      <li><a href="https://www.925studios.co/blog/whoop-design-breakdown">WHOOP 设计拆解</a></li>
+      <li><a href="https://ouraring.com/blog/new-oura-app-experience/">Oura 2025 改版</a></li>
+      <li><a href="https://screensdesign.com/showcase/zero-fasting-health-tracker">Zero 禁食计时环 UI</a></li>
+      <li><a href="https://raw.studio/blog/how-headspace-designs-for-mindfulness/">Headspace 的正念设计</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Pok%C3%A9mon_Smile">Pokémon Smile（刷牙 AR）</a></li>
+      <li><a href="https://www.deconstructoroffun.com/blog/x0hd2ssr80y5n7gv0w967pg7hwd7tl">Finch 如何用宠物驱动留存</a></li>
+      <li><a href="https://raw.studio/blog/flos-empathetic-design-hacks-crafting-data-driven-experiences-for-female-health-apps/">Flo 的可信度设计</a></li>
+      <li><a href="https://apps.apple.com/us/app/bettermouth-teeth-brushing-app/id6714450327">BetterMouth（MouthScore，直接竞品）</a></li>
+    </ul>
+    <p><b>SwiftUI 落地</b></p>
+    <ul>
+      <li><a href="https://developer.apple.com/videos/play/wwdc2024/10188/">What's new in SF Symbols 6 — WWDC24</a></li>
+      <li><a href="https://www.donnywals.com/animating-sf-symbols-on-ios-18/">Animating SF Symbols on iOS 18</a></li>
+      <li><a href="https://blog.jacobstechtavern.com/p/swiftui-keyframe-animations">SwiftUI Keyframe Animations</a></li>
+      <li><a href="https://github.com/simibac/ConfettiSwiftUI">ConfettiSwiftUI（纯源码，可进 .swiftpm）</a></li>
+      <li><a href="https://forums.swift.org/t/spm-binary-packages-swift-playgrounds-on-ipad/62916">Swift Forums：.swiftpm 不支持二进制 SPM 包</a>（Rive/Lottie 受阻的依据）</li>
+      <li><a href="https://nerdyak.tech/development/2024/06/27/particle-effects-with-SwiftUI-Canvas.html">SwiftUI Canvas 粒子效果</a></li>
+    </ul>
+  </div>
+
+  <p class="foot">生成：Claude Code · 5 路并行调研（现状审计 + 4 路市场调研）合成 · 报告文件位于 <code>docs/design-research/ui-ux-benchmark-2026-07.html</code></p>
+
+</div>
+</body>
+</html>
