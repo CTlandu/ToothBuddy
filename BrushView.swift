@@ -15,13 +15,6 @@ struct BrushView: View {
     @StateObject private var retention = RetentionStore.shared
     /// U5 — smart-mirror (camera visual) vs audio-first (eyes-free). Drives the brushing UI.
     private var isMirror: Bool { prefs.sessionMode == .mirror }
-    /// The reactive-Buddy mood for the idle hero — droops if today has no closed ring yet
-    /// but yesterday kept the streak (a gentle "let's not lose it"), otherwise breathes idle.
-    private var idleBuddyMood: BuddyMood {
-        let rings = retention.rings
-        if !rings.amClosed && !rings.pmClosed && store.streak.isTodayPending { return .sad }
-        return .idle
-    }
     @State private var isBrushing = false
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
@@ -163,7 +156,8 @@ struct BrushView: View {
             }
         }
         .sheet(isPresented: $showReveal) {
-            MorningRevealView(collectible: retention.pendingCollectible) {
+            MorningRevealView(owned: retention.collectionProgress.owned,
+                              total: retention.collectionProgress.total) {
                 retention.consumeReveal()
                 showReveal = false
             }
@@ -407,8 +401,10 @@ struct BrushView: View {
                 audioGuideView
             } else {
                 // Idle hero — reactive Buddy centered, camera-off message below.
+                // Buddy stays content on the home screen (never guilt-first — P4); the "care"
+                // pressure comes from the rings/streak, not a sad face before you've brushed.
                 VStack(spacing: 16) {
-                    BuddyReactiveView(mood: idleBuddyMood, scale: 1.7)
+                    BuddyReactiveView(mood: .idle, scale: 1.7)
                         .frame(width: 150, height: 175)
                     Text("Ready to brush?")
                         .font(Duo.Fnt.ebd(22))
@@ -557,7 +553,8 @@ struct BrushView: View {
                 VStack(alignment: .trailing, spacing: 8) {
                     statChip(icon: "flame.fill", tint: Duo.yellow, text: "\(store.streak.currentStreak)")
                     Button { showCollection = true } label: {
-                        statChip(icon: "sparkles", tint: Duo.blue, text: "\(coll.owned)/\(coll.total)")
+                        statChip(icon: "sparkles", tint: Duo.blue,
+                                 text: "\(coll.owned)/\(coll.total)", trailingChevron: true)
                     }
                     .buttonStyle(.plain)
                 }
@@ -587,10 +584,14 @@ struct BrushView: View {
         }
     }
 
-    private func statChip(icon: String, tint: Color, text: String) -> some View {
+    private func statChip(icon: String, tint: Color, text: String, trailingChevron: Bool = false) -> some View {
         HStack(spacing: 5) {
             Image(systemName: icon).font(.system(size: 13, weight: .black)).foregroundColor(tint)
             Text(text).font(Duo.Fnt.ebd(15)).foregroundColor(Duo.ink)
+            if trailingChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .black)).foregroundColor(Duo.muted)
+            }
         }
         .padding(.horizontal, 12).padding(.vertical, 7)
         .background(Capsule().fill(Duo.cream))
@@ -921,10 +922,12 @@ private struct DoneResultSheet: View {
 
     var body: some View {
         VStack(spacing: 12) {
+          ScrollView {
+            VStack(spacing: 12) {
             BuddyReactiveView(mood: buddyMood,
-                              scale: buddyMood == .celebrate ? (playful ? 1.5 : 1.2) : 1.1)
-                .frame(width: buddyMood == .celebrate ? (playful ? 150 : 120) : 100,
-                       height: buddyMood == .celebrate ? (playful ? 172 : 138) : 116)
+                              scale: buddyMood == .celebrate ? (playful ? 1.2 : 1.0) : 0.95)
+                .frame(width: buddyMood == .celebrate ? (playful ? 122 : 104) : 88,
+                       height: buddyMood == .celebrate ? (playful ? 140 : 120) : 102)
 
             Text(title)
                 .font(Duo.Fnt.ebd(26))
@@ -989,7 +992,10 @@ private struct DoneResultSheet: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 8)
+            }
+          }
 
+            // DONE + delete pinned below the scroll so they're always reachable.
             DuoButton("DONE", role: celebrate ? .primary : .secondary) {
                 SoundManager.sheetDismissed()
                 onDismiss()

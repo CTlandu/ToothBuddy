@@ -1,11 +1,13 @@
 import SwiftUI
 import ToothBuddyCore
 
-/// U9 — the overnight "morning reveal" moment. Shown once when `OvernightCycle` reports a
-/// reveal is available (evening send-off → next-day qualifying brush). Buddy wakes up and
-/// hands over what he found while you slept. Gated on a real brush, never on app-open (P1).
+/// U9 — the overnight morning *greeting*. Shown once on app-open when `OvernightCycle` reports
+/// a greeting is available (a new day after an evening send-off). Buddy is back from the night
+/// and happy to see you — the emotional hook that pulls you to brush. It gives no reward (that
+/// is earned by the brush itself, shown in the done sheet), so it never violates P1.
 struct MorningRevealView: View {
-    let collectible: Collectible?
+    let owned: Int
+    let total: Int
     let onDismiss: () -> Void
 
     var body: some View {
@@ -19,35 +21,26 @@ struct MorningRevealView: View {
                 .font(Duo.Fnt.ebd(28))
                 .foregroundColor(Duo.ink)
 
-            Text("Buddy was out all night and came back with something for you.")
+            Text("Buddy's back from the night and can't wait to brush with you.")
                 .font(Duo.Fnt.sbd(14))
                 .foregroundColor(Duo.muted)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 28)
 
-            if let c = collectible {
-                VStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 30, weight: .black))
-                        .foregroundColor(Duo.yellow)
-                    Text(c.name)
-                        .font(Duo.Fnt.ebd(20))
-                        .foregroundColor(Duo.ink)
-                    Text(c.rarity.rawValue.capitalized)
-                        .font(Duo.Fnt.sbd(11))
-                        .tracking(0.6)
-                        .foregroundColor(Duo.muted)
-                }
-                .padding(.horizontal, 28).padding(.vertical, 18)
-                .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Duo.foamFill))
-                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Duo.ink, lineWidth: Duo.outlineWidth))
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles").foregroundColor(Duo.yellow)
+                Text("\(owned) of \(total) friends found together")
             }
+            .font(Duo.Fnt.ebd(13))
+            .foregroundColor(Duo.ink)
+            .padding(.horizontal, 16).padding(.vertical, 9)
+            .background(Capsule().fill(Duo.foamFill))
+            .overlay(Capsule().stroke(Duo.ink, lineWidth: Duo.outlineWidth))
 
             Spacer(minLength: 0)
 
-            DuoButton("YAY!", role: .primary) { onDismiss() }
+            DuoButton("LET'S BRUSH!", role: .primary) { onDismiss() }
                 .padding(.horizontal, 32)
         }
         .padding(.vertical, 28)

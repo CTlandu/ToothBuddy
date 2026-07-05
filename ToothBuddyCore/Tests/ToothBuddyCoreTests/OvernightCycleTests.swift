@@ -1,7 +1,9 @@
 import XCTest
 @testable import ToothBuddyCore
 
-/// U4 — overnight send-off / morning reveal, with calendar-boundary edges.
+/// U4 — overnight send-off → next-morning greeting (the hook to brush), with calendar edges.
+/// The greeting fires on a new calendar day after an evening send-off — it does NOT require a
+/// morning brush first (that's the pull *to* brush; the reward is earned by the brush itself).
 final class OvernightCycleTests: XCTestCase {
 
     private let cal: Calendar = {
@@ -24,48 +26,49 @@ final class OvernightCycleTests: XCTestCase {
 
     private func state(_ records: [BrushingRecord], lastReveal: Date? = nil, now: Date? = nil) -> OvernightState {
         OvernightCycle.state(records: records, lastReveal: lastReveal,
-                             now: now ?? at(0, 14), calendar: cal)
+                             now: now ?? at(0, 8), calendar: cal)  // default "now" = this morning 08:00
     }
 
-    func testEveningThenNextMorningReveals() {
-        let s = state([met(-1, 20), met(0, 8)])
+    func testGreetsMorningAfterEveningSendoff() {
+        // Evening brush yesterday; this morning, BEFORE brushing, Buddy greets you.
+        let s = state([met(-1, 20)])
         XCTAssertTrue(s.isSentOff)
         XCTAssertTrue(s.revealAvailable)
     }
 
-    func testAfterMidnightBrushCountsAsNewDay() {
-        // Evening send at day -1 21:00, a 00:xx brush on day 0 → new calendar day → reveal.
-        let s = state([met(-1, 21), met(0, 0)])
+    func testAfterMidnightCountsAsNewDay() {
+        // Evening send at day -1 21:00, app opened at 00:xx on day 0 → new calendar day → greet.
+        let s = state([met(-1, 21)], now: at(0, 0))
         XCTAssertTrue(s.revealAvailable)
     }
 
-    func testMorningOnlyNoEveningIsIdle() {
+    func testNoEveningIsIdle() {
+        // Only a morning brush ever → nothing was sent off → no greeting.
         let s = state([met(0, 8)])
         XCTAssertEqual(s, .idle)
     }
 
-    func testConsumedRevealGoesIdle() {
-        let s = state([met(-1, 20), met(0, 8)], lastReveal: at(0, 9))
+    func testGreetedTodayGoesIdle() {
+        let s = state([met(-1, 20)], lastReveal: at(0, 7))  // already greeted this morning
         XCTAssertEqual(s, .idle)
     }
 
-    func testSentOffWaitingBeforeNewDayBrush() {
-        // Evening brush tonight, no later-day brush yet.
+    func testSameEveningWaitsForTomorrow() {
+        // Brushed this evening → Buddy is out for tonight; no greeting until a new day.
         let s = state([met(0, 20)], now: at(0, 22))
         XCTAssertTrue(s.isSentOff)
         XCTAssertFalse(s.revealAvailable)
     }
 
-    func testSameNightSecondBrushIsNotAReveal() {
-        // Two evening brushes the same day → no new-day brush → not a reveal.
-        let s = state([met(0, 20), met(0, 21)], now: at(0, 22))
-        XCTAssertTrue(s.isSentOff)
-        XCTAssertFalse(s.revealAvailable)
+    func testWelcomeBackAfterGap() {
+        // Evening send-off, then a multi-day gap, then app-open → welcome-back greeting.
+        let s = state([met(-3, 20)])
+        XCTAssertTrue(s.revealAvailable)
     }
 
-    func testWelcomeBackAfterGap() {
-        // Sent off, then a multi-day gap, then a return brush → intentional welcome-back reveal.
-        let s = state([met(-3, 20), met(0, 9)])
+    func testGreetingDoesNotRequireAMorningBrush() {
+        // Explicit: no brush at all today, only last night's evening brush → greeting still fires.
+        let s = state([met(-1, 21)])
         XCTAssertTrue(s.revealAvailable)
     }
 }
