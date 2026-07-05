@@ -1,6 +1,6 @@
 ---
 title: "feat: Kids-first retention engine (v1)"
-status: active
+status: completed
 type: feat
 date: 2026-07-03
 origin: docs/brainstorms/2026-07-03-toothbuddy-retention-engine-requirements.md
