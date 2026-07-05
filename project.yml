@@ -35,6 +35,7 @@ targets:
       - CameraPreviewView.swift
       - CameraService.swift
       - CareStore.swift
+      - CollectionView.swift
       - ContentHistoryStore.swift
       - ContentView.swift
       - DuoTheme.swift

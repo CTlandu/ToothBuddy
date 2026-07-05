@@ -34,6 +34,8 @@ struct BrushView: View {
     @State private var doneSheetRecord: BrushingRecord?
     /// U9 — the overnight morning-reveal, shown once when a reveal is available.
     @State private var showReveal = false
+    /// U11 — the collectible book.
+    @State private var showCollection = false
     /// Quality audit 2026-05-28 / Plan U2 — interval state for the whole brushing
     /// session (begin in `startBrushing`, end in `stopBrushing`). Visible in
     /// Instruments → Points of Interest as "BrushingSession".
@@ -164,6 +166,9 @@ struct BrushView: View {
                 retention.consumeReveal()
                 showReveal = false
             }
+        }
+        .sheet(isPresented: $showCollection) {
+            CollectionView(retention: retention) { showCollection = false }
         }
         .onAppear {
             if !isBrushing, !showDoneSheet, retention.overnight.revealAvailable {
@@ -550,7 +555,10 @@ struct BrushView: View {
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 8) {
                     statChip(icon: "flame.fill", tint: Duo.yellow, text: "\(store.streak.currentStreak)")
-                    statChip(icon: "sparkles", tint: Duo.blue, text: "\(coll.owned)/\(coll.total)")
+                    Button { showCollection = true } label: {
+                        statChip(icon: "sparkles", tint: Duo.blue, text: "\(coll.owned)/\(coll.total)")
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
