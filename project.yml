@@ -45,6 +45,7 @@ targets:
       - HealthExporter.swift
       - HistoryView.swift
       - MyApp.swift
+      - MorningRevealView.swift
       - NotificationScheduler.swift
       - OnboardingView.swift
       - Persistence.swift

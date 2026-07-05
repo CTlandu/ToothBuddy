@@ -32,6 +32,8 @@ struct BrushView: View {
     @State private var spokenCueTimes: Set<Int> = []
     @State private var showDoneSheet = false
     @State private var doneSheetRecord: BrushingRecord?
+    /// U9 — the overnight morning-reveal, shown once when a reveal is available.
+    @State private var showReveal = false
     /// Quality audit 2026-05-28 / Plan U2 — interval state for the whole brushing
     /// session (begin in `startBrushing`, end in `stopBrushing`). Visible in
     /// Instruments → Points of Interest as "BrushingSession".
@@ -143,6 +145,10 @@ struct BrushView: View {
                 ZStack {
                     Duo.pageBackground.ignoresSafeArea()
                     DoneResultSheet(record: record, celebrate: prefs.celebrationsEnabled,
+                                    tier: RewardEngine.evaluate(
+                                        record: record,
+                                        priorRecords: store.records.filter { $0.id != record.id }).tier,
+                                    collectible: record.metMinimum ? retention.pendingCollectible : nil,
                                     onDismiss: { showDoneSheet = false }, onDelete: {
                         store.deleteRecord(id: record.id)
                         showDoneSheet = false
@@ -151,6 +157,17 @@ struct BrushView: View {
                 }
                 .presentationDetents([.height(560)])
                 .presentationDragIndicator(.visible)
+            }
+        }
+        .sheet(isPresented: $showReveal) {
+            MorningRevealView(collectible: retention.pendingCollectible) {
+                retention.consumeReveal()
+                showReveal = false
+            }
+        }
+        .onAppear {
+            if !isBrushing, !showDoneSheet, retention.overnight.revealAvailable {
+                showReveal = true
             }
         }
     }
@@ -853,9 +870,20 @@ private struct DoneResultSheet: View {
     let record: BrushingRecord
     /// U6 — celebrations (Foam + stars) on/off, from Settings (replaces the kid/adult split).
     var celebrate: Bool = true
+    /// U10 — proportional celebration tier (from RewardEngine) + the collectible this
+    /// qualifying session earned (nil when it didn't mint a token).
+    var tier: CelebrationTier = .metMinimum
+    var collectible: Collectible?
     let onDismiss: () -> Void
     let onDelete: () -> Void
     @State private var cardAppeared = false
+
+    /// Buddy's reaction scales with the tier: a real celebration for a met/record brush,
+    /// a gentle idle for a below-goal log. Never punishing (P3).
+    private var buddyMood: BuddyMood {
+        guard celebrate, record.metMinimum else { return .idle }
+        return .celebrate
+    }
 
     private var stars: Int { record.starCount }
     private var duration: Int { record.durationSeconds }
@@ -864,7 +892,8 @@ private struct DoneResultSheet: View {
     private var zonesMet: Int { CoarseZone.allCases.filter(zoneMet).count }
 
     private var title: String {
-        record.metMinimum ? String(localized: "Great brush!") : String(localized: "Brushing logged")
+        if tier == .personalRecord { return String(localized: "New personal best!") }
+        return record.metMinimum ? String(localized: "Great brush!") : String(localized: "Brushing logged")
     }
     private var titleColor: Color { record.metMinimum ? Duo.green : Duo.ink }
 
@@ -880,13 +909,9 @@ private struct DoneResultSheet: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            if celebrate {
-                FoamView()
-                    .frame(width: record.metMinimum ? 96 : 80,
-                           height: record.metMinimum ? 96 : 80)
-            } else {
-                BuddyView().frame(width: 70, height: 80)
-            }
+            BuddyReactiveView(mood: buddyMood, scale: buddyMood == .celebrate ? 1.5 : 1.1)
+                .frame(width: buddyMood == .celebrate ? 150 : 100,
+                       height: buddyMood == .celebrate ? 172 : 116)
 
             Text(title)
                 .font(Duo.Fnt.ebd(26))
@@ -930,6 +955,19 @@ private struct DoneResultSheet: View {
 
             if celebrate {
                 StarRatingView(count: stars, size: 22)
+            }
+
+            // U10 — the collectible this session earned (Buddy's overnight find).
+            if let c = collectible {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles").foregroundColor(Duo.yellow)
+                    Text(String(localized: "Buddy found a new friend: \(c.name)!"))
+                }
+                .font(Duo.Fnt.ebd(13))
+                .foregroundColor(Duo.ink)
+                .padding(.horizontal, 12).padding(.vertical, 8)
+                .background(Capsule().fill(Duo.foamFill))
+                .overlay(Capsule().stroke(Duo.ink, lineWidth: 2))
             }
 
             Text(message)
