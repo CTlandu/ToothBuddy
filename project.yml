@@ -31,9 +31,11 @@ targets:
       - BrushingZoneMonitor.swift
       - BrushGameOverlay.swift
       - BrushView.swift
+      - BuddyReactiveView.swift
       - CameraPreviewView.swift
       - CameraService.swift
       - CareStore.swift
+      - CollectionView.swift
       - ContentHistoryStore.swift
       - ContentView.swift
       - DuoTheme.swift
@@ -44,10 +46,12 @@ targets:
       - HealthExporter.swift
       - HistoryView.swift
       - MyApp.swift
+      - MorningRevealView.swift
       - NotificationScheduler.swift
       - OnboardingView.swift
       - Persistence.swift
       - PreferencesStore.swift
+      - RetentionStore.swift
       - ProfileStore.swift
       - SettingsView.swift
       - ReportPDFRenderer.swift
