@@ -12,8 +12,16 @@ struct BrushView: View {
     @StateObject private var profiles = ProfileStore.shared
     @StateObject private var intentBridge = BrushingIntentBridge.shared
     @StateObject private var prefs = PreferencesStore.shared
+    @StateObject private var retention = RetentionStore.shared
     /// U5 — smart-mirror (camera visual) vs audio-first (eyes-free). Drives the brushing UI.
     private var isMirror: Bool { prefs.sessionMode == .mirror }
+    /// The reactive-Buddy mood for the idle hero — droops if today has no closed ring yet
+    /// but yesterday kept the streak (a gentle "let's not lose it"), otherwise breathes idle.
+    private var idleBuddyMood: BuddyMood {
+        let rings = retention.rings
+        if !rings.amClosed && !rings.pmClosed && store.streak.isTodayPending { return .sad }
+        return .idle
+    }
     @State private var isBrushing = false
     @State private var startDate: Date?
     @State private var elapsedSeconds = 0
@@ -375,10 +383,10 @@ struct BrushView: View {
             } else if isBrushing {
                 audioGuideView
             } else {
-                // Idle hero — BuddyView mascot centered, camera-off message below.
+                // Idle hero — reactive Buddy centered, camera-off message below.
                 VStack(spacing: 16) {
-                    BuddyView()
-                        .frame(width: 140, height: 160)
+                    BuddyReactiveView(mood: idleBuddyMood, scale: 1.7)
+                        .frame(width: 150, height: 175)
                     Text("Ready to brush?")
                         .font(Duo.Fnt.ebd(22))
                         .tracking(0.3)
@@ -474,8 +482,8 @@ struct BrushView: View {
                 .padding(.vertical, 7)
                 .background(Capsule().fill(Color.white.opacity(0.92)))
             }
-            BuddyView()
-                .frame(width: 120, height: 138)
+            BuddyReactiveView(mood: .brushing, scale: 1.5)
+                .frame(width: 130, height: 150)
             if let zone = zoneMonitor.currentZone {
                 Text(zone.prompt)
                     .font(Duo.Fnt.ebd(20))
@@ -513,33 +521,54 @@ struct BrushView: View {
         }
     }
 
+    /// U8 — home card: today's two rings (AM/PM) + streak flame + collection progress.
+    /// Replaces the old goal-pips; leads with the retention signals, not a level badge.
     private var goalBar: some View {
-        let sessionsToday = store.recordsTodayCount
-        let goal = 2
-        return DuoCard(padding: 14) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text("TODAY'S GOAL")
-                        .font(Duo.Fnt.ebd(11))
-                        .tracking(0.8)
-                        .foregroundColor(Duo.ink)
-                    Spacer()
-                    DuoBadge(text: "LV \(gamification.level)",
-                             leadingEmoji: "🌱",
-                             role: .primary)
-                    Text("\(min(sessionsToday, goal))/\(goal)")
-                        .font(Duo.Fnt.ebd(12))
-                        .foregroundColor(Duo.muted)
-                        .padding(.leading, 6)
+        let rings = retention.rings
+        let coll = retention.collectionProgress
+        return DuoCard(padding: 16) {
+            HStack(alignment: .center, spacing: 14) {
+                dayRing(closed: rings.amClosed, morning: true)
+                dayRing(closed: rings.pmClosed, morning: false)
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 8) {
+                    statChip(icon: "flame.fill", tint: Duo.yellow, text: "\(store.streak.currentStreak)")
+                    statChip(icon: "sparkles", tint: Duo.blue, text: "\(coll.owned)/\(coll.total)")
                 }
-                DuoProgressPips(completed: min(sessionsToday, goal), total: goal)
-                Text("A.M. · P.M.")
-                    .font(Duo.Fnt.sbd(11))
-                    .foregroundColor(Duo.muted)
             }
         }
         .padding(.bottom, 18)
-        .animation(.easeOut(duration: 0.5), value: store.recordsTodayCount)
+        .animation(.easeOut(duration: 0.45), value: store.records.count)
+    }
+
+    /// One day-ring (morning or evening); filled green + check when the slot is closed.
+    private func dayRing(closed: Bool, morning: Bool) -> some View {
+        VStack(spacing: 6) {
+            ZStack {
+                Circle().stroke(Duo.stoneLight, lineWidth: 7)
+                if closed {
+                    Circle()
+                        .stroke(Duo.green, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                }
+                Image(systemName: closed ? "checkmark" : (morning ? "sun.max.fill" : "moon.fill"))
+                    .font(.system(size: 17, weight: .heavy))
+                    .foregroundColor(closed ? Duo.green : Duo.muted)
+            }
+            .frame(width: 52, height: 52)
+            Text(morning ? "A.M." : "P.M.")
+                .font(Duo.Fnt.ebd(11))
+                .foregroundColor(closed ? Duo.ink : Duo.muted)
+        }
+    }
+
+    private func statChip(icon: String, tint: Color, text: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon).font(.system(size: 13, weight: .black)).foregroundColor(tint)
+            Text(text).font(Duo.Fnt.ebd(15)).foregroundColor(Duo.ink)
+        }
+        .padding(.horizontal, 12).padding(.vertical, 7)
+        .background(Capsule().fill(Duo.cream))
+        .overlay(Capsule().stroke(Duo.ink, lineWidth: 2))
     }
 
     private var buttonSection: some View {

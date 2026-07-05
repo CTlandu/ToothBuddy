@@ -80,6 +80,8 @@ struct BuddyReactiveView: View {
     var mood: BuddyMood
     var scale: CGFloat = 1.7
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     // One shared design space. Everything below is authored in these units.
     private let refW: CGFloat = 120
     private let refH: CGFloat = 140
@@ -97,8 +99,10 @@ struct BuddyReactiveView: View {
     private func P(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: x * scale, y: y * scale) }
 
     private func content(t: Double, pose: BuddyPose) -> some View {
-        let live = aliveness(t: t)
-        let blink = self.blink(t: t)
+        // Respect Reduce Motion: hold the pose, skip the continuous breathe/blink/jump.
+        let live = reduceMotion ? (sx: CGFloat(1), sy: CGFloat(1), yOff: CGFloat(0), rot: Double(0))
+                                : aliveness(t: t)
+        let blink = reduceMotion ? CGFloat(1) : self.blink(t: t)
         let W = refW * scale, H = refH * scale
         let stroke = 4.6 * scale
         let handY = 96 + (34 - 96) * pose.arms   // arm-end Y, tracks `raise`
