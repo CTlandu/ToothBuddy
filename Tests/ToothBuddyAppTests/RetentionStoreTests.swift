@@ -88,6 +88,21 @@ final class RetentionStoreTests: XCTestCase {
         XCTAssertNil(rs.pendingCollectibleID)
     }
 
+    /// U15 / R9 / P1 — an audio-only session with no camera verification still earns the full
+    /// reward. The retention loop must never gate on `cameraVerified` (quality is unmeasurable).
+    func testAudioOnlyUnverifiedSessionStillGrants() {
+        let (_, ps, bs, rs) = make()
+        withOwner(ps, bs)
+        let cal = Calendar.current
+        let day = cal.date(bySettingHour: 8, minute: 0, second: 0, of: Date())!
+        bs.recordSession(start: day, end: day.addingTimeInterval(125),
+                         activeSeconds: 122, targetSeconds: 120, coverage: fullCoverage(),
+                         cameraVerified: false, guidanceMode: .fallbackTimed)  // audio-only, unverified
+        rs.refresh()
+        XCTAssertEqual(rs.ownedCollectibleIds.count, 1)
+        XCTAssertTrue(rs.rings.amClosed, "An audio-only qualifying morning brush closes the AM ring")
+    }
+
     func testCollectionProgressCounts() {
         let (_, ps, bs, rs) = make()
         withOwner(ps, bs)

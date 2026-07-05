@@ -147,6 +147,7 @@ struct BrushView: View {
                 ZStack {
                     Duo.pageBackground.ignoresSafeArea()
                     DoneResultSheet(record: record, celebrate: prefs.celebrationsEnabled,
+                                    playful: prefs.contentTone == .playful,
                                     tier: RewardEngine.evaluate(
                                         record: record,
                                         priorRecords: store.records.filter { $0.id != record.id }).tier,
@@ -878,6 +879,9 @@ private struct DoneResultSheet: View {
     let record: BrushingRecord
     /// U6 — celebrations (Foam + stars) on/off, from Settings (replaces the kid/adult split).
     var celebrate: Bool = true
+    /// U14 — kid (playful) vs adult (essentials) skin, from the existing `contentTone`
+    /// preference. Adults get a calmer, smaller celebration; same core, restrained skin.
+    var playful: Bool = true
     /// U10 — proportional celebration tier (from RewardEngine) + the collectible this
     /// qualifying session earned (nil when it didn't mint a token).
     var tier: CelebrationTier = .metMinimum
@@ -917,9 +921,10 @@ private struct DoneResultSheet: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            BuddyReactiveView(mood: buddyMood, scale: buddyMood == .celebrate ? 1.5 : 1.1)
-                .frame(width: buddyMood == .celebrate ? 150 : 100,
-                       height: buddyMood == .celebrate ? 172 : 116)
+            BuddyReactiveView(mood: buddyMood,
+                              scale: buddyMood == .celebrate ? (playful ? 1.5 : 1.2) : 1.1)
+                .frame(width: buddyMood == .celebrate ? (playful ? 150 : 120) : 100,
+                       height: buddyMood == .celebrate ? (playful ? 172 : 138) : 116)
 
             Text(title)
                 .font(Duo.Fnt.ebd(26))

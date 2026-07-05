@@ -97,23 +97,25 @@ final class NotificationScheduler {
 
     // Plan U8: notification title + body run through String(localized:) so the
     // system delivers the user's preferred language.
+    // U12 (retention): copy is in Buddy's voice, gentle and never shaming (P4). The morning
+    // routine doubles as the overnight-reveal teaser ("come see what Buddy found").
     private static func title(for kind: ReminderKind) -> String {
         switch kind {
-        case .morningRoutine: return String(localized: "Good morning! ☀️")
-        case .eveningRoutine: return String(localized: "Evening brush 🌙")
-        case .streakAtRisk:   return String(localized: "Keep your streak alive!")
+        case .morningRoutine: return String(localized: "Buddy's back! 🦷")
+        case .eveningRoutine: return String(localized: "Buddy's getting sleepy 🌙")
+        case .streakAtRisk:   return String(localized: "Buddy misses you")
         }
     }
 
     private static func body(for kind: ReminderKind, streak: StreakResult) -> String {
         switch kind {
         case .morningRoutine:
-            return String(localized: "Time for a 2-minute brush to start the day.")
+            return String(localized: "Buddy came home overnight — brush to see what he found!")
         case .eveningRoutine:
-            return String(localized: "A quick brush before bed keeps your streak going.")
+            return String(localized: "A quick brush tucks Buddy in for the night.")
         case .streakAtRisk:
             let n = streak.currentStreak
-            return String(localized: "You haven't brushed today — brush now to protect your \(n)-day streak.")
+            return String(localized: "Brush today so Buddy can keep your \(n)-day streak safe.")
         }
     }
 }
